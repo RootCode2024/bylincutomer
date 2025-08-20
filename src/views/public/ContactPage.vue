@@ -197,7 +197,7 @@ const handleSubmit = async () => {
 
 .contact-hero {
   background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-              url('@/assets/images/contact-hero.jpg');
+              url('@/assets/images/collection-hero.jpg');
   background-size: cover;
   background-position: center;
   height: 300px;
