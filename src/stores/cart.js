@@ -11,20 +11,19 @@ export const useCartStore = defineStore('cart', {
     sharedCarts: [],
     isPersisted: false,
     errorMessage: null,
-    couponValue: 0, // Initialize as 0 instead of null
+    couponValue: 0,
     currentCartId: null,
     sharedCartToken: null,
     totalOrders: null,
     favorite: useStorage('favorite-items', []),
     wishlistCount: null,
-    token: localStorage.getItem('auth_token') || null
-    // Remove finalPrice from state since it's a derived value
+    token: localStorage.getItem('auth_token') || null,
+    deliveryInfo: null // Nouvelle propriété pour les infos de livraison
   }),
 
   getters: {
     totalQuantity: (state) => state.items.reduce((sum, item) => sum + item.quantity, 0),
     totalPrice: (state) => state.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    // Calculate finalPrice as totalPrice minus couponValue
     finalPrice: (state) => {
       const total = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
       return total - (state.couponValue || 0);
@@ -34,10 +33,14 @@ export const useCartStore = defineStore('cart', {
       const total = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
       return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(total)
     },
-    // You might want a formatted version of finalPrice too
     formattedFinalPrice: (state) => {
       const final = state.finalPrice;
       return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(final)
+    },
+    // Getter pour obtenir le coût de livraison formaté
+    formattedDeliveryCost: (state) => {
+      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
+        .format(state.deliveryInfo?.deliveryCost || 0);
     }
   },
 
@@ -84,8 +87,105 @@ export const useCartStore = defineStore('cart', {
       this.isPersisted = false
       this.currentCartId = null
       this.sharedCartToken = null
-      this.finalPrice = null
-      this.couponValue = null
+      this.couponValue = 0
+    },
+
+    // Définir les informations de livraison
+    setDeliveryInfo(deliveryForm, deliveryOption, deliveryCost, city, district) {
+      // Stocker les informations de livraison dans le state
+      this.deliveryInfo = {
+        // Informations du formulaire
+        firstName: deliveryForm.firstName,
+        lastName: deliveryForm.lastName,
+        email: deliveryForm.email,
+        phone: deliveryForm.phone,
+        address: deliveryForm.address,
+        additionalAddress: deliveryForm.additionalAddress,
+        postalCode: deliveryForm.postalCode,
+        
+        // Options de livraison
+        deliveryOption: deliveryOption,
+        deliveryCost: deliveryCost,
+        
+        // Localisation
+        city: city,
+        district: district,
+        
+        // Horodatage
+        setAt: new Date().toISOString()
+      };
+      
+      // Persister les informations de livraison dans le localStorage
+      localStorage.setItem('deliveryInfo', JSON.stringify(this.deliveryInfo));
+      
+      // Optionnel: synchroniser avec le serveur si l'utilisateur est connecté
+      if (this.token) {
+        this.syncDeliveryInfoWithServer();
+      }
+    },
+
+    // Méthode pour synchroniser les informations de livraison avec le serveur
+    async syncDeliveryInfoWithServer() {
+      try {
+        const apiStore = useApiStore();
+        const authStore = useAuthStore();
+        
+        await axios.post(`${apiStore.apiUrl}/delivery-info`, {
+          delivery_info: this.deliveryInfo
+        }, {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`
+          }
+        });
+        
+        console.log('Informations de livraison synchronisées avec succès');
+      } catch (error) {
+        console.error('Erreur de synchronisation des informations de livraison:', error);
+      }
+    },
+
+    // Méthode pour charger les informations de livraison depuis le localStorage
+    loadDeliveryInfo() {
+      const savedInfo = localStorage.getItem('deliveryInfo');
+      if (savedInfo) {
+        try {
+          this.deliveryInfo = JSON.parse(savedInfo);
+          return this.deliveryInfo;
+        } catch (e) {
+          console.error('Erreur lors du parsing des informations de livraison:', e);
+          return null;
+        }
+      }
+      return null;
+    },
+
+    // Méthode pour réinitialiser les informations de livraison
+    clearDeliveryInfo() {
+      this.deliveryInfo = null;
+      localStorage.removeItem('deliveryInfo');
+      
+      // Optionnel: supprimer aussi du serveur
+      if (this.token) {
+        this.deleteDeliveryInfoFromServer();
+      }
+    },
+
+    // Méthode pour supprimer les informations de livraison du serveur
+    async deleteDeliveryInfoFromServer() {
+      try {
+        const apiStore = useApiStore();
+        const authStore = useAuthStore();
+        
+        await axios.delete(`${apiStore.apiUrl}/delivery-info`, {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`
+          }
+        });
+        
+        console.log('Informations de livraison supprimées du serveur');
+      } catch (error) {
+        console.error('Erreur lors de la suppression des informations de livraison:', error);
+      }
     },
 
     // Synchroniser avec le serveur
@@ -159,7 +259,7 @@ export const useCartStore = defineStore('cart', {
 
     // Charger le panier depuis le serveur
     async loadCartFromServer() {
-      const authStore = useAuthStore() // ← Utilisez toujours le store d'authentification
+      const authStore = useAuthStore()
       console.log('Chargement avec token:', authStore.token)
       try {
         const apiStore = useApiStore()
@@ -237,12 +337,12 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
-    // In your cart store actions:
+    // Ajouter aux favoris
     addToFavorite(item) {
       if (!this.favorite.some(favoriteItem => favoriteItem.id === item.id)) {
         this.favorite.push({
           id: item.id,
-          productId: item.id, // Add this for consistency
+          productId: item.id,
           name: item.name,
           price: item.price,
           image: item.image || null
@@ -261,11 +361,6 @@ export const useCartStore = defineStore('cart', {
       } else {
         this.addToFavorite(item)
       }
-    },
-
-    setDeliveryInfo(deliveryForm, deliveryOption, deliveryCost, city, district) {
-
     }
-
   }
 })

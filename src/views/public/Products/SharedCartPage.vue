@@ -629,7 +629,7 @@ const loadingDeliveryOptions = ref(false);
 
 // Données du panier
 const cartItems = computed(() => cartStore.items);
-const subtotal = computed(() => cartStore.finalPrice || cartStore.subtotal);
+const subtotal = computed(() => cartStore.totalPrice);
 
 // Données de livraison
 const countries = ref([
@@ -683,8 +683,9 @@ const deliveryCost = computed(() => {
   return Number(selectedDeliveryOption.value.price);
 });
 
+// CORRECTION : Utiliser directement le getter du store
 const finalPrice = computed(() => {
-  return subtotal.value + deliveryCost.value - (cartStore.couponValue || 0);
+  return cartStore.finalPrice + deliveryCost.value;
 });
 
 const finalAmount = () => finalPrice.value;
@@ -798,13 +799,13 @@ const validateDelivery = () => {
   selectedDistrict.value = availableDistricts.value.find(d => d.id === deliveryForm.value.district);
   
   // Enregistrer les infos de livraison dans le store
-  cartStore.setDeliveryInfo({
-    ...deliveryForm.value,
-    deliveryOption: selectedDeliveryOption.value,
-    deliveryCost: deliveryCost.value,
-    city: selectedCity.value,
-    district: selectedDistrict.value
-  });
+  cartStore.setDeliveryInfo(
+    deliveryForm.value,
+    selectedDeliveryOption.value,
+    deliveryCost.value,
+    selectedCity.value?.name,
+    selectedDistrict.value?.name
+  );
   
   nextStep();
 };
@@ -831,6 +832,7 @@ const shareViaEmail = () => {
   window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
 };
 
+// CORRECTION : Méthode modifiée pour ne pas tenter de modifier finalPrice
 const confirmAndShare = async () => {
   try {
     // Synchroniser le panier si nécessaire
@@ -838,18 +840,11 @@ const confirmAndShare = async () => {
       await cartStore.syncCartWithServer(true);
     }
 
-    // Enregistrer le prix final
-    cartStore.finalPrice = finalPrice.value;
-
-    // Stocker le panier partagé
-    await cartStore.storeSharedCart({
-      ...sharedCartForm.value,
-      deliveryInfo: {
-        ...deliveryForm.value,
-        deliveryOption: selectedDeliveryOption.value,
-        deliveryCost: deliveryCost.value
-      }
-    }, finalPrice.value);
+    // Stocker le panier partagé - passer directement la valeur calculée
+    await cartStore.storeSharedCart(
+      sharedCartForm.value, 
+      finalPrice.value // Utiliser la valeur calculée directement
+    );
 
     // Nettoyer le localStorage
     localStorage.removeItem('sharedCartStep');
