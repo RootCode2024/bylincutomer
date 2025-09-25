@@ -4,8 +4,8 @@
     <div class="hidden md:flex flex-1 bg-gradient-to-br from-indigo-600 to-purple-600 relative overflow-hidden">
       <div class="absolute inset-0 flex items-center justify-center p-12">
         <img 
-          src="@/assets/images/logo.png" 
-          alt="Shopping illustration" 
+          src="@/assets/images/logo-black.png" 
+          alt="Logo Byl In" 
           class="w-full max-w-md object-contain filter drop-shadow-xl"
         >
       </div>
@@ -28,53 +28,44 @@
         <!-- Bouton Retour mobile -->
         <button 
           @click="goBack"
-          class="flex items-center text-gray-600 hover:text-indigo-600 transition-colors mb-4"
+          class="flex items-center text-gray-600 hover:text-indigo-600 transition-colors mb-4 group"
         >
-          <ArrowLeftIcon class="w-5 h-5 mr-1" />
+          <ArrowLeftIcon class="w-5 h-5 mr-1 transition-transform group-hover:-translate-x-1" />
           <span class="text-sm font-medium">Retour</span>
         </button>
 
         <div class="text-center">
-          <router-link to="/" class="inline-block mb-6">
+          <router-link to="/" class="inline-block mb-6 transition-transform hover:scale-105">
             <img 
-              src="@/assets/images/logo.png" 
-              alt="Logo" 
-              class="h-10 mx-auto"
+              src="@/assets/images/logo-black.png" 
+              alt="Logo Byl In" 
+              class="h-24 mx-auto"
             >
           </router-link>
           <h1 class="text-3xl font-bold text-gray-900">Rejoignez notre communauté</h1>
           <p class="mt-2 text-gray-600">Créez un compte pour bénéficier de nos offres exclusives</p>
         </div>
 
-        <!-- Indicateur d'étapes -->
-        <!-- <div class="flex items-center justify-center space-x-4 mb-8">
-          <div class="flex items-center">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
-                 :class="currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-500'">
-              1
-            </div>
-            <span class="ml-2 text-sm font-medium text-gray-600">Contact</span>
-          </div>
-          <div class="w-8 h-0.5 bg-gray-200"
-               :class="currentStep >= 2 ? 'bg-indigo-600' : 'bg-gray-200'"></div>
-          <div class="flex items-center">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
-                 :class="currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-500'">
-              2
-            </div>
-            <span class="ml-2 text-sm font-medium text-gray-600">Profil</span>
-          </div>
-        </div> -->
-
         <div class="mt-8 space-y-6">
           <!-- Boutons sociaux (uniquement à l'étape 1) -->
           <div v-if="currentStep === 1" class="space-y-3">
             <button 
               @click="loginWithGoogle"
-              class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium hover:bg-gray-50 transition-all duration-200 shadow-sm"
+              :disabled="socialLoading"
+              class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <GoogleIcon class="w-5 h-5" />
-              <span>Continuer avec Google</span>
+              <span v-if="!socialLoading">Continuer avec Google</span>
+              <svg 
+                v-else 
+                class="animate-spin h-5 w-5 text-gray-500" 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24"
+              >
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
             </button>
           </div>
 
@@ -97,9 +88,9 @@
                 <button
                   type="button"
                   @click="selectContactMethod('email')"
-                  class="p-4 border-2 rounded-lg transition-all duration-200 flex flex-col items-center"
+                  class="p-4 border-2 rounded-lg transition-all duration-200 flex flex-col items-center hover:shadow-md"
                   :class="contactMethod === 'email' 
-                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700' 
+                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm' 
                     : 'border-gray-200 hover:border-gray-300'"
                 >
                   <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,9 +102,9 @@
                 <button
                   type="button"
                   @click="selectContactMethod('phone')"
-                  class="p-4 border-2 rounded-lg transition-all duration-200 flex flex-col items-center"
+                  class="p-4 border-2 rounded-lg transition-all duration-200 flex flex-col items-center hover:shadow-md"
                   :class="contactMethod === 'phone' 
-                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700' 
+                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm' 
                     : 'border-gray-200 hover:border-gray-300'"
                 >
                   <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,6 +122,7 @@
                   id="contact-field"
                   v-model="form.email"
                   required
+                  autocomplete="email"
                   class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-transparent peer"
                   placeholder=" "
                 />
@@ -140,6 +132,7 @@
                   id="contact-field"
                   v-model="form.phone"
                   required
+                  autocomplete="tel"
                   class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-transparent peer"
                   placeholder=" "
                 />
@@ -155,9 +148,22 @@
                 v-if="contactMethod && (form.email || form.phone)"
                 type="button"
                 @click="nextStep(currentStep)"
-                class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                class="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 active:scale-[0.98]"
+                :disabled="is_loading"
               >
-                Continuer
+                <template v-if="is_loading">
+                  <svg 
+                    class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24"
+                  >
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>En cours</span>
+                </template>
+                <span v-else>Continuer</span>
               </button>
             </div>
 
@@ -167,9 +173,9 @@
               <button 
                 type="button"
                 @click="previousStep(currentStep)"
-                class="flex items-center text-gray-600 hover:text-indigo-600 transition-colors mb-4"
+                class="flex items-center text-gray-600 hover:text-indigo-600 transition-colors mb-4 group"
               >
-                <ArrowLeftIcon class="w-4 h-4 mr-1" />
+                <ArrowLeftIcon class="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
                 <span class="text-sm">Modifier le contact</span>
               </button>
 
@@ -180,6 +186,7 @@
                   id="name"
                   v-model="form.name"
                   required
+                  autocomplete="name"
                   class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-transparent peer"
                   placeholder=" "
                 />
@@ -210,6 +217,7 @@
                   type="email"
                   id="email-optional"
                   v-model="form.email"
+                  autocomplete="email"
                   class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-transparent peer"
                   placeholder=" "
                 />
@@ -228,6 +236,7 @@
                   id="password"
                   v-model="form.password"
                   required
+                  autocomplete="new-password"
                   class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-transparent peer"
                   placeholder=" "
                   @input="calculatePasswordStrength"
@@ -241,7 +250,7 @@
                 <button 
                   type="button" 
                   @click="showPassword = !showPassword"
-                  class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600"
+                  class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <EyeIcon v-if="!showPassword" class="w-5 h-5" />
                   <EyeOffIcon v-else class="w-5 h-5" />
@@ -255,6 +264,7 @@
                   id="password_confirmation"
                   v-model="form.password_confirmation"
                   required
+                  autocomplete="new-password"
                   class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-transparent peer"
                   placeholder=" "
                   @input="checkPasswordMatch"
@@ -268,7 +278,7 @@
                 <button 
                   type="button" 
                   @click="showConfirmPassword = !showConfirmPassword"
-                  class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600"
+                  class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <EyeIcon v-if="!showConfirmPassword" class="w-5 h-5" />
                   <EyeOffIcon v-else class="w-5 h-5" />
@@ -386,12 +396,12 @@
                     type="checkbox" 
                     v-model="termsAccepted"
                     required
-                    class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 transition-colors"
                   >
                 </div>
                 <div class="ml-3 text-sm">
                   <label for="terms" class="font-medium text-gray-700">
-                    J'accepte les <a href="#" class="text-indigo-600 hover:underline">Conditions d'utilisation</a> et la <a href="#" class="text-indigo-600 hover:underline">Politique de confidentialité</a>
+                    J'accepte les <a href="#" class="text-indigo-600 hover:underline transition-colors">Conditions d'utilisation</a> et la <a href="#" class="text-indigo-600 hover:underline transition-colors">Politique de confidentialité</a>
                   </label>
                 </div>
               </div>
@@ -399,12 +409,12 @@
               <button 
                 type="submit" 
                 :disabled="loading || !form.name || !form.password || !form.password_confirmation || !termsAccepted"
-                class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                class="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <span v-if="!loading">Créer un compte</span>
                 <svg 
                   v-else 
-                  class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" 
+                  class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" 
                   xmlns="http://www.w3.org/2000/svg" 
                   fill="none" 
                   viewBox="0 0 24 24"
@@ -412,6 +422,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
+                <span v-if="loading">Création en cours...</span>
               </button>
             </div>
 
@@ -421,9 +432,9 @@
               <button 
                 type="button"
                 @click="previousStep(currentStep)"
-                class="flex items-center text-gray-600 hover:text-indigo-600 transition-colors mb-4"
+                class="flex items-center text-gray-600 hover:text-indigo-600 transition-colors mb-4 group"
               >
-                <ArrowLeftIcon class="w-4 h-4 mr-1" />
+                <ArrowLeftIcon class="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
                 <span class="text-sm">Modifier les infos</span>
               </button>
 
@@ -468,7 +479,7 @@
                   <button 
                     type="button"
                     @click="resendOtp"
-                    class="text-indigo-600 font-medium hover:underline"
+                    class="text-indigo-600 font-medium hover:underline transition-colors"
                     :disabled="resendCooldown > 0"
                   >
                     Renvoyer le code {{ resendCooldown > 0 ? `(${resendCooldown}s)` : '' }}
@@ -479,13 +490,13 @@
               <button 
                 type="button"
                 @click="verifyOtp"
-                class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                class="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                 :disabled="otp.join('').length !== 6 || loading"
               >
                 <span v-if="!loading">Vérifier le code</span>
                 <svg 
                   v-else 
-                  class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" 
+                  class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" 
                   xmlns="http://www.w3.org/2000/svg" 
                   fill="none" 
                   viewBox="0 0 24 24"
@@ -493,6 +504,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
+                <span v-if="loading">Vérification...</span>
               </button>
             </div>
           </form>
@@ -502,15 +514,15 @@
               Vous avez déjà un compte ? 
               <router-link 
                 to="/login" 
-                class="font-medium text-indigo-600 hover:text-indigo-500 hover:underline"
+                class="font-medium text-indigo-600 hover:text-indigo-500 hover:underline transition-colors"
               >
                 Se connecter
               </router-link>
             </p>
             <p class="mt-2 text-xs text-gray-500">
               En créant un compte, vous acceptez nos 
-              <a href="#" class="underline hover:text-indigo-600">Conditions d'utilisation</a> et notre 
-              <a href="#" class="underline hover:text-indigo-600">Politique de confidentialité</a>
+              <a href="#" class="underline hover:text-indigo-600 transition-colors">Conditions d'utilisation</a> et notre 
+              <a href="#" class="underline hover:text-indigo-600 transition-colors">Politique de confidentialité</a>
             </p>
           </div>
         </div>
@@ -534,6 +546,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const loading = ref(false)
+const socialLoading = ref(false) // Nouvel état pour le loading social
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const currentStep = ref(1)
@@ -762,7 +775,8 @@ const goBack = () => {
 }
 
 const loginWithGoogle = () => {
-  window.location.href = 'http://localhost:8000/api/auth/google/redirect'
+  socialLoading.value = true
+  window.location.href = 'http://localhost:8000/api/customer/auth/google'
 }
 
 const calculatePasswordStrength = () => {
@@ -782,39 +796,6 @@ const checkPasswordMatch = () => {
     passwordsMatch.value = true
   }
 }
-
-// const handleSubmit = async () => {
-//   if (form.value.password !== form.value.password_confirmation) {
-//     alert("Les mots de passe ne correspondent pas")
-//     return
-//   }
-
-//   loading.value = true
-//   try {
-//     // Préparer les données selon le mode de contact choisi
-//     const submitData = {
-//       name: form.value.name,
-//       password: form.value.password,
-//       password_confirmation: form.value.password_confirmation,
-//       newsletter: form.value.newsletter
-//     }
-    
-//     if (contactMethod.value === 'email') {
-//       submitData.email = form.value.email
-//       submitData.phone = null
-//     } else {
-//       submitData.phone = form.value.phone
-//       submitData.email = null
-//     }
-    
-//     await authStore.register(submitData)
-//     nextStep(currentStep.value + 1)
-//   } catch (error) {
-//     alert(error.message)
-//   } finally {
-//     loading.value = false
-//   }
-// }
 </script>
 
 <style scoped>

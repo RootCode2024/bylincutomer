@@ -18,13 +18,21 @@ export const useCartStore = defineStore('cart', {
     favorite: useStorage('favorite-items', []),
     wishlistCount: null,
     token: localStorage.getItem('auth_token') || null,
-    deliveryInfo: null // Nouvelle propriété pour les infos de livraison
+    deliveryInfo: null,
+    // Ajout d'une propriété pour stocker manuellement le prix final si nécessaire
+    manualFinalPrice: null
   }),
 
   getters: {
     totalQuantity: (state) => state.items.reduce((sum, item) => sum + item.quantity, 0),
     totalPrice: (state) => state.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
     finalPrice: (state) => {
+      // Si un prix manuel est défini, l'utiliser (pour les cas spéciaux)
+      if (state.manualFinalPrice !== null) {
+        return state.manualFinalPrice;
+      }
+      
+      // Sinon, calculer normalement
       const total = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
       return total - (state.couponValue || 0);
     },
@@ -37,7 +45,6 @@ export const useCartStore = defineStore('cart', {
       const final = state.finalPrice;
       return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(final)
     },
-    // Getter pour obtenir le coût de livraison formaté
     formattedDeliveryCost: (state) => {
       return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
         .format(state.deliveryInfo?.deliveryCost || 0);
@@ -47,37 +54,48 @@ export const useCartStore = defineStore('cart', {
   actions: {
     // Ajouter un produit au panier
     addItem(product) {
-      const existingItem = this.items.find(i => i.productId === product.productId)
+
+      console.log('Ajout au panier:', product)
+      const existingItem = this.items.find(i => i.product_id === product.product_id)
 
       if (existingItem) {
         existingItem.quantity += product.quantity || 1
       } else {
         this.items.push({
-          productId: product.productId,
+          product_id: product.id || product.product_id,
           name: product.name,
+          selectedColor: product.selectedColor || null,
+          selectedSize: product.selectedSize || null,
+          available_stock: product.available_stock || 0,
           price: product.price,
           quantity: product.quantity || 1,
           image: product.image || null
         })
       }
       this.isPersisted = false
+      // Réinitialiser le prix manuel lorsqu'on modifie le panier
+      this.manualFinalPrice = null;
     },
 
     // Mettre à jour la quantité
-    updateQuantity(productId, quantity) {
-      const item = this.items.find(i => i.productId === productId)
+    updateQuantity(product_id, quantity) {
+      const item = this.items.find(i => i.product_id === product_id)
       if (item && quantity >= 1 && quantity <= 99) {
         item.quantity = quantity
         this.isPersisted = false
+        // Réinitialiser le prix manuel lorsqu'on modifie le panier
+        this.manualFinalPrice = null;
       }
     },
 
     // Supprimer un produit
-    removeItem(productId) {
-      const index = this.items.findIndex(i => i.productId === productId)
+    removeItem(product_id) {
+      const index = this.items.findIndex(i => i.product_id === product_id)
       if (index !== -1) {
         this.items.splice(index, 1)
         this.isPersisted = false
+        // Réinitialiser le prix manuel lorsqu'on modifie le panier
+        this.manualFinalPrice = null;
       }
     },
 
@@ -88,6 +106,41 @@ export const useCartStore = defineStore('cart', {
       this.currentCartId = null
       this.sharedCartToken = null
       this.couponValue = 0
+      this.manualFinalPrice = null;
+    },
+
+    // Définir manuellement le prix final (pour les cas spéciaux)
+    setManualFinalPrice(price) {
+      this.manualFinalPrice = price;
+    },
+
+    // Réinitialiser le prix manuel pour utiliser le calcul automatique
+    resetFinalPrice() {
+      this.manualFinalPrice = null;
+    },
+
+    // Appliquer une réduction avec coupon
+    async applyCoupon(code) {
+      try {
+        const apiStore = useApiStore();
+        const authStore = useAuthStore();
+        
+        const response = await axios.post(`${apiStore.apiUrl}/coupons/apply`, {
+          code: code,
+          cart_total: this.totalPrice
+        }, {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`
+          }
+        });
+
+        this.couponValue = response.data.discount_value;
+        this.successMessage = response.data.message;
+        return true;
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Erreur lors de l\'application du coupon';
+        return false;
+      }
     },
 
     // Définir les informations de livraison
@@ -192,14 +245,18 @@ export const useCartStore = defineStore('cart', {
     async syncCartWithServer(isShared) {
       if (this.items.length === 0) return
 
+      console.log('Synchronisation du panier avec le serveur', this.items)
+
       try {
         const apiStore = useApiStore()
         const authStore = useAuthStore()
         const response = await axios.post(`${apiStore.apiUrl}/cart`, {
           items: this.items.map(item => ({
-            product_id: item.productId,
+            product_id: item.product_id,
             quantity: item.quantity,
-            price: item.price
+            price: item.price,
+            selectedColor: item.selectedColor || null,
+            selectedSize: item.selectedSize || null
           })),
           is_shared: isShared
         }, {
@@ -223,9 +280,13 @@ export const useCartStore = defineStore('cart', {
 
     // Créer un panier partagé
     async storeSharedCart(formData, finalPrice) {
+      console.log('Création panier partagé avec:', formData, 'et prix final:', finalPrice);
       try {
         const apiStore = useApiStore()
         const authStore = useAuthStore()
+        
+        // Si un prix final spécifique est fourni, l'utiliser
+        const finalPriceToUse = finalPrice !== undefined ? finalPrice : this.finalPrice;
         
         const response = await axios.post(`${apiStore.apiUrl}/shared-carts`, {
           cart_id: this.currentCartId,
@@ -233,8 +294,8 @@ export const useCartStore = defineStore('cart', {
           description: formData.description,
           address_id: formData.address_id,
           phone: formData.phone,
-          closing_date: this.formatDateForMySQL(formData.closing_date),
-          final_price: finalPrice
+          expires_in: this.formatDateForMySQL(formData.closing_date),
+          final_price: finalPriceToUse
         }, {
           headers: {
             Authorization: `Bearer ${authStore.token}`
@@ -243,7 +304,7 @@ export const useCartStore = defineStore('cart', {
 
         console.log('Panier partagé créé:', response)
 
-        this.sharedCartToken = response.data.token
+        this.sharedCartToken = response.data.data.token
         return response.data
       } catch (error) {
         console.error('Erreur API:', error)
@@ -268,8 +329,9 @@ export const useCartStore = defineStore('cart', {
         })
         console.log('Chargement du panier:', response)
         
+        // Remove the .cart property access since the API returns the cart directly
         this.items = response.data?.cart.items.map(item => ({
-          productId: item.product_id,
+          product_id: item.product_id,
           name: item.product?.name || 'Produit sans nom',
           price: item.product?.price || 0,
           quantity: item.quantity,
@@ -342,7 +404,7 @@ export const useCartStore = defineStore('cart', {
       if (!this.favorite.some(favoriteItem => favoriteItem.id === item.id)) {
         this.favorite.push({
           id: item.id,
-          productId: item.id,
+          product_id: item.id,
           name: item.name,
           price: item.price,
           image: item.image || null

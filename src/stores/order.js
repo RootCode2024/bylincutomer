@@ -53,13 +53,12 @@ export const useOrdersStore = defineStore('orders', () => {
         }
       })
       urlPayment.value = response.data
-      console.log('Ma response', response.data)
       successMessage.value = 'Order created successfully!'
       currentOrder.value = response.data.data
       orders.value.unshift(currentOrder.value)
       cartStore.clearCart()
       
-      return response.data
+      return response
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to create order'
       console.error('Order creation error:', err)

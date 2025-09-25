@@ -30,56 +30,6 @@
       ></textarea>
     </div>
 
-    <!-- Adresse de livraison -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        Adresse de livraison *
-      </label>
-      
-      <!-- Sélection d'adresse existante -->
-      <div v-if="normalizedUserAddresses.length" class="mb-3">
-        <label class="block text-xs text-gray-500 mb-2">
-          Choisir parmi vos adresses enregistrées : 
-        </label>
-        <select
-          v-model="selectedAddress"
-          @change="onAddressSelect"
-          class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition text-sm"
-        >
-          <option value="">-- Sélectionnez une adresse --</option>
-
-          <option
-            v-for="(address, index) in normalizedUserAddresses"
-            :key="index"
-            :value="address.id"
-          >
-            {{ address.street_line }} {{ address.city }} ({{ address.country_code }}) {{ address.landmark }}
-          </option>
-
-          <option value="new">Nouvelle Adresse</option>
-        </select>
-      </div>
-
-      <div v-else class="mb-3 border border-gray-200 p-4 rounded-lg">
-          <div class="text-start mt-5">
-              <span class="text-md text-gray-700">Entrez une nouvelle adresse</span>
-          </div>
-          <!-- Saisie manuelle -->
-          <div>
-              <label class="block text-xs text-gray-500 mb-2">
-              Saisir une nouvelle adresse :
-              </label>
-              <textarea
-              v-model="form.address"
-              required
-              rows="2"
-              class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition placeholder-gray-400"
-              placeholder="Adresse complète avec code postal"
-              ></textarea>
-          </div>
-      </div>
-    </div>
-
     <!-- Téléphone -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -168,8 +118,6 @@ const form = computed({
   }
 });
 
-const selectedAddress = ref('');
-
 const markers = ref([
   {
     date: addDays(new Date(), 0),
@@ -193,28 +141,4 @@ const markers = ref([
   },
 ])
 
-const onAddressSelect = () => {
-  console.log('selectedAddress', selectedAddress.value);
-  if (selectedAddress.value) {
-    form.value.address_id = selectedAddress.value;
-  }
-};
-const userAddresses = ref([]);
-
-onMounted(() => {
-  userAddresses.value = authStore.user.addresses;
-  console.log('userAddresses', authStore.user);
-});
-
-// ✅ computed pour normaliser
-const normalizedUserAddresses = computed(() => {
-  const value = userAddresses.value;
-  if (Array.isArray(value)) {
-    return value;
-  } else if (value && typeof value === 'object') {
-    return [value];
-  } else {
-    return [];
-  }
-});
 </script>

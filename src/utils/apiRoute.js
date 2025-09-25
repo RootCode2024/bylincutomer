@@ -11,7 +11,9 @@ export const API_ROUTES = {
     resendVerification: '/auth/email/verification-notification',
     updateProfile: '/auth/user/update',
     changePassword: '/auth/password/change',
-    updateAvatar: '/auth/user/avatar'
+    updateAvatar: '/auth/user/avatar',
+    verifyOtp: '/auth/verify-otp',
+    resendOtp: '/auth/resend-otp'
   },
   users: {
     base: '/users',

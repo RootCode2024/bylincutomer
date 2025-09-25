@@ -226,7 +226,7 @@ const reductPrice = (price, discount) => {
 
 const addToCart = async (product) => {
   const dataToSend = {
-    productId: product.id,
+    product_id: product.id,
     name: product.name,
     price: product.price,
     quantity: 1

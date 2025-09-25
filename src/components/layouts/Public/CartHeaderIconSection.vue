@@ -50,7 +50,7 @@
           <div v-else class="max-h-[400px] overflow-y-auto">
             <div 
               v-for="item in cartItems" 
-              :key="item.productId" 
+              :key="item.product_id" 
               class="px-6 py-4 border-b border-gray-100 hover:bg-gray-50 flex items-start"
             >
               <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-100">
@@ -77,7 +77,7 @@
                 <div class="flex justify-between mt-2">
                   <div class="flex items-center space-x-2">
                     <button 
-                      @click.stop="updateQuantity(item.productId, -1)"
+                      @click.stop="updateQuantity(item.product_id, -1)"
                       :disabled="item.quantity <= 1"
                       class="text-gray-500 hover:text-indigo-600 disabled:opacity-50"
                     >
@@ -85,7 +85,7 @@
                     </button>
                     <span class="text-sm text-gray-600">{{ item.quantity }}</span>
                     <button 
-                      @click.stop="updateQuantity(item.productId, 1)"
+                      @click.stop="updateQuantity(item.product_id, 1)"
                       class="text-gray-500 hover:text-indigo-600"
                     >
                       <PlusIcon class="h-4 w-4" />
@@ -93,7 +93,7 @@
                   </div>
                   
                   <button 
-                    @click.stop="removeFromCart(item.productId)"
+                    @click.stop="removeFromCart(item.product_id)"
                     class="text-gray-400 hover:text-red-500"
                   >
                     <TrashIcon class="h-4 w-4" />
@@ -170,7 +170,7 @@ const removeFromCart = (itemId) => {
 };
 
 const updateQuantity = (itemId, change) => {
-  const item = cartStore.items.find(i => i.productId === itemId);
+  const item = cartStore.items.find(i => i.product_id === itemId);
   if (item) {
     const newQuantity = item.quantity + change;
     if (newQuantity > 0) {

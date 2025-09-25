@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8 font-sans antialiased">
     <!-- Barre de progression -->
-    <div class="max-w-4xl mx-auto mb-12">
+    <div class="max-w-5xl mx-auto mb-12">
       <nav class="flex items-center justify-center">
         <ol class="flex items-center space-x-8">
           <li v-for="(step, index) in steps" :key="index" class="flex items-center">
@@ -43,7 +43,7 @@
     </div>
 
     <!-- Contenu dynamique des étapes -->
-    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100/80">
+    <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100/80">
       <!-- Étape 1 - Récapitulatif du panier -->
       <div v-if="currentStep === 0" class="p-8">
         <div class="flex items-start mb-8">
@@ -91,7 +91,8 @@
           <div class="flex justify-between" v-if="cartStore.couponValue">
             <span class="">Reduction <strong>(COUPON)</strong></span>
             <span class="font-medium text-yellow-600"> - {{ formatPrice(cartStore.couponValue) }}</span>
-          </div> <hr>
+          </div> 
+          <hr>
           <div class="flex justify-between text-lg pt-3">
             <span class="font-medium">NET A PAYER</span>
             <span class="text-indigo-600 font-medium">{{ formatPrice(finalAmount()) }}</span>
@@ -177,7 +178,7 @@
                   </div>
                 </div>
 
-                <div>
+                <div v-if="availableDistricts.length > 0" class="mt-4">
                   <label class="block text-sm font-medium text-gray-700 mb-1">Quartier/District</label>
                     <select 
                       v-model="deliveryForm.district"
@@ -192,7 +193,7 @@
                     </select>
                 </div>
 
-                <div>
+                <div v-if="deliveryForm.district" class="mt-4">
                   <label class="block text-sm font-medium text-gray-700 mb-1">Adresse détaillée</label>
                   <input 
                     v-model="deliveryForm.address"
@@ -253,8 +254,8 @@
                     </div>
                     <div class="ml-3">
                       <div class="flex justify-between">
-                        <span class="block text-sm font-medium text-gray-700">{{ option.name }}</span>
-                        <span class="text-sm font-medium">{{ formatPrice(option.price) }}</span>
+                        <p><span class="block text-sm font-medium text-gray-700">{{ option.name }}</span></p>
+                        <span class="text-sm font-medium">{{ formatPrice(getOptionPrice(option)) }}</span>
                       </div>
                       <p class="text-xs text-gray-500 mt-1">{{ option.delivery_time }}</p>
                       <p v-if="option.free_threshold" class="text-xs text-green-600 mt-1">
@@ -266,6 +267,7 @@
               </div>
             </div>
 
+            <!-- Résumé -->
             <div class="bg-white border border-gray-200 rounded-lg p-6">
               <h2 class="text-lg font-medium text-gray-800 mb-4">Résumé</h2>
               
@@ -672,18 +674,45 @@ const deliveryCost = computed(() => {
     return 0;
   }
 
-  // Utiliser le prix du district si dispo
+  // Utiliser le prix approprié selon le type de livraison
   if (deliveryForm.value.district) {
     const district = availableDistricts.value.find(
       (d) => d.id === deliveryForm.value.district
     );
-    return Number(district?.standard_price) || Number(selectedDeliveryOption.value.price);
+    
+    if (district) {
+      // Déterminer le prix en fonction du type de livraison sélectionné
+      if (selectedDeliveryOption.value.type === 'express') {
+        return Number(district.express_price) || 0;
+      } else {
+        return Number(district.standard_price) || 0;
+      }
+    }
   }
 
-  return Number(selectedDeliveryOption.value.price);
+  // Fallback au prix de l'option de livraison
+  return Number(selectedDeliveryOption.value.price) || 0;
 });
 
-// CORRECTION : Utiliser directement le getter du store
+// Nouvelle méthode pour obtenir le prix d'une option
+const getOptionPrice = (option) => {
+  if (!deliveryForm.value.district) return option.price;
+  
+  const district = availableDistricts.value.find(
+    (d) => d.id === deliveryForm.value.district
+  );
+  
+  if (!district) return option.price;
+  
+  // Retourner le prix approprié selon le type d'option
+  if (option.type === 'express') {
+    return Number(district.express_price) || option.price;
+  } else {
+    return Number(district.standard_price) || option.price;
+  }
+};
+
+// Prix final
 const finalPrice = computed(() => {
   return cartStore.finalPrice + deliveryCost.value;
 });
@@ -691,7 +720,7 @@ const finalPrice = computed(() => {
 const finalAmount = () => finalPrice.value;
 
 const shareLink = computed(() => {
-  return `${window.location.origin}/shared-carts/${cartStore.sharedCartToken}`;
+  return `${window.location.origin}/shared-cart/${cartStore.sharedCartToken}`;
 });
 
 // Validation du formulaire
@@ -729,7 +758,6 @@ const loadCities = async () => {
     deliveryForm.value.district = null;
     
     const response = await api.get(`/countries/${deliveryForm.value.country}/cities`);
-    console.log("Reponse :", response);
     availableCities.value = response;
   } catch (error) {
     deliveryError.value = "Impossible de charger les villes";
@@ -798,13 +826,28 @@ const validateDelivery = () => {
   // Trouver le district sélectionné
   selectedDistrict.value = availableDistricts.value.find(d => d.id === deliveryForm.value.district);
   
+  // Préparer les données de livraison
+  const deliveryInfoData = {
+    firstName: deliveryForm.value.firstName || '',
+    lastName: deliveryForm.value.lastName || '',
+    email: deliveryForm.value.email || '',
+    phone: deliveryForm.value.phone || '',
+    address: deliveryForm.value.address || '',
+    additionalAddress: deliveryForm.value.additionalAddress || '',
+    postalCode: deliveryForm.value.postalCode || '',
+    deliveryOption: selectedDeliveryOption.value,
+    deliveryCost: deliveryCost.value,
+    city: selectedCity.value?.name || '',
+    district: selectedDistrict.value?.name || ''
+  };
+  
   // Enregistrer les infos de livraison dans le store
   cartStore.setDeliveryInfo(
-    deliveryForm.value,
+    deliveryInfoData,
     selectedDeliveryOption.value,
     deliveryCost.value,
-    selectedCity.value?.name,
-    selectedDistrict.value?.name
+    selectedCity.value?.name || '',
+    selectedDistrict.value?.name || ''
   );
   
   nextStep();
@@ -832,7 +875,7 @@ const shareViaEmail = () => {
   window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
 };
 
-// CORRECTION : Méthode modifiée pour ne pas tenter de modifier finalPrice
+// Confirmer et partager le panier
 const confirmAndShare = async () => {
   try {
     // Synchroniser le panier si nécessaire
@@ -840,10 +883,10 @@ const confirmAndShare = async () => {
       await cartStore.syncCartWithServer(true);
     }
 
-    // Stocker le panier partagé - passer directement la valeur calculée
+    // Stocker le panier partagé
     await cartStore.storeSharedCart(
       sharedCartForm.value, 
-      finalPrice.value // Utiliser la valeur calculée directement
+      finalPrice.value
     );
 
     // Nettoyer le localStorage

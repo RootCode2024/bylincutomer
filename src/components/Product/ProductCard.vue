@@ -113,7 +113,7 @@ const addToCart = async () => {
 
     // Créer l'objet à ajouter au panier adapté à votre structure
     const cartItem = {
-      productId: props.product.id,
+      product_id: props.product.id,
       name: props.product.name,
       price: props.product.final_price || props.product.price,
       quantity: 1,

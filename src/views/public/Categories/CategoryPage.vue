@@ -1,12 +1,24 @@
 <template>
   <div class="bg-gray-50 min-h-screen">
-    <!-- Bannière de la liste des articles -->
+    <!-- Bannière de la catégorie -->
     <div class="bg-gradient-to-r from-indigo-500 to-purple-400">
       <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-bold text-white">Liste des Articles</h1>
-            <p class="mt-2 text-indigo-100">Explorez notre vaste sélection de produits</p>
+            <!-- Badge indiquant qu'il s'agit d'une catégorie spécifique -->
+            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20 text-white mb-3">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              Catégorie
+            </div>
+            <h1 class="text-3xl font-bold text-white">{{ currentCategory?.name || 'Produits de la catégorie' }}</h1>
+            <p class="mt-2 text-indigo-100" v-if="currentCategory">
+              {{ products.length }} produit(s) dans cette catégorie
+            </p>
+            <p class="mt-2 text-indigo-100" v-else>
+              Explorez notre sélection de produits
+            </p>
           </div>
           <div class="flex space-x-3">
             <button 
@@ -18,17 +30,59 @@
               </svg>
               Voir le panier
             </button>
+            <button 
+              @click="showAllCategories"
+              v-if="currentCategory"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
+            >
+              <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              Voir toutes les catégories
+            </button>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Breadcrumb -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4" v-if="currentCategory">
+      <nav class="flex" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500">
+          <li>
+            <router-link to="/" class="hover:text-indigo-600 transition-colors duration-200">
+              Accueil
+            </router-link>
+          </li>
+          <li class="flex items-center">
+            <ChevronRight class="h-4 w-4 mx-2" />
+            <router-link to="/shop/categories" class="hover:text-indigo-600 transition-colors duration-200">
+              Catégories
+            </router-link>
+          </li>
+          <li class="flex items-center">
+            <ChevronRight class="h-4 w-4 mx-2" />
+            <span class="text-indigo-600 font-medium">{{ currentCategory.name }}</span>
+          </li>
+        </ol>
+      </nav>
+    </div>
+
     <!-- Main Shop Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="flex flex-col md:flex-row gap-8">
         <!-- Sidebar Filters -->
         <div class="w-full md:w-64 flex-shrink-0">
           <div class="bg-white p-6 rounded-lg shadow-sm sticky top-4 border border-gray-100">
+            <!-- Indicateur de catégorie active -->
+            <div v-if="currentCategory" class="mb-6 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+              <p class="text-xs text-indigo-700 font-medium mb-1">Catégorie active</p>
+              <div class="flex items-center">
+                <div class="w-2 h-2 bg-indigo-500 rounded-full mr-2"></div>
+                <span class="text-sm font-medium text-indigo-900">{{ currentCategory.name }}</span>
+              </div>
+            </div>
+            
             <h3 class="text-lg font-medium text-gray-900 mb-4">Filtrer par</h3>
             
             <!-- Brands Filter -->
@@ -45,21 +99,21 @@
               </div>
             </div>
             
-            <!-- Categories Filter -->
-            <div class="mb-6">
-              <h4 class="text-sm font-medium text-gray-900 mb-3">Catégories</h4>
+            <!-- Sous-catégories (si disponibles) -->
+            <div class="mb-6" v-if="subCategories.length > 0">
+              <h4 class="text-sm font-medium text-gray-900 mb-3">Sous-catégories</h4>
               <div class="space-y-2">
                 <div 
-                  v-for="category in categories" 
-                  :key="category.id || 'all'"
-                  @click="selectCategory(category.id)"
+                  v-for="subCategory in subCategories" 
+                  :key="subCategory.id"
+                  @click="selectSubCategory(subCategory.id)"
                   class="flex items-center py-2 px-3 rounded-md cursor-pointer transition-colors duration-200"
                   :class="{
-                    'bg-indigo-50 text-indigo-700': selectedCategory === category.id,
-                    'hover:bg-gray-50': selectedCategory !== category.id
+                    'bg-indigo-50 text-indigo-700': selectedSubCategory === subCategory.id,
+                    'hover:bg-gray-50': selectedSubCategory !== subCategory.id
                   }"
                 >
-                  <span class="ml-2 text-sm">{{ category.name }}</span>
+                  <span class="ml-2 text-sm">{{ subCategory.name }}</span>
                 </div>
               </div>
             </div>
@@ -110,8 +164,13 @@
           <!-- Header with title and sort options -->
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
             <div>
-              <h2 class="text-2xl font-bold text-gray-900">Notre Boutique</h2>
-              <p class="text-gray-500 mt-1">Plus de {{ totalProducts }} produits disponibles</p>
+              <h2 class="text-2xl font-bold text-gray-900" v-if="currentCategory">
+                Produits de la catégorie "{{ currentCategory.name }}"
+              </h2>
+              <h2 class="text-2xl font-bold text-gray-900" v-else>
+                Notre Boutique
+              </h2>
+              <p class="text-gray-500 mt-1">{{ totalProducts }} produit(s) trouvé(s)</p>
             </div>
             
             <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 w-full md:w-auto">
@@ -255,7 +314,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h3 class="mt-2 text-lg font-medium text-gray-900">Aucun produit trouvé</h3>
-            <p class="mt-1 text-sm text-gray-500">Essayez de modifier vos filtres de recherche.</p>
+            <p class="mt-1 text-sm text-gray-500" v-if="currentCategory">
+              Aucun produit disponible dans la catégorie "{{ currentCategory.name }}"
+            </p>
+            <p class="mt-1 text-sm text-gray-500" v-else>
+              Essayez de modifier vos filtres de recherche.
+            </p>
             <div class="mt-6">
               <button 
                 @click="resetFilters"
@@ -277,11 +341,11 @@
           <div class="max-w-xl mx-auto lg:max-w-none lg:flex lg:items-center lg:justify-between">
             <div class="text-center lg:text-left">
               <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                <span class="block">Restez connecté</span>
-                <span class="block text-indigo-600">Abonnez-vous à notre newsletter</span>
+                <span class="block">Restez informé</span>
+                <span class="block text-indigo-600">Nouveautés dans {{ currentCategory?.name || 'nos catégories' }}</span>
               </h2>
               <p class="mt-3 max-w-md mx-auto text-lg text-gray-500 sm:text-xl md:mt-5 md:max-w-3xl">
-                Recevez en exclusivité nos offres spéciales, les nouvelles collections et les conseils de style.
+                Soyez le premier à connaître les nouveaux produits et promotions dans cette catégorie.
               </p>
             </div>
             <div class="mt-8 sm:w-full sm:max-w-md lg:mt-0 lg:ml-8">
@@ -320,24 +384,26 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { ChevronDown, ChevronLeft, ChevronRight, RefreshCcw } from 'lucide-vue-next'
+import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '@/components/Product/ProductCard.vue'
 import ProductListItem from '@/components/Product/ProductListItem.vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/api/axiosConfig'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
 
 // Reactive data
+const route = useRoute()
+const router = useRouter()
 const products = ref([])
-const categories = ref([
-  { id: null, name: 'Toutes les catégories' },
-])
+const categories = ref([])
 const brands = ref([
   { id: null, name: 'Toutes les marques' },
 ])
 const loading = ref(true)
 const authStore = useAuthStore()
+
+// Current category data
+const currentCategory = ref(null)
+const subCategories = ref([])
 
 const filters = ref({
   sort_options: [
@@ -352,6 +418,7 @@ const filters = ref({
 
 // Filter and sort states
 const selectedCategory = ref(null)
+const selectedSubCategory = ref(null)
 const selectedBrand = ref(null)
 const priceRange = ref({
   min: '',
@@ -377,9 +444,9 @@ const totalProducts = computed(() => {
 const filteredProducts = computed(() => {
   let filtered = [...products.value]
 
-  // Filter by category
-  if (selectedCategory.value) {
-    filtered = filtered.filter(product => product.category_id === selectedCategory.value)
+  // Filter by sub-category
+  if (selectedSubCategory.value) {
+    filtered = filtered.filter(product => product.category_id === selectedSubCategory.value)
   }
   
   // Filter by brand
@@ -435,25 +502,39 @@ const totalPages = computed(() => {
 
 // Methods
 const loadProducts = async () => {
+  const categorySlug = route.params.slug || null
   try {
     loading.value = true
-    const response = await api.get('/products')
+    
+    // Construction de l'URL
+    let url = '/products/category/'
+    if (categorySlug) {
+      url = `/products/category/${categorySlug}/`
+    }
+    
+    const response = await api.get(url)
     console.log('Response fetched:', response)
     
-    // Gestion flexible de la structure de réponse
     if (response) {
-      products.value = response.products?.data || response.data || []
+      products.value = response?.products || response.data || []
       
       // Traitement des catégories
       const responseCategories = response.categories || []
-      categories.value = [
-        { id: null, name: 'Toutes les catégories' },
-        ...responseCategories.map(category => ({
-          id: category.id,
-          name: category.name,
-          parent_id: category.parent_id
-        }))
-      ]
+      categories.value = responseCategories
+
+      // Trouver la catégorie courante
+      if (categorySlug && responseCategories.length > 0) {
+        currentCategory.value = responseCategories.find(cat => 
+          cat.slug === categorySlug || cat.name.toLowerCase() === categorySlug.toLowerCase()
+        )
+        
+        // Trouver les sous-catégories
+        if (currentCategory.value) {
+          subCategories.value = responseCategories.filter(cat => 
+            cat.parent_id === currentCategory.value.id
+          )
+        }
+      }
 
       // Traitement des marques
       const responseBrands = response.brands || []
@@ -473,8 +554,8 @@ const loadProducts = async () => {
   }
 }
 
-const selectCategory = (categoryId) => {
-  selectedCategory.value = categoryId
+const selectSubCategory = (categoryId) => {
+  selectedSubCategory.value = categoryId
   currentPage.value = 1
 }
 
@@ -487,11 +568,15 @@ const applyPriceFilter = () => {
 }
 
 const resetFilters = () => {
-  selectedCategory.value = null
+  selectedSubCategory.value = null
   selectedBrand.value = null
   priceRange.value = { min: '', max: '' }
   selectedSort.value = filters.value.sort_options[0]
   currentPage.value = 1
+}
+
+const showAllCategories = () => {
+  router.push('/categories')
 }
 
 const toggleSortDropdown = () => {
@@ -532,12 +617,10 @@ const getVisiblePages = () => {
   const pages = []
 
   if (total <= 7) {
-    // Si moins de 7 pages, afficher toutes
     for (let i = 1; i <= total; i++) {
       pages.push(i)
     }
   } else {
-    // Logique pour pagination intelligente
     if (current <= 3) {
       pages.push(1, 2, 3, 4, '...', total)
     } else if (current >= total - 2) {
@@ -553,20 +636,18 @@ const getVisiblePages = () => {
 // Cart and wishlist methods
 const addToCart = (product) => {
   console.log('Ajout au panier:', product)
-  // Logique d'ajout au panier
 }
 
 const addToWishlist = (product) => {
   console.log('Ajout à la wishlist:', product)
-  // Logique d'ajout à la wishlist
 }
 
 // Navigation methods
 const goToCart = () => {
-  router.push({ name: 'cart' })
+  router.push('/cart')
 }
 
-// Newsletter avec gestion d'erreur améliorée
+// Newsletter
 const subscribeNewsletter = async () => {
   try {
     isSubscribing.value = true
@@ -575,7 +656,10 @@ const subscribeNewsletter = async () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ email: email.value })
+      body: JSON.stringify({ 
+        email: email.value,
+        category: currentCategory.value?.name || 'all'
+      })
     })
     
     if (response.ok) {
@@ -606,14 +690,20 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })
 
-// Watchers avec debounce pour éviter trop d'appels
+// Watchers
 let filterTimeout = null
-watch([selectedCategory, selectedBrand, priceRange, selectedSort], () => {
+watch([selectedSubCategory, selectedBrand, priceRange, selectedSort], () => {
   if (filterTimeout) clearTimeout(filterTimeout)
   filterTimeout = setTimeout(() => {
     currentPage.value = 1
   }, 300)
 }, { deep: true })
+
+// Watch route changes
+watch(() => route.params.slug, () => {
+  loadProducts()
+  resetFilters()
+})
 
 // Cleanup
 onUnmounted(() => {
@@ -638,7 +728,6 @@ onUnmounted(() => {
   transform: translateY(0);
 }
 
-/* Animation de chargement */
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -652,7 +741,6 @@ onUnmounted(() => {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Transition douce pour les interactions */
 .transition-all {
   transition-property: all;
 }

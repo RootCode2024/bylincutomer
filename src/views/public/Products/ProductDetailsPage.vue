@@ -12,7 +12,7 @@
           </li>
           <li>
             <RouterLink 
-              :to="`/category/${product.category_id}`"
+              :to="`/shop/category/${product.category?.slug || ''}`"
               class="text-indigo-600 hover:text-indigo-500 capitalize"
             >
               {{ product.category?.name || 'Catégorie' }}
@@ -54,7 +54,7 @@
               :class="{'border-indigo-500': selectedImage === index, 'border-transparent': selectedImage !== index}"
             >
               <img 
-                :src="product?.main_image_url"
+                :src="getImageUrl(image.url)"
                 :alt="`Vue ${index + 1} de ${product.name}`"
                 class="w-full h-full object-cover"
                 @error="handleImageError"
@@ -65,8 +65,15 @@
           <!-- Main Image -->
           <div class="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
             <img
-              v-if="productImages.length > 0"
-              :src="getImageUrl(productImages[selectedImage])"
+              v-if="productImages.length === 1"
+              :src="product?.main_image_url"
+              :alt="product.name"
+              class="w-full h-full object-cover object-center"
+              @error="handleImageError"
+            />
+            <img
+              v-if="productImages.length > 1"
+              :src="getImageUrl(productImages[selectedImage].url)"
               :alt="product.name"
               class="w-full h-full object-cover object-center"
               @error="handleImageError"
@@ -464,7 +471,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                   </svg>
                   <span><strong>Dimensions :</strong> 
-                    {{ product.dimensions.length }}cm × {{ product.dimensions.width }}cm
+                    {{ product.dimensions.height }}cm × {{ product.dimensions.width }}cm
+                    × {{ product.dimensions.depth }}cm
                   </span>
                 </li>
 
@@ -1052,7 +1060,8 @@ const fetchProduct = async () => {
 }
 
 const getImageUrl = (imagePath) => {
-  return imagePath
+  // console.log
+  return 'http://localhost:8000/' + imagePath
 }
 
 const handleImageError = (event) => {
@@ -1181,6 +1190,8 @@ const addToCart = async () => {
       ...product.value,
       variant_id: selectedVariant?.id,
       quantity: quantity.value,
+      price: selectedVariant?.price || product.value.final_price || product.value.price,
+      image: product.value.main_image_url,
       selectedColor: selectedColor.value ? colorVariants.value.find(c => c.id === selectedColor.value) : null,
       selectedSize: selectedSize.value ? sizeVariants.value.find(s => s.id === selectedSize.value) : null,
       available_stock: selectedVariant?.stock_quantity || product.value.stock_quantity
@@ -1268,6 +1279,7 @@ const submitReview = async () => {
 // Lifecycle
 onMounted(async () => {
   await fetchProduct()
+  console.log('Product data loaded:', product.value)
 })
 </script>
 

@@ -49,6 +49,7 @@ const isFavorited = computed(() => {
 })
 
 function handleClick() {
+  console.log(props.product)
   if (!props.product?.id) return
   wishlistStore.toggleFavorite(props.product)
   emit('toggle', !isFavorited.value)

@@ -13,12 +13,16 @@ import ContactPage from '@/views/public/ContactPage.vue'
 
 // Vues du shop
 import ShopPage from '@/views/public/Products/ProductsListPage.vue'
+import CollectionPage from '@/views/public/Products/CollectionsPage.vue'
+import ProductCategoryPage from '@/views/public/Categories/CategoryPage.vue'
+import CategoriesListPage from '@/views/public/Categories/CategoriesListPage.vue'
 import ProductDetailsPage from '@/views/public/Products/ProductDetailsPage.vue'
 import BylInClothingPage from '@/views/public/Products/BylInClothingPage.vue'
-import TutoPage from '@/views/public/Products/TutoPage.vue'
-import TutoDetailsPage from '@/views/public/Products/TutoDetailsPage.vue'
+import TutorialsPage from '@/views/public/Products/TutorialsPage.vue'
+import TutorialDetailsPage from '@/views/public/Products/TutorialDetailsPage.vue'
 import CartPage from '@/views/public/Products/CartPage.vue'
 import SharedCartPage from '@/views/public/Products/SharedCartPage.vue'
+import SharedCartTokenPage from '@/views/public/Products/SharedCartTokenPage.vue'
 import CheckoutPage from '@/views/public/Products/CheckoutPage.vue'
 
 // Vues d'authentification
@@ -51,22 +55,38 @@ const router = createRouter({
         { path: 'about', name: 'about', component: AboutPage },
         { path: 'contact', name: 'contact', component: ContactPage },
         { path: 'services', name: 'services', component: ContactPage },
-        { path: 'collections', name: 'collections', component: ContactPage },
+        { path: 'collections', name: 'collections', component: CollectionPage },
         { path: 'shipping', name: 'shipping', component: ContactPage },
         { path: 'sitemap', name: 'sitemap', component: ContactPage },
         { path: 'blog', name: 'blog', component: ContactPage },
         { path: 'shop', name: 'shop', component: ShopPage },
         { path: 'product/:slug', name: 'product.details', component: ProductDetailsPage },
+        { path: 'shop/category/:slug', name: 'product.category', component: ProductCategoryPage },
+        { path: 'shop/categories', name: 'categories.lists', component: CategoriesListPage },
         { path: 'byl-in-clothing', name: 'byl.in.clothing', component: BylInClothingPage },
-        { path: 'tutos', name: 'tutos', component: TutoPage },
-        { path: 'tuto/:slug', name: 'tuto.details', component: TutoDetailsPage },
+        { path: 'tutorials', name: 'tutorials', component: TutorialsPage },
+        { path: 'tutorial/:slug', name: 'tutorial.details', component: TutorialDetailsPage },
+        {
+          path: '/tutorials/:slug/watch',
+          name: 'TutorialWatch',
+          component: () => import('@/views/public/Tutorials/TutorialWatch.vue'),
+          // props: true,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/tutorials/:slug/read',
+          name: 'TutorialRead',
+          component: () => import('@/views/public/Tutorials/TutorialRead.vue'),
+          // props: true,
+          meta: { requiresAuth: true }
+        },
         { path: 'cart', name: 'cart', component: CartPage },
         { path: 'wishlists', name: 'wishlists', component: WishListPage },
         {
           path: 'shared-cart',
           name: 'shared-cart',
           component: SharedCartPage,
-          // meta: { requiresAuth: true },
+          meta: { requiresAuth: true },
           // beforeEnter: async (to, from, next) => {
           //   try {
           //     const cartStore = useCartStore()
@@ -98,11 +118,16 @@ const router = createRouter({
           //   }
           // }
         },
+        {
+          path: 'shared-cart/:token',
+          name: 'shared-cart-token',
+          component: SharedCartTokenPage,
+        },
         { 
           path: 'checkout', 
           name: 'checkout', 
           component: CheckoutPage,
-          meta: { requiresAuth: true }
+          meta: { requiresAuth: true, cartNotEmpty: true }
         },
         { path: 'terms', name: 'terms', component: () => import('@/views/public/Legal/TermsView.vue') },
         { path: 'privacy', name: 'privacy', component: () => import('@/views/public/Legal/PrivacyPolicyView.vue') },
@@ -193,6 +218,19 @@ router.beforeEach(async (to, from, next) => {
   try {
     const authStore = useAuthStore()
     
+    const cartNotEmpty = to.matched.some(record => record.meta.cartNotEmpty)
+    
+    if (cartNotEmpty) {
+      const cartStore = useCartStore()
+      await cartStore.loadCartFromServer() // Assurez-vous que le panier est chargé
+      
+      if (cartStore.totalQuantity === 0) {
+        console.warn('Redirection depuis checkout car le panier est vide')
+        next({ name: 'cart' })
+        return
+      }
+    }
+    
     // Routes qui nécessitent une authentification
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
     
@@ -210,23 +248,23 @@ router.beforeEach(async (to, from, next) => {
       }
       
       // Vérifier la validité du token (optionnel)
-      try {
-        const isValid = await authStore.checkTokenValidity()
-        if (!isValid) {
-          next({ 
-            path: '/login', 
-            query: { redirect: to.fullPath } 
-          })
-          return
-        }
-      } catch (error) {
-        console.warn('Erreur de validation du token:', error)
-        next({ 
-          path: '/login', 
-          query: { redirect: to.fullPath } 
-        })
-        return
-      }
+      // try {
+      //   const isValid = await authStore.checkTokenValidity()
+      //   if (!isValid) {
+      //     next({ 
+      //       path: '/login', 
+      //       query: { redirect: to.fullPath } 
+      //     })
+      //     return
+      //   }
+      // } catch (error) {
+      //   console.warn('Erreur de validation du token:', error)
+      //   next({ 
+      //     path: '/login', 
+      //     query: { redirect: to.fullPath } 
+      //   })
+      //   return
+      // }
     }
     
     if (requiresGuest && authStore.isAuthenticated) {

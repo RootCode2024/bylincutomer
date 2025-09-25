@@ -163,7 +163,7 @@
         <div class="lg:w-2/3">
           <div class="bg-white rounded-lg shadow-sm overflow-hidden">
             <div class="divide-y divide-gray-200">
-              <div v-for="item in cartItems" :key="item.productId" class="p-6 flex flex-col sm:flex-row gap-6">
+              <div v-for="item in cartItems" :key="item.product_id" class="p-6 flex flex-col sm:flex-row gap-6">
                 <div class="item-image flex-shrink-0 w-24 h-24 rounded-md overflow-hidden bg-gray-100">
                   <img v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover object-center" />
                   <div
@@ -176,29 +176,55 @@
                 
                 <div class="flex-grow flex flex-col sm:flex-row gap-4">
                   <div class="item-details flex-grow">
-                    <h3 class="text-gray-900 tracking-wide">{{ item.name }}</h3>
-                    <p class="text-sm text-gray-500 mt-1">{{ item.variant }}</p>
-                    <div class="text-gray-900 font-medium mt-2">{{ formatPrice(item.price) }}</div>
+                    <h3 class="text-gray-900 tracking-wide text-sm font-medium mb-2">{{ item.name }}</h3>
+                    
+                    <!-- Prix unitaire -->
+                    <div class="text-gray-900 font-medium text-sm mb-3">
+                      {{ formatPrice(item.price) }}
+                    </div>
+                    
+                    <!-- Détails couleur et taille -->
+                    <div class="flex flex-wrap gap-4 text-xs text-gray-600">
+                      <div v-if="item.selectedColor" class="flex items-center">
+                        <span class="mr-2">Couleur:</span>
+                        <div class="flex items-center">
+                          <div 
+                            class="w-4 h-4 rounded-full border border-gray-300 shadow-sm mr-1"
+                            :style="{ backgroundColor: item.selectedColor.hex_code || '#CCCCCC' }"
+                            :title="item.selectedColor.name"
+                          ></div>
+                          <span>{{ item.selectedColor.name }}</span>
+                        </div>
+                      </div>
+                      
+                      <div v-if="item.selectedSize" class="flex items-center">
+                        <span class="mr-2">Taille:</span>
+                        <span class="font-medium">{{ item.selectedSize.name }}</span>
+                      </div>
+                    </div>
                   </div>
                   
-                  <div class="item-quantity flex items-center gap-3">
-                    <button @click="decrementQuantity(item.productId)" :disabled="item.quantity <= 1" 
-                            class="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                      <MinusIcon :size="16" />
+                  <!-- Contrôle de quantité -->
+                  <div class="item-quantity flex items-center gap-2 self-center">
+                    <button @click="decrementQuantity(item.product_id)" :disabled="item.quantity <= 1" 
+                            class="w-7 h-7 flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-600 hover:text-gray-800">
+                      <MinusIcon :size="14" />
                     </button>
-                    <span class="w-8 text-center font-medium">{{ item.quantity }}</span>
-                    <button @click="incrementQuantity(item.productId)"
-                            class="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50 transition-colors">
-                      <PlusIcon :size="16" />
+                    <span class="w-8 text-center font-medium text-sm">{{ item.quantity }}</span>
+                    <button @click="incrementQuantity(item.product_id)"
+                            class="w-7 h-7 flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 transition-colors text-gray-600 hover:text-gray-800">
+                      <PlusIcon :size="14" />
                     </button>
                   </div>
                   
-                  <div class="item-total font-medium text-gray-900 w-32 text-right">
+                  <!-- Prix total pour l'article -->
+                  <div class="item-total font-medium text-gray-900 text-sm w-20 text-right self-center">
                     {{ formatPrice(item.price * item.quantity) }}
                   </div>
                   
-                  <button @click="removeItem(item.productId)" class="item-remove text-gray-400 hover:text-red-600 transition-colors">
-                    <Trash2Icon :size="18" />
+                  <!-- Bouton de suppression -->
+                  <button @click="removeItem(item.product_id)" class="item-remove text-gray-400 hover:text-red-500 transition-colors self-center p-1">
+                    <Trash2Icon :size="16" />
                   </button>
                 </div>
               </div>
@@ -314,7 +340,7 @@
                 @click="showLoginModal = true"
                 class="w-full flex items-center justify-center px-6 py-4 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-md transition-colors shadow-sm"
               >
-                <LogIn :size="18" class="mr-2" />
+                <LogInIcon :size="18" class="mr-2" />
                 Se connecter pour payer
               </button>
 
@@ -350,7 +376,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Paiement sécurisé -->
             <div class="flex items-start space-x-4">
-              <ShieldCheck class="text-gray-900 w-6 h-6 mt-1" />
+              <Shield class="text-gray-900 w-6 h-6 mt-1" />
               <div>
                 <h4 class="font-medium text-gray-900">Paiement sécurisé</h4>
                 <p class="text-sm text-gray-600">Vos données sont protégées par chiffrement SSL</p>
@@ -368,7 +394,7 @@
 
             <!-- Support client -->
             <div class="flex items-start space-x-4">
-              <Headphones class="text-gray-900 w-6 h-6 mt-1" />
+              <HeadphonesIcon class="text-gray-900 w-6 h-6 mt-1" />
               <div>
                 <h4 class="font-medium text-gray-900">Support client 7j/7</h4>
                 <p class="text-sm text-gray-600">Assistance par chat, email ou téléphone</p>
@@ -386,15 +412,16 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { 
   ShoppingCartIcon,
-  ShieldCheck, Truck, Headphones,
+  Shield, 
+  Truck, 
+  HeadphonesIcon,
   ArrowRightIcon,
   ArrowLeftIcon,
   PlusIcon,
   MinusIcon,
   Trash2Icon,
-  CreditCardIcon,
   Share2Icon,
-  LogIn
+  LogInIcon
 } from 'lucide-vue-next';
 import { useCurrencyStore } from '@/stores/currency';
 import { useCartStore } from '@/stores/cart';
@@ -450,27 +477,36 @@ const deliveryCost = computed(() => {
 });
 
 const total = computed(() => {
-  return subtotal.value + deliveryCost.value - discountAmount.value;
+  return Math.max(0, subtotal.value + deliveryCost.value - discountAmount.value);
 });
 
 // Méthodes
 const formatPrice = (price) => {
+  console.log('Formatting price:', price);
   return currencyStore.formatCurrency(price);
 };
 
 const incrementQuantity = (id) => {
-  const item = cartItems.value.find(item => item.productId === id);
-  if (item) item.quantity++;
+  const item = cartItems.value.find(item => item.product_id === id);
+  if (item) {
+    item.quantity++;
+    // Mettre à jour le store
+    cartStore.updateQuantity(id, item.quantity);
+  }
 };
 
 const decrementQuantity = (id) => {
-  const item = cartItems.value.find(item => item.productId === id);
-  if (item && item.quantity > 1) item.quantity--;
+  const item = cartItems.value.find(item => item.product_id === id);
+  if (item && item.quantity > 1) {
+    item.quantity--;
+    // Mettre à jour le store
+    cartStore.updateQuantity(id, item.quantity);
+  }
 };
 
 const removeItem = (id) => {
   cartStore.removeItem(id);
-  cartItems.value = cartItems.value.filter(item => item.productId !== id);
+  cartItems.value = cartItems.value.filter(item => item.product_id !== id);
 };
 
 const clearCart = () => {
@@ -481,6 +517,10 @@ const clearCart = () => {
 };
 
 const shareCart = () => {
+  if (authStore.sharedCartCount > 2) {
+    alert('Vous avez atteint la limite de partage de panier (3 maximum)');
+    return;
+  }
   localStorage.removeItem('sharedCartStep');
   cartStore.couponValue = discountAmount.value;
   router.push('/shared-cart');
@@ -495,73 +535,40 @@ const applyDiscount = async () => {
 
   isLoading.value = true;
   discountError.value = '';
-  discountApplied.value = false;
-  discountAmount.value = 0;
-
-  // Synchroniser le panier si l'utilisateur est connecté
-  if (authStore.isAuthenticated) {
-    try {
-      await cartStore.syncCartWithServer(false);
-    } catch (e) {
-      console.error('Erreur de synchronisation du panier:', e);
-    }
-  }
 
   try {
     const response = await axios.post(`${apiStore.apiUrl}/cart/coupon`, {
       code: discountCode.value.trim().toUpperCase()
     });
 
-    console.log('Réponse serveur:', response);
+    if (response.data?.success) {
+      if (authStore.isAuthenticated) {
 
-    if (!response.data?.success) {
-      throw new Error(response.data?.message || 'Réponse serveur invalide');
-    }
-
-    if (authStore.isAuthenticated) {
-      // Traitement pour utilisateur connecté
-      const { discount_amount, subtotal, total } = response.data.data;
-      discountAmount.value = Number(discount_amount);
-      discountApplied.value = true;
-      
-      // Mettre à jour le store avec les infos du coupon
-      cartStore.couponValue = discountAmount.value;
-      cartStore.finalPrice = total;
+        console.log('Coupon applied successfully:', response);
+        const resultats = response.data.data;
+        discountAmount.value = resultats.discount;
+        discountApplied.value = true;
+        cartStore.couponValue = discountAmount.value;
+      } else {
+        couponInfo.value = {
+          code: discountCode.value.trim().toUpperCase(),
+          type: response.data.data.type,
+          value: response.data.data.value,
+          minCartAmount: response.data.data.min_cart_amount,
+          description: response.data.data.description || ''
+        };
+        showCouponInfoModal.value = true;
+      }
     } else {
-      // Traitement pour utilisateur non connecté
-      couponInfo.value = {
-        code: discountCode.value.trim().toUpperCase(),
-        type: response.data.data.type,
-        value: response.data.data.value,
-        minCartAmount: response.data.data.min_cart_amount,
-        description: response.data.data.description || ''
-      };
-      
-      // Afficher un modal avec les infos du coupon
-      showCouponInfoModal.value = true;
+      throw new Error(response.data?.message || 'Erreur lors de l\'application du code');
     }
-
   } catch (error) {
     discountApplied.value = false;
     discountAmount.value = 0;
-    
-    if (error.response) {
-      discountError.value = error.response.data?.message || 'Erreur lors de l\'application du code promo';
-    } else if (error.request) {
-      discountError.value = 'Impossible de se connecter au serveur';
-    } else {
-      discountError.value = error.message || 'Erreur de configuration de la requête';
-    }
-
-    console.error('Erreur application réduction:', error);
+    discountError.value = error.response?.data?.message || error.message || 'Erreur inconnue';
+    setTimeout(() => { discountError.value = ''; }, 5000);
   } finally {
     isLoading.value = false;
-    const errorTimer = setTimeout(() => {
-      discountError.value = '';
-    }, 5000);
-    
-    // Nettoyage du timeout
-    return () => clearTimeout(errorTimer);
   }
 };
 
@@ -575,6 +582,7 @@ const handleLoginSubmit = async () => {
   try {
     await authStore.login(loginForm.value);
     showLoginModal.value = false;
+    // Recharger les données utilisateur
     window.location.reload();
   } catch (error) {
     alert(error.message);
@@ -584,7 +592,7 @@ const handleLoginSubmit = async () => {
 };
 
 const loginWithGoogle = () => {
-  window.location.href = 'http://localhost:8000/api/auth/google/redirect';
+  window.location.href = `${apiStore.apiUrl}/auth/google/redirect`;
 };
 
 const showRegisterInstead = () => {
@@ -594,7 +602,7 @@ const showRegisterInstead = () => {
 
 // Lifecycle hooks
 onMounted(() => {
-  cartItems.value = cartStore.items;
+  cartItems.value = [...cartStore.items];
 });
 </script>
 

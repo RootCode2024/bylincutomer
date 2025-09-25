@@ -8,7 +8,7 @@ import { useApiStore } from './api'
 
 export const useWishlistStore = defineStore('wishlist', {
   state: () => ({
-    items: useStorage('wishlist-items', []), // [{ productId, name, price, image, addedAt }]
+    items: useStorage('wishlist-items', []), // [{ product_id, name, price, image, addedAt }]
     wishlistCount: null,
     syncing: false,
     error: null,
@@ -17,7 +17,7 @@ export const useWishlistStore = defineStore('wishlist', {
 
   getters: {
     count: (state) => state.items.length,
-    itemIds: (state) => state.items.map(item => item.productId),
+    itemIds: (state) => state.items.map(item => item.product_id),
     isEmpty: (state) => state.items.length === 0,
     totalFavorite: (state) => state.items.length,
     groupedByCategory: (state) => {
@@ -40,12 +40,12 @@ export const useWishlistStore = defineStore('wishlist', {
     // Ajouter un produit à la wishlist
     async addItem(product) {
       const existingIndex = this.items.findIndex(
-        item => item.productId === product.id
+        item => item.product_id === product.id
       )
 
       if (existingIndex === -1) {
         this.items.push({
-          productId: product.id,
+          product_id: product.id,
           name: product.name,
           price: product.price,
           image: product.image,
@@ -59,8 +59,8 @@ export const useWishlistStore = defineStore('wishlist', {
     },
 
     // Retirer un produit
-    async removeItem(productId) {
-      this.items = this.items.filter(item => item.productId !== productId)
+    async removeItem(product_id) {
+      this.items = this.items.filter(item => item.product_id !== product_id)
       await this.syncWithServer()
     },
 
@@ -71,8 +71,8 @@ export const useWishlistStore = defineStore('wishlist', {
     },
 
     // Vérifier si un produit est dans la wishlist
-    isInWishlist(productId) {
-      return this.items.some(item => item.productId === productId)
+    isInWishlist(product_id) {
+      return this.items.some(item => item.product_id === product_id)
     },
 
     // Synchroniser avec le serveur
@@ -135,18 +135,18 @@ export const useWishlistStore = defineStore('wishlist', {
     },
 
     // Déplacer vers le panier
-    async moveToCart(productId, cartStore) {
-      const product = this.items.find(item => item.productId === productId)
+    async moveToCart(product_id, cartStore) {
+      const product = this.items.find(item => item.product_id === product_id)
       if (!product) return
 
       await cartStore.addItem({
-        productId: product.productId,
+        product_id: product.product_id,
         name: product.name,
         price: product.price,
         quantity: 1
       })
 
-      await this.removeItem(productId)
+      await this.removeItem(product_id)
     },
 
     // Partage de la wishlist
@@ -178,10 +178,12 @@ export const useWishlistStore = defineStore('wishlist', {
       if (!this.items.some(favoriteItem => favoriteItem.id === item.id)) {
         this.items.push({
           id: item.id,
-          productId: item.id, // Add this for consistency
+          product_id: item.id, // Add this for consistency
           name: item.name,
           price: item.price,
-          image: item.image || null
+          image: item.image || null,
+          inStock: (item.stock_quantity > 0) ? true : false,
+          slug: item.slug || null,
         })
       }
     },

@@ -128,19 +128,20 @@ export const useAuthStore = defineStore('auth', () => {
     /**
      * Enhanced logout with cleanup
      */
-    async function logout() {
-      try {
-        if (token.value) {
-          await axios.post(`${apiUrl}${API_ROUTES.auth.logout}`, null, {
-            headers: { Authorization: `Bearer ${token.value}` }
-          })
-        }
-      } catch (error) {
-        console.warn('Logout API error:', error)
-      } finally {
-        cleanupAuthState()
-      }
-    }
+    // async function logout() {
+    //   try {
+        
+    //     if (token.value) {
+    //       await axios.post(`${apiUrl}${API_ROUTES.auth.logout}`, null, {
+    //         headers: { Authorization: `Bearer ${token.value}` }
+    //       })
+    //     }
+    //   } catch (error) {
+    //     console.warn('Logout API error:', error)
+    //   } finally {
+    //     cleanupAuthState()
+    //   }
+    // }
 
     /**
      * Complete auth state cleanup
@@ -191,7 +192,7 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         const response = await axios.post(`${apiUrl}${API_ROUTES.auth.register}`, userData)
         console.log(response)
-        if (!response?.otp_code || !response?.user) {
+        if (!response?.data.otp_sent || !response?.data.user) {
           throw new Error('Invalid server response')
         }
 
@@ -200,6 +201,47 @@ export const useAuthStore = defineStore('auth', () => {
         error.value = handleApiError(error)
         console.error('Registration error:', error)
         throw error
+      } finally {
+        loading.value = false
+      }
+    }
+
+    /**
+     * 
+     * @param {*} otpData 
+     * @returns 
+     */
+    async function verifyOtp(otpData) {
+      loading.value = true
+      error.value = null
+      try {
+        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.verifyOtp}`, otpData)
+        console.log(response)
+        if (response.status === 'error') {
+          throw new Error('Invalid server response')
+        }
+        return response
+      } catch (error) {
+        error.value = handleApiError(error)
+        console.error('OTP Verification error:', error)
+        throw error
+      } finally { 
+        loading.value = false
+      }
+    }
+
+    /**
+     * Resend OTP to user
+     */
+    async function resendOtp(email) {
+      loading.value = true
+      error.value = null
+      try {
+        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.resendOtp}`, { email })
+        return response.data
+      } catch (err) {
+        error.value = handleApiError(err)
+        throw err
       } finally {
         loading.value = false
       }
@@ -342,10 +384,12 @@ export const useAuthStore = defineStore('auth', () => {
       const cartStore = useCartStore()
 
       try {
-        const { data } = await axios.get(`${apiUrl}/cart/check`)
-        const cartFromServer = data.cart
+        const response = await axios.get(`${apiUrl}/cart/check`)
+        // const cartFromServer = response
 
-        if (cartFromServer) {
+        console.log('Le checkage de cart : ', response)
+
+        if (response.data.data.has_cart) {
           if (cartStore.items.length > 0) {
             console.log('Cart already exists en local, syncing...')
             await axios.delete(`${apiUrl}/cart`)
@@ -400,7 +444,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = null
     }
 
-    // Initialisation
+  // Initialisation
   if (token.value) {
     // On charge d'abord les données en cache
     user.value = JSON.parse(localStorage.getItem('auth_user')) || null;
@@ -491,10 +535,20 @@ export const useAuthStore = defineStore('auth', () => {
   // 5. Améliorer la fonction logout pour gérer les paramètres
   async function logout(silent = false) {
     try {
+      
+      const cartStore = useCartStore()
+      if (cartStore.items.length > 0) {
+        await cartStore.syncCartWithServer(false)
+        console.log('Cart syncroniser avec le server avant logout...')
+      } else {
+        console.log('Cart vide, suppression de la cart dans la db avant logout...')
+        await axios.delete(`${apiUrl}/cart`)
+      }
+
       if (token.value && !silent) {
         await axios.post(`${apiUrl}${API_ROUTES.auth.logout}`, null, {
           headers: { Authorization: `Bearer ${token.value}` },
-          timeout: 5000
+          // timeout: 5000
         });
       }
     } catch (error) {
@@ -565,6 +619,8 @@ export const useAuthStore = defineStore('auth', () => {
     changePassword,
     verifyEmail,
     resendVerificationEmail,
-    initializeStore // Ajoutez cette fonction aux exports
+    initializeStore,
+    verifyOtp,
+    resendOtp
   };
 })

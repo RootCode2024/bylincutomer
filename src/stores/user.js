@@ -186,6 +186,28 @@ export const useUserStore = defineStore('user', {
       return this.updateProfile({ [field]: value })
     },
 
+    async newAddress(data) {
+      this.loading = true
+      this.error = null
+      try {
+      const response = await axios.post(`${this.apiUrl}/profile/addresses`, data, {
+        headers: {
+        Authorization: `Bearer ${this.authStore.token}`,
+        'Content-Type': 'application/json'
+        }
+      })
+      const newAddr = response.data
+      this.addresses.push(newAddr)
+      this.successMessage = 'Adresse ajoutée avec succès'
+      return newAddr.id
+      } catch (error) {
+      this.handleError(error, 'Erreur lors de l\'ajout de l\'adresse')
+      throw error
+      } finally {
+      this.loading = false
+      }
+    },
+
     async updateAddress(newAddress = false, data) {
       console.log('yooooooo')
       this.loading = true

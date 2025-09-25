@@ -76,6 +76,7 @@
                   required
                   class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-transparent peer"
                   placeholder=" "
+                  autocomplete="email"
                 />
                 <label 
                   for="email" 
@@ -245,7 +246,7 @@
   const loginWithGoogle = () => {
     loading.value = true
     try {
-      window.location.href = 'http://localhost:8000/api/auth/google/redirect'
+      window.location.href = 'http://localhost:8000/api/auth/google/callback'
     } catch (error) {
       console.error('Login with Google error:', error)
       errorMessage.value = error.message || 'Échec de la connexion avec Google'
