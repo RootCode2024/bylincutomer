@@ -4,7 +4,7 @@ import router from '@/router'
 
 // 1. Configuration de base avec des paramètres optimisés
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/customer',
+  baseURL: 'https://stagging.bylin-style.com/api/customer',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -68,7 +68,7 @@ api.interceptors.response.use(
       // Handle 419 CSRF token mismatch
       if (response.status === 419) {
         try {
-          // await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+          // await axios.get('https://stagging.bylin-style.com/sanctum/csrf-cookie', {
           //   // withCredentials: true
           // });
           // Retry the original request
