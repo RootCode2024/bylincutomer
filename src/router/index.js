@@ -42,6 +42,8 @@ import SharedCartsPage from '@/views/dashboard/Cart/SharedCartsPage.vue'
 import SharedCartDetailsPage from '@/views/dashboard/Cart/SharedCartDetailsPage.vue'
 import DashboardWishListPage from '@/views/dashboard/WishListPage.vue'
 import WishListPage from '@/views/public/WishListPage.vue'
+// import NewReviewPage from '@/views/dashboard/Review/NewReviewPage.vue'
+import ReviewsPage from '@/views/dashboard/Review/ReviewPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -127,7 +129,7 @@ const router = createRouter({
           path: 'checkout', 
           name: 'checkout', 
           component: CheckoutPage,
-          meta: { requiresAuth: true, cartNotEmpty: true }
+          meta: { requiresAuth: true }
         },
         { path: 'terms', name: 'terms', component: () => import('@/views/public/Legal/TermsView.vue') },
         { path: 'privacy', name: 'privacy', component: () => import('@/views/public/Legal/PrivacyPolicyView.vue') },
@@ -144,7 +146,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'dashboard.home', component: CustomerDashboardHome },
         { path: 'orders', name: 'dashboard.orders', component: CustomerOrders },
-        { path: 'orders/:id', name: 'dashboard.order', component: CustomerOrderDetails },
+        { path: 'orders/:orderNumber', name: 'dashboard.order', component: CustomerOrderDetails },
         { path: 'addresses', name: 'dashboard.addresses', component: CustomerAddresses },
         { path: 'account', name: 'dashboard.account', component: CustomerAccount },
         { path: 'profile', name: 'dashboard.account', component: CustomerAccount },
@@ -152,6 +154,16 @@ const router = createRouter({
         { path: 'shared-carts', name: 'dashboard.shared.carts', component: SharedCartsPage },
         { path: 'shared-carts/:id(\\d+)', name: 'dashboard.shared.carts.details', component: SharedCartDetailsPage },
         { path: 'wishlists', name: 'wishlist', component: DashboardWishListPage },
+        {
+          path: 'review/order/:orderId',
+          name: 'dashboard.review',
+          component: ReviewsPage,
+          props: (route) => ({
+            orderId: route.params.orderId,
+            token: route.query.token
+          })
+        },
+
       ],
     },
 
@@ -218,18 +230,18 @@ router.beforeEach(async (to, from, next) => {
   try {
     const authStore = useAuthStore()
     
-    const cartNotEmpty = to.matched.some(record => record.meta.cartNotEmpty)
+    // const cartNotEmpty = to.matched.some(record => record.meta.cartNotEmpty)
     
-    if (cartNotEmpty) {
-      const cartStore = useCartStore()
-      await cartStore.loadCartFromServer() // Assurez-vous que le panier est chargé
+    // if (cartNotEmpty) {
+    //   const cartStore = useCartStore()
+    //   await cartStore.loadCartFromServer() // Assurez-vous que le panier est chargé
       
-      if (cartStore.totalQuantity === 0) {
-        console.warn('Redirection depuis checkout car le panier est vide')
-        next({ name: 'cart' })
-        return
-      }
-    }
+    //   if (cartStore.totalQuantity === 0) {
+    //     console.warn('Redirection depuis checkout car le panier est vide')
+    //     next({ name: 'cart' })
+    //     return
+    //   }
+    // }
     
     // Routes qui nécessitent une authentification
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)

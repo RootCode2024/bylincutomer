@@ -109,10 +109,10 @@
               <div>
                 <div class="text-lg font-semibold text-gray-900">
                   <p v-if="product.dicounted_price" class="text-sm text-red-500 line-through">
-                    {{ currencyStore.formatCurrency(product.discounted_price) }}
+                    {{ currencyStore.formatCurrency(product.final_price) }}
                   </p>
                   <p class="text-xl text-gray-900">
-                    {{ currencyStore.formatCurrency(product.final_price) }}
+                    {{ currencyStore.formatCurrency(product.discounted_price) }}
                   </p>
                 </div>
               </div>
@@ -131,8 +131,7 @@
               >
               <FavoriteButton 
                 @click="addToWishlist"
-                :product="product || undefined" 
-                :text="favoris"
+                :product="product || undefined"
               />
               </div>
               <button

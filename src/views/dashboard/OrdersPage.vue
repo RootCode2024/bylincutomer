@@ -65,20 +65,30 @@
 
         <!-- Empty State -->
         <div 
-          v-if="filteredOrders.length === 0"
+          v-if="filteredOrders.length === 0 && !isLoading"
           class="p-10 text-center"
         >
           <PackageOpen class="w-12 h-12 mx-auto text-gray-300 mb-3" />
           <h3 class="text-md font-medium text-gray-800 mb-1">Aucune commande trouvée</h3>
           <p class="text-gray-500 max-w-md mx-auto mb-4 text-sm">
-            Essayez d'ajuster vos filtres de recherche.
+            {{ isLoading ? 'Chargement...' : 'Essayez d\'ajuster vos filtres de recherche.' }}
           </p>
           <button 
             @click="resetFilters"
             class="px-3 py-1.5 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            v-if="!isLoading"
           >
             Réinitialiser
           </button>
+        </div>
+
+        <!-- Loading State -->
+        <div v-else-if="isLoading" class="p-10 text-center">
+          <div class="animate-pulse">
+            <div class="h-12 bg-gray-200 rounded-md mb-4"></div>
+            <div class="h-12 bg-gray-200 rounded-md mb-4"></div>
+            <div class="h-12 bg-gray-200 rounded-md"></div>
+          </div>
         </div>
 
         <!-- Commandes -->
@@ -96,7 +106,7 @@
 
         <!-- Pagination -->
         <Pagination 
-          v-if="filteredOrders.length > itemsPerPage"
+          v-if="filteredOrders.length > itemsPerPage && !isLoading"
           :current-page="currentPage"
           :total-pages="totalPages"
           :total-items="filteredOrders.length"
@@ -122,14 +132,14 @@
       @submit="submitReturn"
     />
     
-<OrderTrackingModal 
-  v-if="showTrackingModal"
-  :isOpen="showTrackingModal"
-  :order="selectedOrder"
-  :tracking-info="trackingInfo"
-  :loading="trackingLoading"
-  @close="showTrackingModal = false"
-/>
+    <OrderTrackingModal 
+      v-if="showTrackingModal"
+      :isOpen="showTrackingModal"
+      :order="selectedOrder"
+      :tracking-info="trackingInfo"
+      :loading="trackingLoading"
+      @close="showTrackingModal = false"
+    />
   </div>
 </template>
 
@@ -155,7 +165,6 @@ const itemsPerPage = ref(10)
 // Filters
 const selectedStatuses = ref([])
 const dateRange = ref(null)
-const amountFilter = ref('all')
 
 // Modals
 const showCancelModal = ref(false)
@@ -165,51 +174,45 @@ const selectedOrder = ref(null)
 
 const ordersStore = useOrdersStore()
 
-
-
 // Ajout des états pour le suivi
 const trackingInfo = ref(null)
 const trackingLoading = ref(false)
 const trackingError = ref(null)
 
-// Méthode pour suivre une commande
-const trackOrder = async (order) => {
-  try {
-    trackingLoading.value = true
-    trackingError.value = null
-    selectedOrder.value = order
-    
-    // Récupérer les infos de suivi
-    trackingInfo.value = await ordersStore.fetchTrackingInfo(order.id)
-    
-    // Si pas d'info de suivi, créer un suivi simulé pour la démo
-    if (!trackingInfo.value) {
-      trackingInfo.value = generateDemoTracking(order)
-    }
-    
-    showTrackingModal.value = true
-  } catch (error) {
-    trackingError.value = "Impossible de récupérer les informations de suivi"
-    console.error("Erreur tracking:", error)
-  } finally {
-    trackingLoading.value = false
+// Helper function pour les labels de statut
+const getStatusLabel = (status) => {
+  const statusLabels = {
+    'pending': 'En attente',
+    'paye': 'Payé',
+    'processing': 'En traitement',
+    'shipped': 'Expédié',
+    'delivered': 'Livré',
+    'cancelled': 'Annulé',
+    'refunded': 'Remboursé',
+    'en_attente': 'En attente',
+    'expedie': 'Expédiée',
+    'livre': 'Livrée',
+    'annule': 'Annulée'
   }
+  return statusLabels[status] || status
 }
 
-// Génère un suivi de démonstration (à remplacer par votre vrai service)
+// Génère un suivi de démonstration
 const generateDemoTracking = (order) => {
-  console.log('Tracking order:', order); // Debug
+  console.log('Tracking order:', order);
   
-  // Définir l'ordre sélectionné et les infos de suivi
   selectedOrder.value = order;
   trackingInfo.value = generateTrackingData(order);
   showTrackingModal.value = true;
   
-  return trackingInfo.value; // Pour les cas où le retour est utilisé
+  return trackingInfo.value;
 }
 
 // Fonction séparée pour générer les données
 const generateTrackingData = (order) => {
+  // Obtenir le statut actuel
+  const currentStatus = getCurrentStatus(order);
+  
   const steps = [
     { 
       status: 'order_placed', 
@@ -217,189 +220,216 @@ const generateTrackingData = (order) => {
       description: 'Votre commande a été enregistrée',
       date: order.created_at,
       icon: CheckCircle,
-      iconColor: 'text-green-500'
+      iconColor: 'text-green-500',
+      completed: true
     },
     { 
       status: 'paye', 
       label: 'Payée', 
       description: 'Paiement confirmé',
-      date: order.status.find(s => s.status === 'paye')?.changed_at,
+      date: order.updated_at,
       icon: CheckCircle,
       iconColor: 'text-green-500',
-      active: true
+      completed: ['paye', 'processing', 'shipped', 'delivered'].includes(currentStatus)
     },
     { 
       status: 'processing', 
       label: 'En préparation', 
       description: 'Votre commande est en cours de préparation',
-      date: order.status.find(s => s.status === 'processing')?.changed_at || 
-            new Date(new Date(order.created_at).getTime() + 3600000).toISOString(),
+      date: order.updated_at,
       icon: PackageOpen,
-      iconColor: 'text-blue-500'
+      iconColor: 'text-blue-500',
+      completed: ['processing', 'shipped', 'delivered'].includes(currentStatus)
     },
     { 
       status: 'shipped', 
       label: 'Expédiée', 
       description: 'Votre colis a été expédié',
-      date: order.status.find(s => s.status === 'shipped')?.changed_at || 
-            new Date(new Date(order.created_at).getTime() + 86400000).toISOString(),
+      date: order.updated_at,
       icon: Truck,
-      iconColor: 'text-purple-500'
+      iconColor: 'text-purple-500',
+      completed: ['shipped', 'delivered'].includes(currentStatus)
     },
     { 
       status: 'delivered', 
       label: 'Livrée', 
       description: 'Votre colis a été livré',
-      date: order.status.find(s => s.status === 'delivered')?.changed_at || null,
+      date: order.updated_at,
       icon: MapPin,
-      iconColor: 'text-green-500'
+      iconColor: 'text-green-500',
+      completed: currentStatus === 'delivered'
     }
   ];
 
   return {
     order_id: order.id,
-    tracking_number: `TRK-${order.reference.slice(-8)}`,
+    tracking_number: order.order_number ? `TRK-${order.order_number.slice(-8)}` : `TRK-${order.id.toString().padStart(8, '0')}`,
     carrier: 'Transporteur Express',
     estimated_delivery: new Date(new Date().getTime() + 3 * 86400000).toISOString(),
-    current_status: order.status[0]?.status || 'paye',
-    steps: steps.filter(step => step.date !== null) // Filtrer les étapes sans date
+    current_status: currentStatus,
+    steps: steps
   };
 }
 
-
-
+// Obtenir le statut actuel d'une commande
+const getCurrentStatus = (order) => {
+  return Array.isArray(order.status) ? order.status[0]?.status : order.status;
+}
 
 // Stats
-const orderStats = computed(() => [
-  {
-    label: 'Total commandes',
-    value: orders.value.length,
-    icon: 'shopping-bag',
-    trend: null
-  },
-  {
-    label: 'À traiter',
-    value: orders.value.filter(o => o.status[0]?.status === 'processing').length,
-    icon: 'clock',
-    trend: 'up'
-  },
-  {
-    label: 'Expédiées',
-    value: orders.value.filter(o => o.status[0]?.status === 'shipped').length,
-    icon: 'truck',
-    trend: 'neutral'
-  },
-  {
-    label: 'Livrées',
-    value: orders.value.filter(o => o.status[0]?.status === 'delivered').length,
-    icon: 'check-circle',
-    trend: 'up'
+const orderStats = computed(() => {
+  const getCurrentStatus = (order) => {
+    return Array.isArray(order.status) ? order.status[0]?.status : order.status;
   }
-])
+  
+  return [
+    {
+      label: 'Total commandes',
+      value: orders.value.length,
+      icon: 'shopping-bag',
+      trend: null
+    },
+    {
+      label: 'À traiter',
+      value: orders.value.filter(o => getCurrentStatus(o) === 'processing').length,
+      icon: 'clock',
+      trend: 'up'
+    },
+    {
+      label: 'Expédiées',
+      value: orders.value.filter(o => getCurrentStatus(o) === 'shipped').length,
+      icon: 'truck',
+      trend: 'neutral'
+    },
+    {
+      label: 'Livrées',
+      value: orders.value.filter(o => getCurrentStatus(o) === 'delivered').length,
+      icon: 'check-circle',
+      trend: 'up'
+    }
+  ]
+})
 
 // Options de filtre
 const statusOptions = [
-  { value: 'en_attente', label: 'En attente' },
+  { value: 'pending', label: 'En attente' },
   { value: 'paye', label: 'Payé' },
-  { value: 'expedie', label: 'Expédiée' },
-  { value: 'livre', label: 'Livrée' },
-  { value: 'annule', label: 'Annulée' }
+  { value: 'processing', label: 'En traitement' },
+  { value: 'shipped', label: 'Expédiée' },
+  { value: 'delivered', label: 'Livrée' },
+  { value: 'cancelled', label: 'Annulée' }
 ]
 
 // Computed
 const filteredOrders = computed(() => {
   return orders.value.filter(order => {
     // Filtre par statut
-    if (selectedStatuses.value.length > 0 && 
-        !selectedStatuses.value.includes(order.status[0]?.status)) {
-      return false
+    if (selectedStatuses.value.length > 0) {
+      const currentStatus = getCurrentStatus(order);
+      if (!selectedStatuses.value.includes(currentStatus)) {
+        return false;
+      }
     }
     
     // Filtre par date
     if (dateRange.value) {
-      const orderDate = new Date(order.created_at)
-      const startDate = new Date(dateRange.value[0])
-      const endDate = new Date(dateRange.value[1])
+      const orderDate = new Date(order.created_at);
+      const startDate = new Date(dateRange.value[0]);
+      const endDate = new Date(dateRange.value[1]);
+      endDate.setHours(23, 59, 59, 999); // Inclure toute la journée de fin
       
       if (orderDate < startDate || orderDate > endDate) {
-        return false
+        return false;
       }
     }
     
-    return true
-  })
+    return true;
+  });
 })
 
 const totalPages = computed(() => Math.ceil(filteredOrders.value.length / itemsPerPage.value))
 
 const paginatedOrders = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredOrders.value.slice(start, end)
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return filteredOrders.value.slice(start, end);
 })
 
 // Methods
 const loadOrders = async () => {
   try {
-    isLoading.value = true
-    orders.value = await ordersStore.fetchUserOrders()
-    resetFilters()
+    isLoading.value = true;
+    const rawOrders = await ordersStore.fetchUserOrders();
+    
+    // Adapter la structure des commandes pour OrderCard
+    orders.value = rawOrders.map(order => ({
+      ...order,
+      // S'assurer que le statut est dans le format attendu
+      status: Array.isArray(order.status) ? order.status : [
+        {
+          status: order.status,
+          changed_at: order.updated_at || order.created_at,
+          label: getStatusLabel(order.status)
+        }
+      ],
+      // S'assurer que les champs requis existent
+      total_amount: order.total || order.subtotal || 0,
+      items_count: order.items?.length || 0,
+      reference: order.order_number || `ORD-${order.id}`
+    }));
+    
+    console.log("Commandes adaptées:", orders.value);
+    resetFilters();
   } catch (error) {
-    console.error("Erreur lors du chargement des commandes", error)
+    console.error("Erreur lors du chargement des commandes", error);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
 const resetFilters = () => {
-  selectedStatuses.value = []
-  dateRange.value = null
-  amountFilter.value = 'all'
-  currentPage.value = 1
+  selectedStatuses.value = [];
+  dateRange.value = null;
+  currentPage.value = 1;
 }
 
 const openCancelModal = (order) => {
-  selectedOrder.value = order
-  showCancelModal.value = true
+  selectedOrder.value = order;
+  showCancelModal.value = true;
 }
 
 const openReturnModal = (order) => {
-  selectedOrder.value = order
-  showReturnModal.value = true
+  selectedOrder.value = order;
+  showReturnModal.value = true;
 }
-
-// const trackOrder = (order) => {
-//   selectedOrder.value = order
-//   showTrackingModal.value = true
-// }
 
 const confirmCancel = async (reason) => {
   try {
-    await ordersStore.cancelOrder(selectedOrder.value.id, reason)
-    await loadOrders()
-    showCancelModal.value = false
+    await ordersStore.cancelOrder(selectedOrder.value.id, reason);
+    await loadOrders();
+    showCancelModal.value = false;
   } catch (error) {
-    console.error("Erreur lors de l'annulation", error)
+    console.error("Erreur lors de l'annulation", error);
   }
 }
 
 const submitReturn = async (data) => {
   try {
-    await ordersStore.requestReturn(selectedOrder.value.id, data)
-    await loadOrders()
-    showReturnModal.value = false
+    await ordersStore.requestReturn(selectedOrder.value.id, data);
+    await loadOrders();
+    showReturnModal.value = false;
   } catch (error) {
-    console.error("Erreur lors de la demande de retour", error)
+    console.error("Erreur lors de la demande de retour", error);
   }
 }
 
 const handlePageChange = (page) => {
-  currentPage.value = page
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  currentPage.value = page;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Lifecycle
 onMounted(() => {
-  loadOrders()
-})
+  loadOrders();
+});
 </script>

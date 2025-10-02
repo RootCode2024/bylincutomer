@@ -3,8 +3,8 @@
     <div class="p-6">
       <div class="flex justify-between items-start">
         <div>
-          <h2 class="text-sm font-medium text-gray-900 uppercase">Suivi de commande #{{ order.reference }}</h2>
-          <p class="mt-1 text-sm text-gray-500">
+          <h2 class="text-sm font-medium text-gray-900 uppercase">Suivi de commande #{{ order.order_number }}</h2>
+          <p class="mt-5 text-sm text-gray-500">
             Transporteur: {{ trackingInfo.carrier }} - N°: {{ trackingInfo.tracking_number }}
           </p>
         </div>
@@ -96,6 +96,7 @@ const emit = defineEmits(['close'])
 const statusLabels = {
   en_attente: 'En attente de payement',
   paye: 'Payé',
+  paid: 'Payé',
   expedie: 'Expédiée',
   livre: 'Livrée',
   annule: 'Annulée'

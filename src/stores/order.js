@@ -34,7 +34,7 @@ export const useOrdersStore = defineStore('orders', () => {
     orders.value.filter(order => order.status === 'cancelled'))
 
   // Actions
-  async function createOrder(addressId, paymentMethod, datas) {
+  async function createOrder(addressId, paymentMethod, phoneNumber, subtotal, shippingCost) {
     loading.value = true
     error.value = null
     
@@ -43,8 +43,9 @@ export const useOrdersStore = defineStore('orders', () => {
         cart_id: cartStore.currentCartId,
         payment_method: paymentMethod,
         shipping_address_id: addressId,
-        total_amount: cartStore.totalPrice,
-        phone: datas
+        subtotal: subtotal,
+        shipping_cost: shippingCost,
+        phone: phoneNumber
       }
 
       const response = await axios.post(`${apiStore.apiUrl}/orders`, payload, {

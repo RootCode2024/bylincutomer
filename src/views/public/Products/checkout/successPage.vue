@@ -1,153 +1,268 @@
 <template>
   <div class="checkout-success">
-          <section class="text-center py-12">
-            <div class="max-w-md mx-auto">
-              <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </div>
-              
-              <h2 class="text-2xl font-semibold text-gray-900 mb-2">Commande confirmée !</h2>
-              <p class="text-lg text-blue-600 mb-4">N° de commande: 67777777+</p>
-              <p class="text-gray-600 mb-6">Nous avons envoyé les détails à <strong>vfdvrf</strong></p>
-              
-              <div class="bg-gray-50 rounded-lg p-4 text-left space-y-3 mb-6">
-                <div class="flex justify-between">
-                  <span class="text-gray-600">Date estimée de livraison</span>
-                  <span class="font-medium">25727</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">Méthode de livraison</span>
-                  <span class="font-medium">255205</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">Adresse de livraison</span>
-                  <span class="font-medium">58205210</span>
-                </div>
-              </div>
+    <section class="text-center py-12" v-if="!loading && !error">
+      <div class="max-w-4xl mx-auto">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        
+        <h2 class="text-3xl font-bold text-gray-900 mb-2">Commande confirmée !</h2>
+        <p class="text-xl text-blue-600 mb-4 font-semibold">N° {{ orderData.order_number }}</p>
+        <p class="text-gray-600 mb-8">Nous avons envoyé les détails à <strong>{{ userEmail }}</strong></p>
+        
+        <div class="bg-gray-50 rounded-xl p-6 text-left space-y-4 mb-8 border">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 font-medium">Date estimée de livraison</span>
+            <span class="font-semibold text-gray-900">{{ estimatedDelivery }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 font-medium">Statut de la commande</span>
+            <span class="font-semibold text-gray-900 capitalize">{{ orderData.status }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 font-medium">Montant total</span>
+            <span class="font-semibold text-gray-900">{{ formatCurrency(orderData.total) }}</span>
+          </div>
+          <div class="flex justify-between items-start">
+            <span class="text-gray-600 font-medium">Méthode de paiement</span>
+            <span class="font-semibold text-gray-900 text-right capitalize">
+              {{ paymentMethodDisplay }}
+            </span>
+          </div>
+        </div>
 
-              <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <button class="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                  </svg>
-                  Suivre ma commande
-                </button>
-                <button class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                  </svg>
-                  Continuer mes achats
-                </button>
-              </div>
-            </div>
-          </section>
+        <!-- Bouton de redirection vers le paiement si nécessaire -->
+        <div v-if="showPaymentRedirect" class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <p class="text-blue-800 text-sm mb-3">Votre paiement n'est pas encore finalisé</p>
+          <button 
+            @click="redirectToPayment" 
+            class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            🔗 Finaliser le paiement
+          </button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <button 
+            @click="trackOrder" 
+            class="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+            Suivre ma commande
+          </button>
+          <button 
+            @click="continueShopping" 
+            class="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+            </svg>
+            Continuer mes achats
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- État de chargement -->
+    <section v-else-if="loading" class="text-center py-12">
+      <div class="max-w-2xl mx-auto">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+          <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Chargement...</h2>
+        <p class="text-gray-600">Récupération des détails de votre commande</p>
+      </div>
+    </section>
+
+    <!-- État d'erreur -->
+    <section v-else-if="error" class="text-center py-12">
+      <div class="max-w-2xl mx-auto">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Erreur</h2>
+        <p class="text-gray-600 mb-6">{{ error }}</p>
+        <button 
+          @click="retryFetch" 
+          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          Réessayer
+        </button>
+      </div>
+    </section>
   </div>
 </template>
 
-<script>
-import axios from 'axios';
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+import { useCurrencyStore } from '@/stores/currency';
+import api from '@/api/axiosConfig';
 
-export default {
-  name: 'CheckoutSuccess',
-  data() {
-    return {
-      transactionId: null,
-      order: null,
-      loading: true,
-      error: null
-    }
-  },
-  created() {
-    // Récupère l'ID de transaction depuis l'URL
-    this.transactionId = this.$route.query.transaction_id;
-    this.fetchOrderDetails();
-  },
-  methods: {
-    async fetchOrderDetails() {
-      try {
-        const response = await axios.get(`/api/orders/${this.transactionId}`);
-        this.order = response.data;
-      } catch (error) {
-        console.error("Erreur lors de la récupération de la commande:", error);
-        this.error = error.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-    formatDate(dateString) {
-      return new Date(dateString).toLocaleDateString('fr-FR');
-    },
-    downloadInvoice() {
-      // Fonction pour télécharger la facture (à implémenter côté API)
-      window.open(`/api/orders/${this.transactionId}/invoice`, '_blank');
-    }
+const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
+const currencyStore = useCurrencyStore();
+
+// Réactives
+const loading = ref(true);
+const error = ref(null);
+const orderData = ref({});
+const paymentData = ref({});
+
+// Computed properties
+const orderNumber = computed(() => route.query.order || 'N/A');
+const userEmail = computed(() => authStore.user?.email || 'Non disponible');
+const estimatedDelivery = computed(() => {
+  if (!orderData.value.created_at) return 'Calcul en cours...';
+  
+  const deliveryDate = new Date(orderData.value.created_at);
+  deliveryDate.setDate(deliveryDate.getDate() + 3); // +3 jours pour la livraison
+  
+  return deliveryDate.toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+});
+
+const paymentMethodDisplay = computed(() => {
+  const method = paymentData.value.gateway || orderData.value.payment_method;
+  switch(method) {
+    case 'fedapay': return 'Mobile Money';
+    case 'stripe': return 'Carte de crédit';
+    case 'cash_on_delivery': return 'Paiement à la livraison';
+    default: return method || 'Non spécifié';
   }
-}
+});
+
+const showPaymentRedirect = computed(() => {
+  return orderData.value.status === 'pending' && 
+         paymentData.value.status === 'pending' &&
+         paymentData.value.gateway !== 'cash_on_delivery';
+});
+
+// Methods
+const formatCurrency = (amount) => {
+  if (currencyStore?.formatCurrency) {
+    return currencyStore.formatCurrency(amount);
+  }
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    minimumFractionDigits: 0
+  }).format(amount || 0);
+};
+
+const fetchOrderDetails = async () => {
+  try {
+    loading.value = true;
+    error.value = null;
+
+    // Utiliser l'order_number depuis l'URL
+    const response = await api.get(`/orders/${orderNumber.value}`);
+
+    console.log('Order fetch response:', response);
+    
+    // if (!response.ok) {
+    //   throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+    // }
+
+    const dataOrder = response;
+    
+    if (dataOrder.success) {
+      orderData.value = dataOrder.data.order || {};
+      paymentData.value = dataOrder.data.payment || {};
+    } else {
+      throw new Error(dataOrder.message || 'Erreur lors de la récupération de la commande');
+    }
+
+  } catch (err) {
+    console.error('Erreur récupération commande:', err);
+    error.value = err.message || 'Impossible de charger les détails de la commande';
+  } finally {
+    loading.value = false;
+  }
+};
+
+const redirectToPayment = () => {
+  const paymentUrl = orderData.value.payment_url || paymentData.value.redirect_url;
+  if (paymentUrl) {
+    window.location.href = paymentUrl;
+  }
+};
+
+const trackOrder = () => {
+  if (orderData.value.id) {
+    router.push(`/orders/track/${orderData.value.id}`);
+  } else {
+    router.push('/orders');
+  }
+};
+
+const continueShopping = () => {
+  router.push('/shop');
+};
+
+const retryFetch = () => {
+  fetchOrderDetails();
+};
+
+// Lifecycle
+onMounted(() => {
+  if (!orderNumber.value) {
+    error.value = 'Numéro de commande non trouvé dans l\'URL';
+    loading.value = false;
+    return;
+  }
+  
+  fetchOrderDetails();
+});
 </script>
 
 <style scoped>
 .checkout-success {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 2rem;
-  text-align: center;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.success-header {
-  margin-bottom: 2rem;
-}
-
-.success-header h1 {
-  color: #4CAF50;
-  font-size: 2rem;
-}
-
-.order-details {
-  background: #f9f9f9;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin: 2rem 0;
-  text-align: left;
-}
-
-.actions {
+  min-height: 70vh;
   display: flex;
-  gap: 1rem;
+  align-items: center;
   justify-content: center;
-  margin-top: 2rem;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  text-decoration: none;
-  font-weight: 500;
-  cursor: pointer;
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.btn-primary {
-  background: #4CAF50;
-  color: white;
-  border: none;
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
 }
 
-.btn-secondary {
-  background: white;
-  color: #4CAF50;
-  border: 1px solid #4CAF50;
-}
-
-.loading {
-  color: #666;
-  font-style: italic;
-}
-
-.error {
-  color: #f44336;
+/* Responsive */
+@media (max-width: 640px) {
+  .checkout-success {
+    padding: 1rem;
+  }
+  
+  .text-3xl {
+    font-size: 1.5rem;
+  }
+  
+  .text-xl {
+    font-size: 1.25rem;
+  }
 }
 </style>

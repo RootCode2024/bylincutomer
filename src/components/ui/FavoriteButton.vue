@@ -14,7 +14,6 @@
       class="h-5 w-5 flex-shrink-0"
       :class="{'fill-current': isFavorited}"
     />
-    <span v-if="text" class="text-sm whitespace-nowrap">{{ text }}</span>
   </button>
 </template>
 
@@ -25,10 +24,6 @@ import { Heart as HeartFilled } from 'lucide-vue-next'
 import { useWishlistStore } from '@/stores/wishlist'
 
 const props = defineProps({
-  text: {
-    type: String,
-    default: ''
-  },
   product: {
     type: Object,
     default: () => ({}), // Valeur par défaut vide

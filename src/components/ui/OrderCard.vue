@@ -4,17 +4,17 @@
       <!-- Mobile Order Number -->
       <div class="md:hidden">
         <p class="text-xs text-gray-500">Commande</p>
-        <p class="font-thin text-blue-600">#{{ order.reference }}</p>
+        <p class="font-thin text-blue-600">#{{ order.order_number || order.reference }}</p>
       </div>
       
       <!-- Desktop Grid -->
       <div class="grid grid-cols-12 w-full gap-4 items-center">
-        <!-- Order Number - Largeur augmentée (col-span-3 au lieu de col-span-2) -->
+        <!-- Order Number -->
         <div class="col-span-12 md:col-span-3">
-          <p class="hidden md:block font-thin text-sm uppercase text-blue-600">#{{ order.reference }}</p>
+          <p class="hidden md:block font-thin text-sm uppercase text-blue-600">#{{ order.order_number || order.reference }}</p>
         </div>
         
-        <!-- Date - Largeur réduite pour compenser (col-span-2 au lieu de col-span-3) -->
+        <!-- Date -->
         <div class="col-span-6 md:col-span-2">
           <p class="text-xs text-gray-500 md:hidden">Date</p>
           <p class="font-semibold text-xs">{{ formatDate(order.created_at) }}</p>
@@ -23,7 +23,7 @@
         <!-- Amount -->
         <div class="col-span-6 md:col-span-2 text-right md:text-left">
           <p class="text-xs text-gray-500 md:hidden">Montant</p>
-          <p class="font-semibold text-xs">{{ currencyStore.formatCurrency(order.total_amount) }}</p>
+          <p class="font-semibold text-xs">{{ currencyStore.formatCurrency(order.total || order.total_amount || order.subtotal) }}</p>
         </div>
         
         <!-- Status -->
@@ -39,6 +39,14 @@
         
         <!-- Actions -->
         <div class="col-span-6 md:col-span-3 flex justify-end space-x-2">
+          <button 
+            @click="goToOrderDetails(order)"
+            class="text-xs md:text-sm text-blue-600 hover:text-blue-900 flex items-center"
+          >
+            <Eye class="w-4 h-4 mr-1" />
+            <span class="hidden md:inline">Details</span>
+          </button>
+
           <button 
             @click="$emit('track')"
             class="text-xs md:text-sm text-blue-600 hover:text-blue-900 flex items-center"
@@ -67,18 +75,21 @@
         </div>
       </div>
     </div>
+    
     <hr class="my-4">
+    
     <!-- Items Preview -->
-    <div class="mt-4 flex space-x-2 overflow-x-auto pb-2">
+    <div class="mt-4 flex space-x-2 overflow-x-auto pb-2" v-if="order.items && order.items.length > 0">
       <div 
-        v-for="item in order.items"
+        v-for="item in visibleItems"
         :key="item.id"
         class="flex-shrink-0 relative"
       >
         <img 
-          :src="item.product.image || ''" 
-          :alt="item.product.name"
+          :src="getItemImage(item)" 
+          :alt="getItemName(item)"
           class="h-12 w-12 rounded-md object-cover border border-gray-200"
+          @error="handleImageError"
         >
         <span 
           v-if="item.quantity > 1"
@@ -89,18 +100,24 @@
       </div>
       <div 
         v-if="order.items.length > 3"
-        class="flex-shrink-0 h-12 w-12 rounded-md bg-gray-100 flex items-center justify-center text-gray-500"
+        class="flex-shrink-0 h-12 w-12 rounded-md bg-gray-100 flex items-center justify-center text-gray-500 text-xs"
       >
         +{{ order.items.length - 3 }}
       </div>
+    </div>
+    
+    <!-- No items message -->
+    <div v-else class="mt-4 text-center text-gray-500 text-sm">
+      Aucun article dans cette commande
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { MapPin, X, RotateCcw } from 'lucide-vue-next'
+import { MapPin, X, RotateCcw, Eye } from 'lucide-vue-next'
 import { useCurrencyStore } from '@/stores/currency'
+import router from '@/router'
 
 const currencyStore = useCurrencyStore()
 
@@ -109,7 +126,8 @@ const props = defineProps({
     type: Object,
     required: true,
     validator: (order) => {
-      return order.reference && order.created_at && order.total_amount && order.status
+      // Validation plus permissive
+      return order && typeof order === 'object' && order.id !== undefined
     }
   }
 })
@@ -117,11 +135,11 @@ const props = defineProps({
 const emit = defineEmits(['cancel', 'return', 'track'])
 
 const currentStatus = computed(() => {
-  // Handle both array and single status
+  // Gérer à la fois les tableaux et les statuts simples
   if (Array.isArray(props.order.status)) {
-    return props.order.status[0]?.status || props.order.status[0]
+    return props.order.status[0]?.status || props.order.status[0] || 'pending'
   }
-  return props.order.status
+  return props.order.status || 'pending'
 })
 
 const currentStatusLabel = computed(() => {
@@ -132,7 +150,12 @@ const currentStatusLabel = computed(() => {
     delivered: 'Livrée',
     cancelled: 'Annulée',
     returned: 'Retournée',
-    paye: 'Payé'
+    paid: 'Payé',
+    paye: 'Payé',
+    en_attente: 'En attente',
+    expedie: 'Expédiée',
+    livre: 'Livrée',
+    annule: 'Annulée'
   }
   return statusMap[currentStatus.value] || currentStatus.value
 })
@@ -145,21 +168,49 @@ const statusClass = computed(() => {
     delivered: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
     returned: 'bg-gray-100 text-gray-800',
-    paye: 'bg-green-100 text-green-800'
+    paye: 'bg-green-100 text-green-800',
+    en_attente: 'bg-yellow-100 text-yellow-800',
+    expedie: 'bg-purple-100 text-purple-800',
+    livre: 'bg-green-100 text-green-800',
+    annule: 'bg-red-100 text-red-800'
   }
   return classes[currentStatus.value] || 'bg-gray-100 text-gray-800'
 })
 
 const canCancel = computed(() => {
-  return ['pending', 'processing'].includes(currentStatus.value)
+  return ['pending', 'processing', 'paye'].includes(currentStatus.value)
 })
 
 const canReturn = computed(() => {
-  return currentStatus.value === 'delivered'
+  return currentStatus.value === 'delivered' || currentStatus.value === 'livre'
 })
 
+const visibleItems = computed(() => {
+  return props.order.items ? props.order.items.slice(0, 3) : []
+})
+
+const getItemImage = (item) => {
+  return item.product?.image || 
+         item.product?.main_image || 
+         item.image || 
+         'https://placehold.co/80?text=No+Image'
+}
+
+const getItemName = (item) => {
+  return item.product?.name || item.name || 'Article sans nom'
+}
+
+const handleImageError = (event) => {
+  event.target.src = 'https://placehold.co/80?text=No+Image'
+}
+
 const formatDate = (dateString) => {
+  if (!dateString) return 'Date inconnue'
   const options = { day: 'numeric', month: 'short', year: 'numeric' }
   return new Date(dateString).toLocaleDateString('fr-FR', options)
+}
+
+const goToOrderDetails = (order) => {
+  router.push(`/dashboard/orders/${order.order_number}`)
 }
 </script>

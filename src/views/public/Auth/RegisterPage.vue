@@ -5,7 +5,7 @@
       <div class="absolute inset-0 flex items-center justify-center p-12">
         <img 
           src="@/assets/images/logo-black.png" 
-          alt="Logo Byl In" 
+          alt="Logo Bylin" 
           class="w-full max-w-md object-contain filter drop-shadow-xl"
         >
       </div>
@@ -38,7 +38,7 @@
           <router-link to="/" class="inline-block mb-6 transition-transform hover:scale-105">
             <img 
               src="@/assets/images/logo-black.png" 
-              alt="Logo Byl In" 
+              alt="Logo Bylin" 
               class="h-24 mx-auto"
             >
           </router-link>

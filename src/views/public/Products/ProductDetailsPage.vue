@@ -75,7 +75,7 @@
               v-if="productImages.length > 1"
               :src="getImageUrl(productImages[selectedImage].url)"
               :alt="product.name"
-              class="w-full h-full object-cover object-center"
+              class="w-full h-full object-contain object-center"
               @error="handleImageError"
             />
             <div
@@ -522,20 +522,20 @@
             <!-- Review Summary -->
             <div>
               <div class="flex items-center">
-                <p class="text-3xl font-medium text-gray-900">{{ parseFloat(product.rating_cache || 0).toFixed(1) }}</p>
+                <p class="text-3xl font-medium text-gray-900">{{ parseFloat(product.average_rating || 0).toFixed(1) }}</p>
                 <div class="ml-4">
                   <div class="flex items-center">
                     <template v-for="i in 5" :key="i">
                       <component
                         :is="Star"
                         :class="[
-                          getStarColor(i, parseFloat(product.rating_cache || 0)),
+                          getStarColor(i, parseFloat(product.average_rating || 0)),
                           'h-5 w-5 flex-shrink-0'
                         ]"
                       />
                     </template>
                   </div>
-                  <p class="mt-1 text-sm text-gray-500">Basé sur {{ product.review_count || 0 }} avis</p>
+                  <p class="mt-1 text-sm text-gray-500">Basé sur {{ product.ratings_count || 0 }} avis</p>
                 </div>
               </div>
 
@@ -611,7 +611,7 @@
                       <time :datetime="review.created_at">{{ formatDate(review.created_at) }}</time>
                     </div>
                     <div v-if="review.admin_response" class="prose prose-sm text-blue-500 max-w-none ml-10">
-                      <h2>Byl In Team</h2>
+                      <h2>Bylin Team</h2>
                       <p v-for="admin_response in review.admin_response">{{ admin_response }}</p>
                       <div class="flex items-center space-x-4 text-sm text-gray-500">
                         <!-- <time :datetime="admin_response.created_at">{{ formatDate(admin_response.created_at) }}</time> -->
@@ -903,6 +903,7 @@ const newReview = ref({
 
 // Computed properties
 const productImages = computed(() => {
+  console.log('Computed Images : ', product.value.images)
   return product.value.images || []
 })
 
@@ -1061,7 +1062,7 @@ const fetchProduct = async () => {
 
 const getImageUrl = (imagePath) => {
   // console.log
-  return 'http://localhost:8000/' + imagePath
+  return 'http://localhost:8000' + imagePath
 }
 
 const handleImageError = (event) => {

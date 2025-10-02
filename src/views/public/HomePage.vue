@@ -48,7 +48,7 @@
           <div class="mb-8 animate-fade-in-up">
             <h1 class="text-6xl sm:text-8xl font-extralight tracking-wider text-white mb-4">
               <span class="font-serif italic bg-gradient-to-r from-white via-purple-200 to-indigo-200 bg-clip-text text-transparent">
-                BylIn
+                Bylin
               </span>
             </h1>
             <div class="w-24 h-px bg-gradient-to-r from-transparent via-purple-300 to-transparent mx-auto mb-2"></div>
@@ -247,7 +247,7 @@
               Nos engagements
             </span>
             <h2 class="text-4xl sm:text-5xl font-light mb-6 text-gray-900">
-              Pourquoi <span class="font-serif italic text-green-600">BylIn</span> ?
+              Pourquoi <span class="font-serif italic text-green-600">Bylin</span> ?
             </h2>
             <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Une expérience shopping unique avec des services premium

@@ -4,10 +4,10 @@
     <div class="bg-gradient-to-r from-indigo-500 to-purple-400">
       <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-white">Liste des Articles</h1>
-            <p class="mt-2 text-indigo-100">Explorez notre vaste sélection de produits</p>
-          </div>
+            <div>
+            <h1 class="text-3xl font-bold text-white">Boutique Bylin</h1>
+            <p class="mt-2 text-indigo-100">Découvrez les meilleurs produits, marques et tendances sur Bylin</p>
+            </div>
           <div class="flex space-x-3">
             <button 
               @click="goToCart"
@@ -109,10 +109,6 @@
         <div class="flex-1">
           <!-- Header with title and sort options -->
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-900">Notre Boutique</h2>
-              <p class="text-gray-500 mt-1">Plus de {{ totalProducts }} produits disponibles</p>
-            </div>
             
             <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 w-full md:w-auto">
               <!-- Sort Dropdown -->

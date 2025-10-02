@@ -183,49 +183,170 @@
 
           <!-- Right Actions -->
           <div class="flex items-center space-x-4 sm:space-x-5 md:space-x-6">
-            <!-- Enhanced Search -->
+            <!-- Enhanced Search like Shein -->
             <div class="hidden md:block relative">
               <button
                 @click="toggleSearch"
-                class="p-2 text-gray-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors"
+                class="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors border border-gray-200"
                 aria-label="Rechercher"
                 aria-expanded="searchOpen"
               >
-                <Search class="h-5 w-5" />
+                <Search class="h-4 w-4" />
+                <span class="text-sm text-gray-500">Rechercher...</span>
               </button>
 
-              <transition name="search-dropdown">
+              <!-- Search Overlay like Shein -->
+              <transition name="search-overlay">
                 <div 
                   v-if="searchOpen"
-                  class="absolute right-0 top-full mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50"
-                  role="search"
+                  class="fixed inset-0 bg-black bg-opacity-50 z-50"
+                  @click="closeSearch"
                 >
-                  <div class="relative p-4">
-                    <div class="relative">
-                      <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        v-model="searchQuery"
-                        @keydown.enter="submitSearch"
-                        type="text"
-                        placeholder="Rechercher des produits, marques, catégories..."
-                        class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        autofocus
-                        aria-label="Champ de recherche"
-                      />
-                    </div>
-                    
-                    <!-- Search Suggestions -->
-                    <div v-if="searchQuery" class="mt-3 space-y-2">
-                      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Suggestions rapides</div>
-                      <div class="flex flex-wrap gap-2">
+                  <div 
+                    class="bg-white mx-auto max-w-4xl mt-20 rounded-xl shadow-2xl overflow-hidden"
+                    @click.stop
+                  >
+                    <!-- Search Header -->
+                    <div class="border-b border-gray-100 p-4">
+                      <div class="relative">
+                        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                          v-model="searchQuery"
+                          @input="handleSearchInput"
+                          @keydown.enter="submitSearch"
+                          @keydown.esc="closeSearch"
+                          type="text"
+                          placeholder="Rechercher des produits, marques, catégories..."
+                          class="w-full pl-12 pr-4 py-4 text-lg border-0 focus:ring-0 focus:outline-none"
+                          autofocus
+                          aria-label="Champ de recherche"
+                          ref="searchInput"
+                        />
                         <button
-                          v-for="suggestion in searchSuggestions"
-                          :key="suggestion"
-                          @click="applySuggestion(suggestion)"
-                          class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-indigo-100 hover:text-indigo-800 transition-colors"
+                          @click="closeSearch"
+                          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                         >
-                          {{ suggestion }}
+                          <X class="h-5 w-5" />
                         </button>
+                      </div>
+                    </div>
+
+                    <!-- Search Content -->
+                    <div class="max-h-96 overflow-y-auto">
+                      <!-- Trending Searches -->
+                      <div v-if="!searchQuery && trendingSearches.length > 0" class="p-6">
+                        <h3 class="font-semibold text-gray-900 text-lg mb-4">Recherches tendances</h3>
+                        <div class="flex flex-wrap gap-3">
+                          <button
+                            v-for="trend in trendingSearches"
+                            :key="trend.id"
+                            @click="applyTrendingSearch(trend.query)"
+                            class="flex items-center space-x-2 px-4 py-3 bg-gray-50 hover:bg-indigo-50 text-gray-700 hover:text-indigo-800 rounded-lg transition-colors group"
+                          >
+                            <TrendingUp class="h-4 w-4 text-gray-400 group-hover:text-indigo-600" />
+                            <span class="font-medium">{{ trend.query }}</span>
+                            <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                              +{{ trend.count }}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Search Suggestions -->
+                      <div v-if="searchQuery && searchSuggestions.length > 0" class="p-6 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 text-sm mb-3 uppercase tracking-wide">Suggestions</h3>
+                        <div class="space-y-2">
+                          <button
+                            v-for="suggestion in searchSuggestions"
+                            :key="suggestion"
+                            @click="applySuggestion(suggestion)"
+                            class="flex items-center space-x-3 w-full px-3 py-2 text-left text-gray-700 hover:bg-indigo-50 hover:text-indigo-800 rounded-md transition-colors group"
+                          >
+                            <Search class="h-4 w-4 text-gray-400 group-hover:text-indigo-600" />
+                            <span>{{ suggestion }}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Recent Searches -->
+                      <div v-if="!searchQuery && recentSearches.length > 0" class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                          <h3 class="font-semibold text-gray-900 text-lg">Recherches récentes</h3>
+                          <button
+                            @click="clearRecentSearches"
+                            class="text-sm text-gray-500 hover:text-red-600 transition-colors"
+                          >
+                            Tout effacer
+                          </button>
+                        </div>
+                        <div class="space-y-2">
+                          <button
+                            v-for="(recent, index) in recentSearches"
+                            :key="index"
+                            @click="applyRecentSearch(recent)"
+                            class="flex items-center justify-between w-full px-3 py-2 text-left text-gray-700 hover:bg-indigo-50 hover:text-indigo-800 rounded-md transition-colors group"
+                          >
+                            <div class="flex items-center space-x-3">
+                              <Clock class="h-4 w-4 text-gray-400 group-hover:text-indigo-600" />
+                              <span>{{ recent }}</span>
+                            </div>
+                            <button
+                              @click.stop="removeRecentSearch(index)"
+                              class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 transition-opacity"
+                            >
+                              <X class="h-4 w-4" />
+                            </button>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Quick Categories -->
+                      <div v-if="!searchQuery" class="p-6 border-t border-gray-100">
+                        <h3 class="font-semibold text-gray-900 text-lg mb-4">Parcourir par catégorie</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <RouterLink
+                            v-for="category in quickCategories"
+                            :key="category.slug"
+                            :to="`/shop/category/${category.slug}`"
+                            @click.native="closeSearch"
+                            class="flex flex-col items-center p-4 text-gray-700 hover:bg-indigo-50 hover:text-indigo-800 rounded-lg transition-colors group"
+                          >
+                            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-indigo-200 transition-colors">
+                              <span class="text-lg">{{ category.emoji }}</span>
+                            </div>
+                            <span class="text-sm font-medium text-center">{{ category.name }}</span>
+                          </RouterLink>
+                        </div>
+                      </div>
+
+                      <!-- Search Results -->
+                      <div v-if="searchQuery && searchResults.length > 0" class="p-6">
+                        <h3 class="font-semibold text-gray-900 text-sm mb-3 uppercase tracking-wide">Produits</h3>
+                        <div class="space-y-3">
+                          <RouterLink
+                            v-for="result in searchResults"
+                            :key="result.id"
+                            :to="result.to"
+                            @click.native="closeSearch"
+                            class="flex items-center space-x-4 p-3 hover:bg-indigo-50 rounded-lg transition-colors group"
+                          >
+                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <span class="text-lg">{{ result.emoji }}</span>
+                            </div>
+                            <div class="flex-1">
+                              <p class="font-medium text-gray-900 group-hover:text-indigo-800">{{ result.name }}</p>
+                              <p class="text-sm text-gray-500">{{ result.category }}</p>
+                            </div>
+                            <p class="font-semibold text-indigo-600">{{ currencyStore.formatCurrency(result.price) }}</p>
+                          </RouterLink>
+                        </div>
+                      </div>
+
+                      <!-- No Results -->
+                      <div v-if="searchQuery && searchResults.length === 0" class="p-6 text-center">
+                        <Search class="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p class="text-gray-500 font-medium">Aucun résultat trouvé pour "{{ searchQuery }}"</p>
+                        <p class="text-sm text-gray-400 mt-1">Essayez d'autres mots-clés</p>
                       </div>
                     </div>
                   </div>
@@ -334,7 +455,7 @@
           <div class="border-t border-gray-200 pt-6 mt-6">
             <div class="space-y-2">
               <RouterLink
-                to="/account"
+                to="/dashboard"
                 @click.native="closeAllMenus"
                 class="block px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-800 text-base font-medium rounded-lg transition-colors"
                 role="menuitem"
@@ -342,7 +463,7 @@
                 Mon compte
               </RouterLink>
               <RouterLink
-                to="/orders"
+                to="/dashboard/orders"
                 @click.native="closeAllMenus"
                 class="block px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-800 text-base font-medium rounded-lg transition-colors"
                 role="menuitem"
@@ -367,13 +488,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { Menu, X, Search, Heart, ChevronDown, ArrowRight } from 'lucide-vue-next'
+import { Menu, X, Search, Heart, ChevronDown, ArrowRight, TrendingUp, Clock } from 'lucide-vue-next'
 import CurrencySwitcher from '@/components/CurrencySwitcher.vue'
 import { useCurrencyStore } from '@/stores/currency'
 import CartHeaderIconSection from './CartHeaderIconSection.vue'
-import { throttle } from 'lodash'
+import { throttle, debounce } from 'lodash'
 import { useAuthStore } from '@/stores/auth'
 import UserHeaderIconSection from './UserHeaderIconSection.vue'
 import { useCartStore } from '@/stores/cart'
@@ -398,7 +519,28 @@ const activeSubmenu = ref(null)
 const isBannerDismissed = ref(localStorage.getItem('bannerDismissed') === 'true')
 const apiCategories = ref([])
 const loadingCategories = ref(false)
+const searchInput = ref(null)
 let submenuTimer = null
+
+// Search data
+const trendingSearches = ref([
+  { id: 1, query: 'T-shirts Pro', count: 1243 },
+  { id: 2, query: 'Costumes Élégants', count: 987 },
+  { id: 3, query: 'Chemises Business', count: 856 },
+  { id: 4, query: 'Accessoires Cuir', count: 654 },
+  { id: 5, query: 'Ensembles Soft', count: 543 }
+])
+
+const recentSearches = ref(JSON.parse(localStorage.getItem('recentSearches')) || [])
+const searchResults = ref([])
+const isSearching = ref(false)
+
+const quickCategories = ref([
+  { name: 'Vêtements Pro', slug: 'vetements-pro', emoji: '👔' },
+  { name: 'Vêtements Soft', slug: 'vetements-soft', emoji: '👕' },
+  { name: 'Accessoires', slug: 'accessoires', emoji: '🧦' },
+  { name: 'Nouveautés', slug: 'nouveautes', emoji: '🆕' }
+])
 
 // Données de navigation
 const mainLinks = [
@@ -406,7 +548,6 @@ const mainLinks = [
   { to: '/shop', text: 'Boutique', hasDropdown: true },
   { to: '/collections', text: 'Collections', hasDropdown: false, badge: true },
   { to: '/tutorials', text: 'Tutoriels', hasDropdown: false },
-  { to: '/contact', text: 'Contact', hasDropdown: false },
 ]
 
 const featuredProducts = [
@@ -415,14 +556,17 @@ const featuredProducts = [
   { id: 3, name: 'Costume Élégant', price: 89900, emoji: '🥼', to: '/product/costume-elegant' }
 ]
 
-const searchSuggestions = [
-  'T-shirts Pro',
-  'Vêtements Soft',
-  'Ensembles',
-  'Accessoires',
-  'Nouveautés',
-  'Promotions'
-]
+const searchSuggestions = computed(() => {
+  if (!searchQuery.value) return []
+  const query = searchQuery.value.toLowerCase()
+  return [
+    `${query} homme`,
+    `${query} femme`,
+    `${query} 2024`,
+    `${query} premium`,
+    `${query} pas cher`
+  ]
+})
 
 const mobileLinks = [
   ...mainLinks,
@@ -459,12 +603,25 @@ const dismissBanner = () => {
 
 const toggleSearch = () => {
   searchOpen.value = !searchOpen.value
-  if (!searchOpen.value) searchQuery.value = ''
+  if (searchOpen.value) {
+    nextTick(() => {
+      searchInput.value?.focus()
+    })
+  } else {
+    searchQuery.value = ''
+    searchResults.value = []
+  }
+}
+
+const closeSearch = () => {
+  searchOpen.value = false
+  searchQuery.value = ''
+  searchResults.value = []
 }
 
 const closeAllMenus = () => {
   mobileMenuOpen.value = false
-  searchOpen.value = false
+  closeSearch()
   activeSubmenu.value = null
   clearTimeout(submenuTimer)
 }
@@ -486,14 +643,15 @@ const keepSubmenuOpen = () => {
 
 const submitSearch = () => {
   if (searchQuery.value.trim()) {
+    addToRecentSearches(searchQuery.value)
     router.push({ path: '/search', query: { q: searchQuery.value } })
-    searchQuery.value = ''
-    closeAllMenus()
+    closeSearch()
   }
 }
 
 const submitMobileSearch = () => {
   if (mobileSearchQuery.value.trim()) {
+    addToRecentSearches(mobileSearchQuery.value)
     router.push({ path: '/search', query: { q: mobileSearchQuery.value } })
     mobileSearchQuery.value = ''
     closeAllMenus()
@@ -503,6 +661,91 @@ const submitMobileSearch = () => {
 const applySuggestion = (suggestion) => {
   searchQuery.value = suggestion
   submitSearch()
+}
+
+const applyTrendingSearch = (query) => {
+  searchQuery.value = query
+  submitSearch()
+}
+
+const applyRecentSearch = (query) => {
+  searchQuery.value = query
+  submitSearch()
+}
+
+const addToRecentSearches = (query) => {
+  const trimmedQuery = query.trim()
+  if (!trimmedQuery) return
+
+  // Remove if already exists
+  recentSearches.value = recentSearches.value.filter(item => item !== trimmedQuery)
+  
+  // Add to beginning
+  recentSearches.value.unshift(trimmedQuery)
+  
+  // Keep only last 5 searches
+  recentSearches.value = recentSearches.value.slice(0, 5)
+  
+  // Save to localStorage
+  localStorage.setItem('recentSearches', JSON.stringify(recentSearches.value))
+}
+
+const removeRecentSearch = (index) => {
+  recentSearches.value.splice(index, 1)
+  localStorage.setItem('recentSearches', JSON.stringify(recentSearches.value))
+}
+
+const clearRecentSearches = () => {
+  recentSearches.value = []
+  localStorage.setItem('recentSearches', JSON.stringify([]))
+}
+
+// Simulated search function
+const performSearch = debounce(async (query) => {
+  if (!query.trim()) {
+    searchResults.value = []
+    isSearching.value = false
+    return
+  }
+
+  isSearching.value = true
+  
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 300))
+  
+  // Mock search results
+  searchResults.value = [
+    {
+      id: 1,
+      name: `T-shirt ${query}`,
+      category: 'Vêtements Soft',
+      price: 24900,
+      emoji: '👕',
+      to: `/product/t-shirt-${query.toLowerCase()}`
+    },
+    {
+      id: 2,
+      name: `Chemise ${query}`,
+      category: 'Vêtements Pro',
+      price: 35900,
+      emoji: '👔',
+      to: `/product/chemise-${query.toLowerCase()}`
+    },
+    {
+      id: 3,
+      name: `Costume ${query}`,
+      category: 'Vêtements Pro',
+      price: 89900,
+      emoji: '🥼',
+      to: `/product/costume-${query.toLowerCase()}`
+    }
+  ]
+  
+  isSearching.value = false
+}, 300)
+
+const handleSearchInput = () => {
+  performSearch(searchQuery.value)
 }
 
 const loadCategories = async () => {
@@ -563,12 +806,7 @@ watch(() => route.path, () => {
   closeAllMenus()
 })
 
-// Close search when clicking outside
-const handleClickOutside = (event) => {
-  if (searchOpen.value && !event.target.closest('.relative')) {
-    searchOpen.value = false
-  }
-}
+// Close search when clicking outside is handled by the overlay
 
 // Lifecycle
 onMounted(() => {
@@ -577,7 +815,6 @@ onMounted(() => {
     showBanner.value = !isBannerDismissed.value
     handleScroll()
     window.addEventListener('scroll', handleScroll)
-    document.addEventListener('click', handleClickOutside)
     loadCategories()
   } catch (error) {
     console.error("Header initialization error:", error)
@@ -586,7 +823,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
-  document.removeEventListener('click', handleClickOutside)
   clearTimeout(submenuTimer)
 })
 </script>
@@ -619,15 +855,25 @@ onBeforeUnmount(() => {
   transform: translateY(-10px) scale(0.95);
 }
 
-.search-dropdown-enter-active,
-.search-dropdown-leave-active {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+.search-overlay-enter-active,
+.search-overlay-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.search-dropdown-enter-from,
-.search-dropdown-leave-to {
+.search-overlay-enter-from,
+.search-overlay-leave-to {
   opacity: 0;
-  transform: translateY(-8px) scale(0.98);
+}
+
+.search-overlay-enter-active .search-content,
+.search-overlay-leave-active .search-content {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-overlay-enter-from .search-content,
+.search-overlay-leave-to .search-content {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
 }
 
 .mobile-menu-enter-active,
@@ -669,5 +915,24 @@ onBeforeUnmount(() => {
   .mobile-menu-leave-active {
     transition: transform 0.3s ease, opacity 0.3s ease;
   }
+}
+
+/* Custom scrollbar for search results */
+.search-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-results::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>

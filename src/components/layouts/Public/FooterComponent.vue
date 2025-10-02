@@ -188,7 +188,7 @@
       <div class="border-t border-gray-700 mt-12 pt-8">
         <div class="flex flex-col md:flex-row justify-between items-center">
           <p class="text-xs text-gray-400">
-            © 2025 <span class="text-indigo-800">Byl In Clothing</span>, Inc. Tous droits réservés.
+            © 2025 <span class="text-indigo-800">Bylin Clothing</span>, Inc. Tous droits réservés.
           </p>
           <div class="mt-4 md:mt-0">
             <ul class="flex flex-wrap gap-4 md:gap-6 justify-center">

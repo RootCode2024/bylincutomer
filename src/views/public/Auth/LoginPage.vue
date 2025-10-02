@@ -5,7 +5,7 @@
       <div class="absolute inset-0 flex items-center justify-center p-12">
         <img 
           src="@/assets/images/logo.png" 
-          alt="Logo Byl In" 
+          alt="Logo Bylin" 
           class="w-full max-w-md object-contain filter drop-shadow-xl"
         >
       </div>
@@ -246,7 +246,7 @@
   const loginWithGoogle = () => {
     loading.value = true
     try {
-      window.location.href = 'http://localhost:8000/api/auth/google/callback'
+      window.location.href = 'http://localhost:8000/api/customer/auth/google'
     } catch (error) {
       console.error('Login with Google error:', error)
       errorMessage.value = error.message || 'Échec de la connexion avec Google'

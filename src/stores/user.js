@@ -54,10 +54,13 @@ export const useUserStore = defineStore('user', {
       try {
         const response = await axios.get(`${this.apiUrl}/profile/addresses`, {
           headers: {
-            Authorization: `Bearer ${this.authStore.toke}`
+            Authorization: `Bearer ${this.authStore.token}`
           }
         })
-        this.addresses = response.data.data
+
+        console.log('La reponse depjuis ici : ', response)
+        this.addresses = response.data
+        return response.data
       } catch (error) {
         this.handleError(error, 'Impossible de charger les adresses')
       } finally {

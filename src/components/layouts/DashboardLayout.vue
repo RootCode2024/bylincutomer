@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { RouterView, useRoute, useRouter, RouterLink } from 'vue-router';
 import { Bell, ChevronDown, ChevronUp, CircleUser, Search, Settings, Menu, LogOut } from 'lucide-vue-next';
 import { useUIStore } from '@/stores/ui';
@@ -7,10 +7,80 @@ import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
 const router = useRouter();
-
+const route = useRoute();
 const uiStore = useUIStore();
 
 const dropdownOpen = ref(false);
+
+// Définition des routes de navigation avec leurs chemins correspondants
+const navigationItems = [
+  {
+    path: '/dashboard',
+    name: 'Tableau de bord',
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
+        <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z"></path>
+        <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z"></path>
+      </svg>
+    `
+  },
+  {
+    path: '/dashboard/orders',
+    name: 'Mes Commandes',
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
+        <path fill-rule="evenodd" d="M7.5 6v.75H5.513c-.96 0-1.764.724-1.865 1.679l-1.263 12A1.875 1.875 0 004.25 22.5h15.5a1.875 1.875 0 001.865-2.071l-1.263-12a1.875 1.875 0 00-1.865-1.679H16.5V6a4.5 4.5 0 10-9 0zM12 3a3 3 0 00-3 3v.75h6V6a3 3 0 00-3-3zm-3 8.25a3 3 0 106 0v-.75a.75.75 0 011.5 0v.75a4.5 4.5 0 11-9 0v-.75a.75.75 0 011.5 0v.75z" clip-rule="evenodd" />
+      </svg>
+    `
+  },
+  {
+    path: '/dashboard/shared-carts',
+    name: 'Mes Paniers Partagés',
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2-icon lucide-share-2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+    `
+  },
+  {
+    path: '/wishlists',
+    name: 'Favoris',
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>
+    `
+  },
+  {
+    path: '/dashboard/profile',
+    name: 'Mon Profil',
+    icon: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    `
+  }
+];
+
+// Fonction pour vérifier si un item de navigation est actif
+const isActiveRoute = (itemPath) => {
+  // Si c'est la route exacte
+  if (route.path === itemPath) {
+    return true;
+  }
+  
+  // Pour les sous-routes (ex: /dashboard/orders/123)
+  if (itemPath !== '/dashboard' && route.path.startsWith(itemPath)) {
+    return true;
+  }
+  
+  return false;
+};
+
+// Fonction pour obtenir les classes CSS en fonction de l'état actif
+const getNavItemClasses = (itemPath) => {
+  const isActive = isActiveRoute(itemPath);
+  
+  if (isActive) {
+    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg bg-gradient-to-tr from-blue-400 to-blue-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-[0.85] w-full flex items-center gap-4 px-4 capitalize';
+  } else {
+    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize';
+  }
+};
 
 const handleLogout = async () => {
   try {
@@ -21,6 +91,12 @@ const handleLogout = async () => {
   }
 };
 
+// Watcher pour fermer le dropdown quand la route change
+import { watch } from 'vue';
+watch(() => route.path, () => {
+  dropdownOpen.value = false;
+});
+
 </script>
 
 <template>
@@ -29,9 +105,7 @@ const handleLogout = async () => {
   <aside class="bg-gradient-to-br from-blue-600 to-blue-800 -translate-x-80 fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 rounded-xl transition-transform duration-300 xl:translate-x-0">
     <div class="relative border-b border-white/20">
       <router-link class="flex items-center gap-4 py-6 px-8" to="/">
-        <h6 class="block antialiased tracking-normal font-sans text-base font-semibold leading-relaxed text-white">
-          <span class="text-gray-800 font-bold text-xl">Byl In</span>
-        </h6>
+       <img src="@/assets/images/logo-black.png" class="h-24 w-24" />
       </router-link>
       <button class="middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-8 max-w-[32px] h-8 max-h-[32px] rounded-lg text-xs text-white hover:bg-white/10 active:bg-white/30 absolute right-0 top-0 grid rounded-br-none rounded-tl-none xl:hidden" type="button">
         <span class="absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
@@ -41,53 +115,23 @@ const handleLogout = async () => {
     </div>
     <div class="m-4">
       <ul class="mb-4 flex flex-col gap-1">
-        <li>
-          <router-link aria-current="page" class="active" to="/dashboard">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg bg-gradient-to-tr from-blue-400 to-blue-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-[0.85] w-full flex items-center gap-4 px-4 capitalize" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
-                <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z"></path>
-                <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z"></path>
-              </svg>
-              <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Tableau de bord</p>
-            </button>
-          </router-link>
-        </li>
-        <li>
-          <router-link class="" to="/dashboard/orders">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
-                <path fill-rule="evenodd" d="M7.5 6v.75H5.513c-.96 0-1.764.724-1.865 1.679l-1.263 12A1.875 1.875 0 004.25 22.5h15.5a1.875 1.875 0 001.865-2.071l-1.263-12a1.875 1.875 0 00-1.865-1.679H16.5V6a4.5 4.5 0 10-9 0zM12 3a3 3 0 00-3 3v.75h6V6a3 3 0 00-3-3zm-3 8.25a3 3 0 106 0v-.75a.75.75 0 011.5 0v.75a4.5 4.5 0 11-9 0v-.75a.75.75 0 011.5 0v.75z" clip-rule="evenodd" />
-              </svg>
-              <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Mes Commandes</p>
-            </button>
-          </router-link>
-        </li>
-        <li>
-          <router-link class="" to="/wishlists">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
-                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm0 8.625a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM15.375 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zM7.5 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" clip-rule="evenodd" />
-              </svg>
-              <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Favoris</p>
-            </button>
-          </router-link>
-        </li>
-        <li>
-          <router-link class="" to="/dashboard/profile">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
-                <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd"></path>
-              </svg>
-              <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Mon Profil</p>
+        <li v-for="item in navigationItems" :key="item.path">
+          <router-link :to="item.path">
+            <button 
+              :class="getNavItemClasses(item.path)"
+              type="button"
+            >
+              <span v-html="item.icon"></span>
+              <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">
+                {{ item.name }}
+              </p>
             </button>
           </router-link>
         </li>
         <li>
           <a class="" href="#">
             <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
-                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-.53 14.03a.75.75 0 001.06 0l3-3a.75.75 0 10-1.06-1.06l-1.72 1.72V8.25a.75.75 0 00-1.5 0v5.69l-1.72-1.72a.75.75 0 00-1.06 1.06l3 3z" clip-rule="evenodd" />
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
               <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Historique</p>
             </button>
           </a>
@@ -118,17 +162,6 @@ const handleLogout = async () => {
             </button>
           </a>
         </li>
-        <li>
-          <a class="" href="#">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
-                <path d="M19.5 22.5a3 3 0 003-3v-8.174l-6.879 6.879a.75.75 0 01-1.06-1.06l6.879-6.879-8.174 0a3 3 0 00-3 3V19.5a3 3 0 003 3h9z" />
-                <path d="M1.5 9.75a3 3 0 013-3h5.379a.75.75 0 01.53.22l2.122 2.122a.75.75 0 01-.53 1.28H6a1.5 1.5 0 00-1.5 1.5v8.379a.75.75 0 01-1.5 0V9.75z" />
-              </svg>
-              <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Adresses</p>
-            </button>
-          </a>
-        </li>
       </ul>
     </div>
   </aside>
@@ -138,7 +171,7 @@ const handleLogout = async () => {
     <nav class="block w-full max-w-full bg-transparent text-white shadow-none rounded-xl transition-all px-0 py-1">
       <div class="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
         <div class="capitalize">
-          <h6 class="block antialiased tracking-normal font-sans text-base font-semibold leading-relaxed text-gray-900">Bienvenue, {{ authStore?.user?.profile?.first_name }}</h6>
+          <h6 class="block antialiased tracking-normal font-sans text-base font-semibold leading-relaxed text-gray-900">Bienvenue, {{ authStore?.user?.name }}</h6>
         </div>
         <div class="flex items-center">
           <button class="relative middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-10 max-w-[40px] h-10 max-h-[40px] rounded-lg text-xs text-gray-500 hover:bg-blue-gray-500/10 active:bg-blue-gray-500/30" type="button">
@@ -154,16 +187,26 @@ const handleLogout = async () => {
               type="button"
               @click="dropdownOpen = !dropdownOpen"
             >
-              <img src="https://randomuser.me/api/portraits/men/32.jpg" class="inline-block relative object-cover object-center w-8 h-8 rounded-full" alt="profile">
-              <span class="hidden xl:block">{{ authStore.user?.profile?.first_name }}</span>
+              <template v-if="authStore.user?.avatar_url">
+              <img :src="authStore.user.avatar_url" class="inline-block relative object-cover object-center w-8 h-8 rounded-full" alt="profile">
+              </template>
+              <template v-else>
+              <div
+                class="inline-block relative w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-base"
+                :title="authStore.user?.name"
+              >
+                {{ (authStore.user?.name?.[0] || '').toUpperCase() }}{{ (authStore.user?.name?.[1] || '').toUpperCase() }}
+              </div>
+              </template>
+              <span class="hidden xl:block">{{ authStore.user?.name }}</span>
             </button>
             <div v-show="dropdownOpen" class="absolute right-0 mt-2 origin-top-right bg-white rounded-md shadow-lg w-36 z-50">
               <div class="py-1">
-                <router-link to="dashboard/profile" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
+                <router-link to="/dashboard/profile" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
                   <CircleUser class="mr-3 h-5 w-5 text-gray-500" />
                   Mon profil
                 </router-link>
-                <router-link to="dashboard/setting" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
+                <router-link to="/dashboard/setting" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
                   <Settings class="mr-3 h-5 w-5 text-gray-500" />
                   Paramètres
                 </router-link>

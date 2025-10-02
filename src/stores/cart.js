@@ -3,12 +3,14 @@ import { useStorage } from '@vueuse/core'
 import axios from 'axios'
 import { useApiStore } from './api'
 import { useAuthStore } from './auth'
+import { max } from 'lodash'
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
     items: useStorage('cart-items', []),
     successMessage: null,
     sharedCarts: [],
+    total: 0,
     isPersisted: false,
     errorMessage: null,
     couponValue: 0,
@@ -69,6 +71,7 @@ export const useCartStore = defineStore('cart', {
           available_stock: product.available_stock || 0,
           price: product.price,
           quantity: product.quantity || 1,
+          maxQuantity: product.maxQuantity || 99,
           image: product.image || null
         })
       }
@@ -352,7 +355,7 @@ export const useCartStore = defineStore('cart', {
         const apiStore = useApiStore()
         const authStore = useAuthStore()
         
-        const response = await axios.get(`${apiStore.apiUrl}/shared-cart-customer/${id}`, {
+        const response = await axios.get(`${apiStore.apiUrl}/shared-carts/${id}`, {
           headers: {
             Authorization: `Bearer ${authStore.token}`,
             'Content-Type': 'application/json'
@@ -366,25 +369,29 @@ export const useCartStore = defineStore('cart', {
     },
 
     // Récupérer tous les paniers partagés
-    async fetchSharedCarts() {
-      try {
-        const apiStore = useApiStore()
-        const authStore = useAuthStore()
-        
-        const response = await axios.get(`${apiStore.apiUrl}/shared-carts-customer`, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-            'Content-Type': 'application/json'
-          }
-        })
+  async fetchSharedCarts() {
+    try {
+      const apiStore = useApiStore()
+      const authStore = useAuthStore()
+      
+      const response = await axios.get(`${apiStore.apiUrl}/shared-carts`, {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      console.log('Paniers partagés récupérés:', response.data)
 
-        this.sharedCarts = response.data
-        return response.data
-      } catch (error) {
-        console.error('Failed to fetch shared carts:', error)
-        throw error
-      }
-    },
+      // Stocker les données dans le store
+      this.sharedCarts = response.data.data || [] // Accéder à response.data.data
+      this.total = response.data.total || 0 // Stocker le total
+      
+      return response // Retourner toute la réponse
+    } catch (error) {
+      console.error('Failed to fetch shared carts:', error)
+      throw error
+    }
+  },
 
     // Supprimer le panier côté serveur
     async deleteCartFromServer() {

@@ -20,20 +20,33 @@ export const useUIStore = defineStore('ui', () => {
   };
 
   const getCountries = async () => {
-  try {
-    const response = await axios.get('http://localhost:8000/api/countries');
-    countries.value = response.data.data;
-    console.log('Countries:', response.data.data);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching countries:', error);
-    return [];
+    try {
+      const response = await axios.get('http://localhost:8000/api/countries');
+      countries.value = response.data.data;
+      console.log('Countries:', response.data.data);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+      return [];
+    }
   }
-}
+
+  const getCountry = async (code) => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/countries/' + code);
+      countries.value = response.data.data;
+      console.log('Country:', response.data.data);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching country:', error);
+      return [];
+    }
+  }
   
   return {
     countries,
     getCountries,
+    getCountry,
     sidebarCollapsed,
     isMobileSidebarOpen,
     toggleSidebar,

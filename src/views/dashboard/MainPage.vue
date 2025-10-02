@@ -173,20 +173,27 @@
           <div v-else-if="suggestedProducts?.length" class="flex flex-col gap-4">
             <div v-for="product in suggestedProducts" :key="product.id" class="flex items-center gap-4">
               <img 
-                :src="product.image || product.main_image || 'https://via.placeholder.com/80'" 
+                :src="product.image || product.main_image" 
                 :alt="product.name" 
                 class="w-16 h-16 rounded-lg object-cover"
                 @error="handleImageError"
+                v-if="product.image || product.main_image"
               >
+              <div
+                v-else
+                class="w-1/2 h-24 flex items-center justify-center text-center text-xs bg-gray-200 object-cover object-center"
+              >
+                No Image
+              </div>
               <div class="flex-1">
                 <h6 class="text-sm text-gray-900 font-medium">{{ product.name }}</h6>
                 <p class="text-xs text-gray-600">{{ currencyStore.formatCurrency(product.price) }}</p>
                 <button 
                   class="text-xs py-1 px-2 rounded-lg border border-blue-500 text-blue-500 hover:opacity-75 focus:ring focus:ring-blue-200 active:opacity-85 mt-1 transition-all" 
                   type="button"
-                  @click="addToCart(product)"
+                  @click="showProduct(product)"
                 >
-                  Ajouter au panier
+                  Voir l'article
                 </button>
               </div>
             </div>
@@ -197,7 +204,7 @@
             <p class="text-gray-500 text-sm">Aucune suggestion disponible</p>
           </div>
           
-          <button 
+          <!-- <button 
             class="text-sm py-3 px-6 rounded-lg border border-blue-500 text-blue-500 hover:opacity-75 focus:ring focus:ring-blue-200 active:opacity-85 w-full flex items-center gap-3 justify-center mt-6 transition-all" 
             type="button"
             @click="loadMoreSuggestions"
@@ -205,7 +212,7 @@
           >
             <span>{{ loadingSuggestions ? 'Chargement...' : 'Voir plus de suggestions' }}</span>
             <ArrowRight class="w-4 h-4" v-if="!loadingSuggestions" />
-          </button>
+          </button> -->
         </div>
       </div>
     </div>
@@ -263,6 +270,7 @@ const defaultSuggestions = [
 // Status mapping for orders
 const statusMapping = {
   'pending': { label: 'En attente', class: 'amber' },
+  'paid': { label: 'Payé', class: 'blue' },
   'confirmed': { label: 'Confirmée', class: 'blue' },
   'processing': { label: 'En préparation', class: 'amber' },
   'shipped': { label: 'Expédiée', class: 'blue' },
@@ -332,10 +340,8 @@ function viewOrder(orderId) {
   router.push(`/dashboard/orders/${orderId}`)
 }
 
-function addToCart(product) {
-  // Implement add to cart functionality
-  cartStore.addItem(product)
-  console.log('Ajout au panier:', product)
+function showProduct(product) {
+  router.push(`/product/${product.slug}`)
 }
 
 function handleImageError(event) {

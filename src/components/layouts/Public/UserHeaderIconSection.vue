@@ -48,7 +48,7 @@
         </RouterLink>
         
         <RouterLink 
-          to="/orders" 
+          to="/dashboard/orders" 
           class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-indigo-600 transition-colors"
           role="menuitem"
           @click="closeAccountMenu"
@@ -58,7 +58,7 @@
         </RouterLink>
         
         <RouterLink 
-          to="/wishlist" 
+          to="/wishlists" 
           class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-indigo-600 transition-colors"
           role="menuitem"
           @click="closeAccountMenu"

@@ -31,7 +31,7 @@
         <div class="px-8 py-6 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div class="flex items-center space-x-6">
             <div class="relative">
-              <img class="h-20 w-20 rounded-full ring-4 ring-white/80 shadow-md" :src="user.avatar || 'https://ui-avatars.com/api/?name='+user.fullName" alt="Photo de profil">
+              <img class="h-20 w-20 rounded-full ring-4 ring-white/80 shadow-md" :src="authStore.user.avatar_url" alt="Photo de profil">
               <button class="absolute -bottom-1 -right-1 bg-white p-1.5 rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors">
                 <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -40,8 +40,8 @@
               </button>
             </div>
             <div>
-              <h2 class="text-2xl font-bold text-gray-900">{{ authStore.user.profile.first_name }}</h2>
-              <p class="text-gray-600 mt-1">{{ user.bio || 'Utilisateur standard' }}</p>
+              <h2 class="text-2xl font-bold text-gray-900">{{ authStore.user.name }}</h2>
+              <p class="text-gray-600 mt-1">{{ authStore.user.bio || 'Utilisateur standard' }}</p>
               <p class="text-sm text-gray-500 mt-1">Membre depuis le {{ formatDate(authStore.user.created_at) || '01 juin 2022' }}</p>
             </div>
           </div>
@@ -58,109 +58,41 @@
             </h2>
           </div>
           <div class="mt-6 grid grid-cols-1 gap-y-5 sm:grid-cols-2 sm:gap-x-8">
-            <!-- Prénom -->
-            <div>
-              <label for="first_nameInput" class="block text-sm font-medium text-gray-500 mb-1">Prénom</label>
-              <div class="relative flex items-center">
-                <!-- Mode édition -->
-                <input 
-                  v-if="editModes.first_name"
-                  id="first_nameInput"
-                  v-model="editableUser.first_name"
-                  type="text"
-                  :class="[
-                    'block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border',
-                    first_nameError ? 'border-red-500' : successFeedback.first_name ? 'border-green-500' : 'border-gray-300'
-                  ]"
-                  placeholder="Jean"
-                  aria-label="Modifier le prénom"
-                  :disabled="isUpdatingUserData.first_name"
-                  @keyup.enter="updateUserInfo('first_name')"
-                />
-
-                <!-- Mode lecture -->
-                <p v-else class="text-sm text-gray-900 bg-gray-50 rounded-md py-2 px-3 flex-1">
-                  {{ user.first_name || 'Non renseigné' }}
-                </p>
-
-                <!-- Bouton d'action -->
-                <button 
-                  @click="editModes.first_name ? updateUserInfo('first_name') : editModes.first_name = true"
-                  class="ml-2 p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors"
-                  :class="{ 
-                    'text-blue-600': editModes.first_name,
-                    'cursor-not-allowed opacity-50': isUpdatingUserData.first_name
-                  }"
-                  :disabled="isUpdatingUserData.first_name"
-                  aria-label="Modifier le prénom"
-                >
-                  <!-- Icône de chargement -->
-                  <svg v-if="isUpdatingUserData.first_name" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  
-                  <!-- Icône normale -->
-                  <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path 
-                      v-if="!editModes.first_name" 
-                      stroke-linecap="round" 
-                      stroke-linejoin="round" 
-                      stroke-width="2" 
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" 
-                    />
-                    <path 
-                      v-else 
-                      stroke-linecap="round" 
-                      stroke-linejoin="round" 
-                      stroke-width="2" 
-                      d="M5 13l4 4L19 7" 
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              <!-- Message d'erreur -->
-              <p v-if="first_nameError" class="mt-1 text-sm text-red-600">
-                {{ first_nameError }}
-              </p>
-            </div>
-
             <!-- Nom -->
             <div>
               <label for="last_nameInput" class="block text-sm font-medium text-gray-500 mb-1">Nom</label>
               <div class="relative flex items-center">
                 <!-- Mode édition -->
                 <input 
-                  v-if="editModes.last_name"
+                  v-if="editModes.name"
                   id="last_nameInput"
-                  v-model="editableUser.last_name"
+                  v-model="editableUser.name"
                   type="text"
                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border"
                   placeholder="Dupont"
                   aria-label="Modifier le nom"
-                  :disabled="isUpdatingUserData.last_name"
-                  @keyup.enter="updateUserInfo('last_name')"
+                  :disabled="isUpdatingUserData.name"
+                  @keyup.enter="updateUserInfo('name')"
                 >
                 
                 <!-- Mode lecture -->
                 <p v-else class="text-sm text-gray-900 bg-gray-50 rounded-md py-2 px-3 flex-1">
-                  {{ user.last_name || 'Non renseigné' }}
+                  {{ authStore.user.name || 'Non renseigné' }}
                 </p>
 
                 <!-- Bouton d'action -->
                 <button 
-                  @click="editModes.last_name ? updateUserInfo('last_name') : editModes.last_name = true"
+                  @click="editModes.name ? updateUserInfo('name') : editModes.name = true"
                   class="ml-2 p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors"
                   :class="{ 
-                    'text-blue-600': editModes.last_name,
-                    'cursor-not-allowed opacity-50': isUpdatingUserData.last_name
+                    'text-blue-600': editModes.name,
+                    'cursor-not-allowed opacity-50': isUpdatingUserData.name
                   }"
-                  :disabled="isUpdatingUserData.last_name"
+                  :disabled="isUpdatingUserData.name"
                   aria-label="Modifier le nom"
                 >
                   <!-- Icône de chargement -->
-                  <svg v-if="isUpdatingUserData.last_name" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <svg v-if="isUpdatingUserData.name" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -168,7 +100,7 @@
                   <!-- Icône normale -->
                   <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path 
-                      v-if="!editModes.last_name" 
+                      v-if="!editModes.name" 
                       stroke-linecap="round" 
                       stroke-linejoin="round" 
                       stroke-width="2" 
@@ -186,8 +118,8 @@
               </div>
 
               <!-- Message d'erreur -->
-              <p v-if="last_nameError" class="mt-1 text-sm text-red-600">
-                {{ last_nameError }}
+              <p v-if="nameError" class="mt-1 text-sm text-red-600">
+                {{ nameError }}
               </p>
             </div>
 
@@ -540,18 +472,45 @@
             </button>
           </div>
           
+          <!-- États de chargement et erreur -->
+          <div v-if="addressesLoading" class="mt-6 text-center py-8">
+            <div class="animate-pulse">
+              <div class="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
+              <div class="h-8 bg-gray-200 rounded w-3/4 mx-auto"></div>
+            </div>
+          </div>
+
+          <div v-else-if="addressesError" class="mt-6 text-center py-8 bg-red-50 rounded-xl">
+            <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-red-900">Erreur lors du chargement des adresses</h3>
+            <p class="mt-1 text-sm text-red-600">{{ addressesError }}</p>
+            <div class="mt-6">
+              <button 
+                @click="loadAddresses()"
+                type="button"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                Réessayer
+              </button>
+            </div>
+          </div>
+
           <!-- Section pour une seule adresse (affichage plein largeur) -->
-          <div v-if="addresses && addresses.length === 1" class="mt-6">
+          <div v-else-if="addresses && addresses.length === 1" class="mt-6">
             <div 
               v-for="(address, index) in addresses" 
-              :key="index"
+              :key="address.id"
               class="border border-gray-200 rounded-xl p-5 hover:border-blue-200 transition-colors relative"
               :class="{ 'ring-2 ring-blue-500 border-blue-500': address.is_default }"
             >
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center">
-                    <h3 class="font-medium text-gray-900">{{ address.type }}</h3>
+                    <h3 class="font-medium text-gray-900">
+                      {{ (address.type === 'office') ? 'Bureau' : 'Domicile' }}
+                    </h3>
                     <span 
                       v-if="address.is_default"
                       class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
@@ -559,13 +518,15 @@
                       Principale
                     </span>
                   </div>
-                  <p class="mt-1 text-sm text-gray-600">{{ address.address_line }}</p>
-                  <p class="text-sm text-gray-600">{{ address.city }}, {{ address.state }}</p>
-                  <p class="text-sm text-gray-600">{{ address.country_id }}</p>
+                  <p class="mt-1 text-sm text-gray-600">{{ address.street_line }}</p>
+                  <p class="text-sm text-gray-600">{{ address.city }}, {{ address.state_province || 'N/A' }}</p>
+                  <p class="text-sm text-gray-600">{{ address.country_code }}</p>
+                  <p class="text-sm text-gray-500">Code postal: {{ address.postal_code || 'N/A' }}</p>
+                  <p class="text-sm text-gray-500">Point de repère: {{ address.landmark || 'N/A' }}</p>
                 </div>
                 <div class="flex space-x-2">
                   <button 
-                    @click="editAddress(index)"
+                    @click="editAddress(address)"
                     class="text-gray-400 hover:text-blue-600 p-1 rounded-full hover:bg-blue-50 transition-colors"
                     title="Modifier"
                   >
@@ -574,7 +535,7 @@
                     </svg>
                   </button>
                   <button 
-                    @click="removeAddress(index)"
+                    @click="removeAddress(address.id)"
                     class="text-gray-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"
                     title="Supprimer"
                   >
@@ -597,15 +558,17 @@
           <!-- Section pour plusieurs adresses (affichage en grille) -->
           <div v-else-if="addresses && addresses.length > 1" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div 
-              v-for="(address, index) in addresses" 
-              :key="index"
+              v-for="address in addresses" 
+              :key="address.id"
               class="border border-gray-200 rounded-xl p-5 hover:border-blue-200 transition-colors relative"
               :class="{ 'ring-2 ring-blue-500 border-blue-500': address.is_default }"
             >
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center">
-                    <h3 class="font-medium text-gray-900">{{ address.type }}</h3>
+                    <h3 class="font-medium text-gray-900">
+                      {{ (address.type === 'office') ? 'Bureau' : 'Domicile' }}
+                    </h3>
                     <span 
                       v-if="address.is_default"
                       class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
@@ -613,13 +576,14 @@
                       Principale
                     </span>
                   </div>
-                  <p class="mt-1 text-sm text-gray-600">{{ address.address_line }}</p>
-                  <p class="text-sm text-gray-600">{{ address.city }}, {{ address.state }}</p>
-                  <p class="text-sm text-gray-600">{{ address.country_id }}</p>
+                  <p class="mt-1 text-sm text-gray-600">{{ address.street_line }}</p>
+                  <p class="text-sm text-gray-600">{{ address.city }}, {{ address.state_province }}</p>
+                  <p class="text-sm text-gray-600">{{ address.country_code }}</p>
+                  <p class="text-sm text-gray-500">Code postal: {{ address.postal_code }}</p>
                 </div>
                 <div class="flex space-x-2">
                   <button 
-                    @click="editAddress(index)"
+                    @click="editAddress(address)"
                     class="text-gray-400 hover:text-blue-600 p-1 rounded-full hover:bg-blue-50 transition-colors"
                     title="Modifier"
                   >
@@ -628,7 +592,7 @@
                     </svg>
                   </button>
                   <button 
-                    @click="removeAddress(index)"
+                    @click="removeAddress(address.id)"
                     class="text-gray-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"
                     title="Supprimer"
                   >
@@ -649,27 +613,6 @@
           </div>
 
           <!-- Section pour aucune adresse -->
-          <div v-else class="mt-6 text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune adresse enregistrée</h3>
-            <p class="mt-1 text-sm text-gray-500">Ajoutez votre première adresse pour faciliter vos achats.</p>
-            <div class="mt-6">
-              <button 
-                @click="addAddress()"
-                type="button"
-                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Ajouter une adresse
-              </button>
-            </div>
-          </div>
-          
           <div v-else class="mt-6 text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -728,7 +671,7 @@
             </div>
             
             <!-- Élément Mot de passe -->
-            <div v-if="!authStore.user?.is_provider" class="flex items-start p-4 rounded-lg bg-white border border-gray-200 hover:border-blue-300 transition-colors">
+            <div v-if="!authStore.user" class="flex items-start p-4 rounded-lg bg-white border border-gray-200 hover:border-blue-300 transition-colors">
               <div class="flex-shrink-0">
                 <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -830,7 +773,7 @@
           <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
             <div class="bg-white px-6 py-5 sm:p-6">
               <h3 class="text-lg font-medium leading-6 text-gray-900 mb-5">
-                {{ editingAddressIndex === null ? 'Ajouter une adresse' : 'Modifier une adresse' }}
+                {{ editingAddress ? 'Modifier une adresse' : 'Ajouter une adresse' }}
               </h3>
               
               <div class="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6">
@@ -841,17 +784,18 @@
                     id="type"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2 px-3 border"
                   >
-                    <option value="Domicile">Domicile</option>
-                    <option value="Bureau">Bureau</option>
+                    <option value="home">Domicile</option>
+                    <option value="work">Bureau</option>
+                    <option value="other">Autre</option>
                   </select>
                 </div>
                 
                 <div class="sm:col-span-2">
-                  <label for="address_line" class="block text-sm font-medium text-gray-700">Adresse</label>
+                  <label for="street_line" class="block text-sm font-medium text-gray-700">Adresse</label>
                   <input 
-                    v-model="editableAddress.address_line"
+                    v-model="editableAddress.street_line"
                     type="text"
-                    id="address_line"
+                    id="street_line"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2 px-3 border"
                     placeholder="123 Rue de l'Exemple"
                   >
@@ -869,24 +813,37 @@
                 </div>
                 
                 <div>
-                  <label for="postalCode" class="block text-sm font-medium text-gray-700">Etat</label>
+                  <label for="postal_code" class="block text-sm font-medium text-gray-700">Code postal</label>
                   <input 
-                    v-model="editableAddress.state"
+                    v-model="editableAddress.postal_code"
                     type="text"
-                    id="postalCode"
+                    id="postal_code"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2 px-3 border"
                     placeholder="75000"
                   >
                 </div>
+
+                <div>
+                  <label for="state_province" class="block text-sm font-medium text-gray-700">État/Région</label>
+                  <input 
+                    v-model="editableAddress.state_province"
+                    type="text"
+                    id="state_province"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2 px-3 border"
+                    placeholder="Île-de-France"
+                  >
+                </div>
                 
-                <div class="sm:col-span-2">
+                <div>
                   <label for="country" class="block text-sm font-medium text-gray-700">Pays</label>
                   <select 
-                    v-model="editableAddress.country_id"
-                    id="country_id"
+                    v-model="editableAddress.country_code"
+                    id="country_code"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2 px-3 border"
                   >
-                    <option v-for="(country, index) in countries" :key="index" :value="country.id">{{ country?.name }}</option>
+                    <option v-for="country in countries" :key="country.id" :value="country.id">
+                      {{ country.name }}
+                    </option>
                   </select>
                 </div>
                 
@@ -916,9 +873,11 @@
                 <button 
                   @click="saveAddress"
                   type="button"
-                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  :disabled="savingAddress"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Enregistrer
+                  <span v-if="savingAddress" class="animate-spin mr-2">⟳</span>
+                  {{ savingAddress ? 'Enregistrement...' : 'Enregistrer' }}
                 </button>
               </div>
             </div>
@@ -927,7 +886,7 @@
       </div>
     </Transition>
 
-    <!-- Modal de changement de mot de passe -->
+     <!-- Modal de changement de mot de passe -->
     <Transition name="modal">
       <div v-if="showPasswordModal" class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -1100,34 +1059,19 @@ const authStore = useAuthStore()
 const uiStore = useUIStore()
 const userStore = useUserStore()
 
-const first_nameError = ref(null);
-const last_nameError = ref(null);
+const nameError = ref(null);
 const emailError = ref(null);
 const phoneError = ref(null);
 const genderError = ref(null);
 const bioError = ref(null);
 const birth_dateError = ref(null);
-const successFeedback = ref({}); // { first_name: true/false }
+const successFeedback = ref({});
 
-
-// Données utilisateur
-const user = reactive({
-  first_name: authStore.user.profile.first_name,
-  last_name: authStore.user.profile.last_name,
-  fullName: authStore.fullName,
-  email: authStore.user.email,
-  phone: authStore.user.profile.phone,
-  avatar: authStore.user.profile.avatar,
-  gender: authStore.user.profile.gender,
-  birth_date: authStore.user.profile.birth_date,
-  email_verified_at: authStore.user.email_verified_at,
-  bio: authStore.user.profile.bio,
-  created_at: authStore.user.created_at,
-  addresses: computed(() => addresses.value)
-})
-
-const countries = ref([])
+// États pour les adresses
 const addresses = ref([])
+const addressesLoading = ref(false)
+const addressesError = ref(null)
+const countries = ref([])
 
 // États pour les modales
 const showAddressModal = ref(false)
@@ -1140,25 +1084,23 @@ const isUpdatingUserData = ref({})
 // États pour l'édition
 const editModes = reactive({
   info: false,
-  first_name: false,
-  last_name: false,
+  name: false,
   email: false,
   phone: false,
   bio: false,
-  avatar: false,
+  avatar_url: false,
   gender: false,
   birth_date: false
 })
 
 const editableUser = reactive({
-  first_name: authStore.user.profile.first_name,
-  last_name: authStore.user.profile.last_name,
+  name: authStore.user.name,
   email: authStore.user.email,
-  bio: authStore.user.profile.bio,
-  avatar: authStore.user.profile.avatar,
-  gender: authStore.user.profile.gender,
-  birth_date: authStore.user.profile.birth_date,
-  phone: authStore.user.profile.phone
+  bio: authStore.user.bio,
+  avatar_url: authStore.user.avatar_url,
+  gender: authStore.user.gender,
+  birth_date: authStore.user.birth_date,
+  phone: authStore.user.phone
 })
 
 // États pour les mots de passe
@@ -1173,152 +1115,125 @@ const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 // États pour l'adresse en cours d'édition
-const editingAddressIndex = ref(null)
+const editingAddress = ref(null)
+const savingAddress = ref(false)
 const editableAddress = reactive({
   id: null,
-  type: 'Domicile',
-  address_line: '',
+  type: 'home',
+  street_line: '',
   city: '',
-  state: '',
-  country_id: 4,
+  state_province: '',
+  postal_code: '',
+  country_code: 4,
   is_default: false
 })
 
 const editUserError = ref(null)
 
-// Méthodes
-const toggleEditMode = (field) => {
-  if (field === 'info') {
-    editModes.info = !editModes.info
-    if (editModes.info) {
-      editableUser.first_name = user.first_name
-      editableUser.last_name = user.last_name
-      editableUser.email = user.email
-      editableUser.phone = user.phone
-      editableUser.bio = user.bio
-      editableUser.avatar = user.avatar
-      editableUser.gender = user.gender
-      editableUser.birth_date = user.birth_date
-    }
-  } else {
-    editModes[field] = !editModes[field]
-    if (editModes[field]) {
-      editableUser[field] = user[field]
-    } else {
-      // Sauvegarder si on avait fait des modifications
-      if (editableUser[field] !== user[field]) {
-        user[field] = editableUser[field]
-      }
-    }
-  }
-}
+// Données utilisateur
+const user = reactive({
+  name: authStore.user.name,
+  email: authStore.user.email,
+  phone: authStore.user.phone,
+  avatar_url: authStore.user.avatar_url,
+  gender: authStore.user.gender,
+  birth_date: authStore.user.birth_date,
+  email_verified_at: authStore.user.email_verified_at,
+  bio: authStore.user.bio,
+  created_at: authStore.user.created_at,
+  addresses: computed(() => addresses.value)
+})
 
-
-const updateUserInfo = async (field) => {
-  isUpdatingUserData.value[field] = true;
-  editUserError.value = null;
-
-  if (!editableUser || !editableUser[field]?.trim()) {
-    editUserError.value = `${field} is required`;
-    isUpdatingUserData.value[field] = false;
-    return;
-  }
-
+// Méthodes pour les adresses
+const loadAddresses = async () => {
+  addressesLoading.value = true
+  addressesError.value = null
+  
   try {
-    await userStore.updateProfile({ [field]: editableUser[field] });
-
-    if (!user) Object.assign(user, {});
-    user[field] = editableUser[field];
-    editModes[field] = false;
-    editUserError.value = null;
-
-    // ✅ Ajoute succès visuel pendant 500ms
-    successFeedback.value[field] = true;
-    setTimeout(() => {
-      successFeedback.value[field] = false;
-    }, 500);
-
+    const fetchedAddresses = await userStore.fetchAddresses()
+    addresses.value = fetchedAddresses || []
+    console.log('Adresses chargées:', addresses.value)
   } catch (error) {
-    editUserError.value = userStore.error;
-    editModes[field] = true;
+    addressesError.value = 'Erreur lors du chargement des adresses'
+    console.error('Erreur loadAddresses:', error)
   } finally {
-    isUpdatingUserData.value[field] = false;
+    addressesLoading.value = false
   }
-};
-
-
-// Helper pour obtenir les libellés des champs
-const getFieldLabel = (field) => {
-  const labels = {
-    first_name: 'du prénom',
-    last_name: 'du nom',
-    email: 'de l\'email',
-    phone: 'du numéro de téléphone',
-    birth_date: 'de la date de naissance',
-    gender: 'du genre',
-    bio: 'de la biographie'
-  }
-  return labels[field] || field
-}
-
-const cancelEdit = (field) => {
-  editModes[field] = false
 }
 
 const addAddress = () => {
-  editingAddressIndex.value = null
+  editingAddress.value = null
   resetEditableAddress()
+  // Définir comme adresse par défaut si c'est la première
+  editableAddress.is_default = addresses.value.length === 0
   showAddressModal.value = true
 }
 
-const editAddress = (index) => {
-  editingAddressIndex.value = index
-  Object.assign(editableAddress, user.addresses[index])
+const editAddress = (address) => {
+  editingAddress.value = address
+  Object.assign(editableAddress, { ...address })
   showAddressModal.value = true
 }
 
-const removeAddress = (index) => {
-  if (user.addresses[index].is_default && user.addresses.length > 1) {
-    // Trouver une autre adresse à définir comme principale
-    const otherIndex = index === 0 ? 1 : 0
-    user.addresses[otherIndex].is_default = true
+const removeAddress = async (addressId) => {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer cette adresse ?')) {
+    return
   }
-  user.addresses.splice(index, 1)
+
+  try {
+    await userStore.deleteAddress(addressId)
+    await loadAddresses() // Recharger les adresses après suppression
+  } catch (error) {
+    console.error('Erreur suppression adresse:', error)
+    alert('Erreur lors de la suppression de l\'adresse')
+  }
 }
 
-const setDefaultAddress = (id) => {
-  // Assure-toi que addresses.value est un tableau
-  addresses.value.forEach(addr => {
-    addr.is_default = (addr.id === id)
-  })
-
-  userStore.updateAddressDefault(id)
+const setDefaultAddress = async (addressId) => {
+  try {
+    await userStore.setDefaultAddress(addressId)
+    await loadAddresses() // Recharger pour mettre à jour l'état
+  } catch (error) {
+    console.error('Erreur définition adresse par défaut:', error)
+    alert('Erreur lors de la définition de l\'adresse par défaut')
+  }
 }
 
-const saveAddress = () => {
-  if (editableAddress.is_default) {
-    user.addresses.forEach(addr => addr.is_default = false)
-  }
+const saveAddress = async () => {
+  savingAddress.value = true
   
-  if (editingAddressIndex.value === null) {
-    // Nouvelle adresse
-    user.addresses.push({ ...editableAddress })
-    const response = userStore.updateAddress(true, editableAddress)
-  } else {
-    // Mise à jour d'une adresse existante
-    Object.assign(user.addresses[editingAddressIndex.value], editableAddress)
+  try {
+    if (editingAddress.value) {
+      // Mise à jour d'une adresse existante
+      await userStore.updateAddress(editableAddress.id, editableAddress)
+    } else {
+      // Création d'une nouvelle adresse
+      await userStore.createAddress(editableAddress)
+    }
+    
+    await loadAddresses() // Recharger les adresses après sauvegarde
+    showAddressModal.value = false
+    resetEditableAddress()
+  } catch (error) {
+    console.error('Erreur sauvegarde adresse:', error)
+    alert('Erreur lors de la sauvegarde de l\'adresse')
+  } finally {
+    savingAddress.value = false
   }
-  
-  showAddressModal.value = false
 }
 
 const resetEditableAddress = () => {
-  editableAddress.type = 'Domicile'
-  editableAddress.address_line = ''
-  editableAddress.city = ''
-  editableAddress.state = ''
-  editableAddress.country_id = 4
-  editableAddress.is_default = user.addresses.length === 0
+  Object.assign(editableAddress, {
+    id: null,
+    type: 'home',
+    street_line: '',
+    city: '',
+    state_province: '',
+    postal_code: '',
+    country_code: 4,
+    is_default: false
+  })
+  editingAddress.value = null
 }
 
 const changePassword = () => {
@@ -1339,18 +1254,21 @@ const deleteAccount = () => {
 
 onMounted(async () => {
   await uiStore.getCountries()
-  addresses.value = authStore.user.addresses
-  console.log('addresses', authStore.user.addresses)
-  countries.value = [...uiStore.countries] // Crée une nouvelle référence
+  countries.value = [...uiStore.countries]
+  
+  // Charger les adresses au montage du composant
+  await loadAddresses()
 })
 
+// Watcher pour recharger les adresses quand l'utilisateur change
 watch(
-  () => authStore.user.addresses,
-  (newAddresses) => {
-    addresses.value = newAddresses || []
+  () => authStore.user,
+  () => {
+    loadAddresses()
   },
-  { deep: true }
+  { immediate: true }
 )
+
 </script>
 
 <style>

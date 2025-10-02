@@ -7,7 +7,7 @@
           <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.093a3.5 3.5 0 00-2.672 3.406 1 1 0 102 0 1.5 1.5 0 111.5 1.5v1a1 1 0 102 0v-1a3.5 3.5 0 00-3.5-3.5V5z"/>
           </svg>
-          <span class="text-xl font-bold">E-Shop</span>
+          <span class="text-xl font-bold">Bylin</span>
         </router-link>
         <div class="flex items-center space-x-4">
           <span class="text-sm text-gray-600">Besoin d'aide ?</span>
@@ -36,7 +36,7 @@
 
       <!-- Contenu principal -->
       <div v-if="loading" class="text-center py-12">
-        <Spinner class="mx-auto" />
+        <Spinner :size="14" class="mx-auto" />
         <p class="mt-4 text-gray-600">Chargement du panier...</p>
       </div>
 
@@ -150,11 +150,29 @@
             </div>
 
             <div class="p-6">
-              <!-- Sélecteur de méthode -->
+              <!-- Sélecteur de méthode de paiement -->
               <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-3">Choisissez votre contribution</label>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Méthode de paiement</label>
                 
-                <div class="grid grid-cols-2 gap-3">
+                <!-- Tabs de méthodes de paiement -->
+                <div class="flex border-b border-gray-200 bg-gray-50 rounded-t-lg overflow-hidden mb-4">
+                  <button 
+                    v-for="tab in paymentTabs" 
+                    :key="tab.id" 
+                    class="flex-1 px-4 py-3 font-medium text-sm transition-colors duration-200 relative"
+                    :class="{ 
+                      'bg-white text-indigo-600 shadow-sm': paymentMethod === tab.id,
+                      'text-gray-500 hover:text-gray-700 hover:bg-gray-100': paymentMethod !== tab.id
+                    }"
+                    @click="paymentMethod = tab.id"
+                  >
+                    {{ tab.label }}
+                    <div v-if="paymentMethod === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"></div>
+                  </button>
+                </div>
+
+                <!-- Sélecteur de contribution -->
+                <div class="grid grid-cols-2 gap-3 mt-4">
                   <button 
                     @click="activeTab = 'full'"
                     :class="[
@@ -187,7 +205,7 @@
                 </div>
               </div>
 
-              <!-- Contenu des onglets -->
+              <!-- Contenu des onglets de contribution -->
               <div v-if="activeTab === 'full'" class="space-y-4">
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div class="flex items-center">
@@ -200,13 +218,6 @@
                   <div class="text-3xl font-bold text-indigo-600">{{ formatPrice(remainingAmount) }}</div>
                   <p class="text-sm text-gray-600 mt-1">Montant total de votre contribution</p>
                 </div>
-                
-                <button 
-                  @click="processPayment(remainingAmount, 100)"
-                  class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                >
-                  Payer maintenant
-                </button>
               </div>
 
               <div v-else class="space-y-4">
@@ -256,20 +267,130 @@
                     {{ percentage }}% du montant restant
                   </div>
                 </div>
-
-                <button 
-                  @click="processPayment(percentageAmount, percentage)"
-                  :disabled="percentageAmount > remainingAmount || percentageAmount <= 0"
-                  :class="[
-                    'w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl',
-                    (percentageAmount > remainingAmount || percentageAmount <= 0) 
-                      ? 'opacity-50 cursor-not-allowed' 
-                      : 'hover:from-indigo-700 hover:to-purple-700'
-                  ]"
-                >
-                  Contribuer {{ percentage }}%
-                </button>
               </div>
+
+              <!-- Options de paiement selon la méthode choisie -->
+              <div class="mt-6 space-y-6">
+                <!-- Mobile Money -->
+                <div v-if="paymentMethod === 'mobile_money'" class="space-y-4 p-4 bg-white border border-gray-200 rounded-lg">
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div 
+                      v-for="method in mobileMoneyMethods" 
+                      :key="method.id"
+                      class="p-3 border-2 rounded-lg text-center cursor-pointer transition-all duration-200 hover:border-indigo-300 hover:shadow-sm"
+                      :class="{ 
+                        'border-indigo-500 bg-indigo-50': selectedMobileMoney === method.id, 
+                        'border-gray-200': selectedMobileMoney !== method.id 
+                      }"
+                      @click="selectMobileMoney(method.id)"
+                    >
+                      <div class="mb-2">
+                        <div class="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mx-auto flex items-center justify-center">
+                          <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="text-xs font-medium text-gray-900">{{ method.name }}</div>
+                    </div>
+                  </div>
+
+                  <div v-if="selectedMobileMoney" class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Numéro de téléphone *</label>
+                      <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span class="text-gray-500 sm:text-sm">+229</span>
+                        </div>
+                        <input 
+                          type="tel" 
+                          v-model="mobilePayment.phone" 
+                          placeholder="XX XX XX XX"
+                          class="block w-full pl-12 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                          required
+                        >
+                      </div>
+                      <p class="mt-2 text-xs text-gray-600">Entrez votre numéro sans l'indicatif pays</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Carte de crédit -->
+                <div v-else-if="paymentMethod === 'credit_card'" class="space-y-4 p-4 bg-white border border-gray-200 rounded-lg">
+                  <div class="grid grid-cols-1 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Numéro de carte *</label>
+                      <input 
+                        type="text" 
+                        v-model="payment.cardNumber" 
+                        placeholder="1234 5678 9012 3456"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        required
+                      >
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Nom sur la carte *</label>
+                      <input 
+                        type="text" 
+                        v-model="payment.cardName" 
+                        placeholder="John Doe"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        required
+                      >
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date d'expiration *</label>
+                        <input 
+                          type="text" 
+                          v-model="payment.expiryDate" 
+                          placeholder="MM/AA"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                          required
+                        >
+                      </div>
+                      
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">CVV *</label>
+                        <input 
+                          type="text" 
+                          v-model="payment.cvv" 
+                          placeholder="123"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                          required
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- PayPal -->
+                <div v-else-if="paymentMethod === 'paypal'" class="p-6 bg-white border border-gray-200 rounded-lg text-center">
+                  <div class="mb-4">
+                    <div class="w-16 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg mx-auto flex items-center justify-center text-white font-bold text-xs">
+                      PayPal
+                    </div>
+                  </div>
+                  <h3 class="text-md font-medium text-gray-900 mb-2">Paiement sécurisé avec PayPal</h3>
+                  <p class="text-sm text-gray-600">Vous serez redirigé vers PayPal pour finaliser votre paiement</p>
+                </div>
+              </div>
+
+              <!-- Bouton de paiement -->
+              <button 
+                @click="processPayment"
+                :disabled="!canProcessPayment"
+                :class="[
+                  'w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold transition-all duration-200 transform shadow-lg hover:shadow-xl mt-6',
+                  canProcessPayment 
+                    ? 'hover:from-indigo-700 hover:to-purple-700 hover:scale-105' 
+                    : 'opacity-50 cursor-not-allowed'
+                ]"
+              >
+                {{ getPaymentButtonText() }}
+              </button>
 
               <!-- Sécurité -->
               <div class="mt-6 pt-6 border-t border-gray-200">
@@ -333,38 +454,125 @@ const activeTab = ref('full')
 const percentage = ref(50)
 const percentageAmount = ref(0)
 
+// Options de paiement
+const paymentMethod = ref('mobile_money')
+const selectedMobileMoney = ref('')
+const mobilePayment = ref({
+  phone: ''
+})
+const payment = ref({
+  cardNumber: '',
+  cardName: '',
+  expiryDate: '',
+  cvv: ''
+})
+
+const isAuthenticated = ref(false) // À définir selon votre système d'auth
+const userName = ref('')
+const userEmail = ref('')
+
+const paymentTabs = ref([
+  { id: 'mobile_money', label: '📱 Mobile Money' },
+  { id: 'credit_card', label: '💳 Carte de crédit' },
+  { id: 'paypal', label: '🅿️ PayPal' }
+])
+
+const mobileMoneyMethods = ref([
+  { id: 'mtn', name: 'MTN Mobile Money' },
+  { id: 'moov', name: 'Moov Money' },
+  { id: 'orange', name: 'Orange Money' }
+])
+
 // Récupérer le token depuis l'URL
 token.value = route.params.token
 
-// Articles du panier
+// 1. Correction de l'affichage des données
 const cartItems = computed(() => {
-  return sharedCartData.value?.cart?.items || []
+  // S'assurer que les données existent
+  if (!sharedCartData.value?.cart?.items) return []
+  
+  return sharedCartData.value.cart.items.filter(item => item && item.product)
 })
 
-// Calculer le sous-total
+// 2. Correction du calcul du sous-total
 const subtotal = computed(() => {
   if (!cartItems.value.length) return 0
   
   return cartItems.value.reduce((total, item) => {
-    const price = Number(item.price) || 0
-    const quantity = Number(item.quantity) || 0
+    const price = parseFloat(item.price) || 0
+    const quantity = parseInt(item.quantity) || 0
     return total + (price * quantity)
   }, 0)
 })
 
-// Montant restant à payer
+// 3. Correction du montant restant - utiliser les données du serveur
 const remainingAmount = computed(() => {
-  const totalPaid = Number(sharedCartData.value?.total_paid) || 0
-  return Math.max(0, subtotal.value - totalPaid)
+  // Utiliser les données calculées côté serveur
+  if (sharedCartData.value?.remaining_amount !== undefined) {
+    return parseFloat(sharedCartData.value.remaining_amount) || 0
+  }
+  
+  // Fallback au calcul local si nécessaire
+  const totalPaid = parseFloat(sharedCartData.value?.total_paid) || 0
+  const totalAmount = parseFloat(sharedCartData.value?.total_amount) || subtotal.value
+  return Math.max(0, totalAmount - totalPaid)
+})
+
+// 4. Correction de la validation du paiement
+const canProcessPayment = computed(() => {
+  const amount = currentAmount.value
+  const remaining = remainingAmount.value
+  
+  // Vérifications de base
+  if (amount <= 0 || amount > remaining) {
+    return false
+  }
+
+  // Montant minimum (100 FCFA)
+  if (amount < 100) {
+    return false
+  }
+
+  // Vérification selon la méthode de paiement
+  switch (paymentMethod.value) {
+    case 'mobile_money':
+      return selectedMobileMoney.value && 
+             mobilePayment.value.phone &&
+             mobilePayment.value.phone.replace(/\s/g, '').length >= 8
+
+    case 'credit_card':
+      const cardNumber = payment.value.cardNumber.replace(/\s/g, '')
+      const cardName = payment.value.cardName.trim()
+      const expiryDate = payment.value.expiryDate.trim()
+      const cvv = payment.value.cvv.trim()
+      
+      return cardNumber.length >= 15 &&
+             cardName.length > 0 &&
+             /^\d{2}\/\d{2}$/.test(expiryDate) &&
+             /^\d{3,4}$/.test(cvv)
+
+    case 'paypal':
+      return true // PayPal ne nécessite pas de validation côté client
+
+    default:
+      return false
+  }
+})
+
+// Montant actuel sélectionné
+const currentAmount = computed(() => {
+  return activeTab.value === 'full' ? remainingAmount.value : percentageAmount.value
 })
 
 // Formater les prix
 const formatPrice = (price) => {
+  const numPrice = parseFloat(price) || 0
   return new Intl.NumberFormat('fr-FR', { 
     style: 'currency', 
     currency: 'XOF',
-    minimumFractionDigits: 0
-  }).format(price)
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(numPrice)
 }
 
 // Formater les dates
@@ -379,46 +587,121 @@ const updatePercentageAmount = () => {
   percentageAmount.value = (remainingAmount.value * percentage.value) / 100
 }
 
-// Traiter le paiement
-const processPayment = async (amount, percentage) => {
+// Sélectionner une méthode mobile money
+const selectMobileMoney = (method) => {
+  selectedMobileMoney.value = method
+}
+
+// Texte du bouton de paiement
+const getPaymentButtonText = () => {
+  const amount = formatPrice(currentAmount.value)
+  const percentageText = activeTab.value === 'percentage' ? ` (${percentage.value}%)` : ''
+  
+  if (paymentMethod.value === 'mobile_money') {
+    return `Payer ${amount}${percentageText} par Mobile Money`
+  } else if (paymentMethod.value === 'credit_card') {
+    return `Payer ${amount}${percentageText} par Carte`
+  } else if (paymentMethod.value === 'paypal') {
+    return `Payer ${amount}${percentageText} avec PayPal`
+  }
+  
+  return `Payer ${amount}${percentageText}`
+}
+
+// 5. Correction de la fonction de traitement du paiement
+const processPayment = async () => {
+  if (!canProcessPayment.value) {
+    alert('Veuillez vérifier les informations de paiement')
+    return
+  }
+
   try {
     loading.value = true
     
-    // Appel API pour traiter le paiement
-    const response = await api.post(`/customer/shared-carts/${token.value}/payment`, {
-      amount: amount,
-      payment_method: 'card',
-      percentage: percentage
-    })
+    // Préparer les données de paiement
+    const paymentData = {
+      amount: currentAmount.value,
+      payment_method: paymentMethod.value,
+      percentage: activeTab.value === 'percentage' ? percentage.value : null,
+    }
+
+    // Ajouter les données spécifiques selon la méthode
+    if (paymentMethod.value === 'mobile_money') {
+      paymentData.mobile_money_provider = selectedMobileMoney.value
+      paymentData.phone = mobilePayment.value.phone.replace(/\s/g, '')
+    }
+
+    // Ajouter les infos utilisateur si non authentifié
+    if (!isAuthenticated.value) {
+      paymentData.user_name = userName.value || 'Contributeur anonyme'
+      paymentData.user_email = userEmail.value || `guest_${Date.now()}@shared-cart.com`
+    }
+
+    console.log('Données de paiement envoyées:', paymentData)
+
+    const response = await api.post(`/shared-carts/${token.value}/payment`, paymentData)
     
     if (response.data.success) {
-      alert(`Paiement de ${formatPrice(amount)} (${percentage}%) effectué avec succès!`)
-      await fetchSharedCart()
+      const responseData = response.data.data
+      
+      // Mettre à jour les données du panier
+      if (responseData.shared_cart) {
+        sharedCartData.value = responseData.shared_cart
+        updatePercentageAmount()
+      }
+      
+      // Gérer la redirection si nécessaire
+      if (responseData.requires_redirect && responseData.redirect_url) {
+        alert('Vous allez être redirigé vers la page de paiement...')
+        window.open(responseData.redirect_url, '_blank')
+      } else {
+        alert(`Paiement de ${formatPrice(currentAmount.value)} effectué avec succès!`)
+        
+        // Recharger les données
+        await fetchSharedCart()
+      }
     } else {
-      alert('Erreur lors du paiement: ' + response.data.message)
+      throw new Error(response.data.message || 'Erreur lors du paiement')
     }
   } catch (err) {
     console.error('Erreur lors du paiement:', err)
-    alert('Une erreur est survenue lors du paiement')
+    
+    let errorMessage = 'Une erreur est survenue lors du paiement'
+    
+    if (err.response?.data?.message) {
+      errorMessage = err.response.data.message
+    } else if (err.message) {
+      errorMessage = err.message
+    }
+    
+    alert('Erreur: ' + errorMessage)
   } finally {
     loading.value = false
   }
 }
 
-// Récupérer les informations du panier partagé
+// 6. Correction de la récupération des données du panier
 const fetchSharedCart = async () => {
   try {
     loading.value = true
     error.value = ''
     
-    const response = await api.get(`/shared-carts/${token.value}`)
-    console.log('Données du panier partagé:', response.data)
+    const response = await api.get(`/shared-cart/${token.value}`)
+    console.log('Données du panier partagé reçues:', response)
 
     if (response.success) {
       sharedCartData.value = response.data
       updatePercentageAmount()
+      
+      // Vérifier l'état du panier
+      if (sharedCartData.value.is_expired) {
+        error.value = 'Ce panier partagé a expiré.'
+      } else if (sharedCartData.value.is_fully_paid) {
+        // Afficher un message de succès mais permettre de voir le panier
+        console.log('Le panier est entièrement payé!')
+      }
     } else {
-      error.value = response.message || 'Impossible de charger le panier'
+      error.value = response.data.message || 'Impossible de charger le panier'
     }
   } catch (err) {
     console.error('Erreur lors du chargement du panier:', err)
@@ -427,6 +710,8 @@ const fetchSharedCart = async () => {
       error.value = 'Panier non trouvé. Le lien est peut-être invalide.'
     } else if (err.response?.status === 410) {
       error.value = 'Ce panier partagé a expiré.'
+    } else if (err.response?.data?.message) {
+      error.value = err.response.data.message
     } else {
       error.value = 'Une erreur est survenue lors du chargement du panier.'
     }
@@ -435,8 +720,21 @@ const fetchSharedCart = async () => {
   }
 }
 
+const handleNetworkError = (error) => {
+  if (!navigator.onLine) {
+    return 'Pas de connexion internet. Vérifiez votre connexion.'
+  }
+  
+  if (error.code === 'ECONNABORTED') {
+    return 'La requête a pris trop de temps. Veuillez réessayer.'
+  }
+  
+  return 'Erreur de connexion. Veuillez réessayer.'
+}
+
 onMounted(() => {
   fetchSharedCart()
+  updatePercentageAmount()
 })
 </script>
 

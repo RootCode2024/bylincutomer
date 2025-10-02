@@ -356,19 +356,6 @@
               </button>
             </div>
 
-            <!-- Cash on Delivery Notice -->
-            <!-- <div v-if="shipping.method === 'local_standard'" class="p-6 bg-green-50 border border-green-200 rounded-lg">
-              <div class="flex items-center gap-3">
-                <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                <div>
-                  <h3 class="font-semibold text-green-800">Paiement à la livraison</h3>
-                  <p class="text-green-700 text-sm mt-1">Vous paierez en espèces lorsque vous recevrez votre commande.</p>
-                </div>
-              </div>
-            </div> -->
-
             <!-- Mobile Money Options -->
             <div v-if="paymentMethod" class="space-y-6 p-6 bg-white border border-gray-200 rounded-b-lg">
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -589,6 +576,11 @@
               <span>{{ formatCurrency(subtotal) }}</span>
             </div>
             
+            <div v-if="cartStore.couponValue" class="flex justify-between text-sm text-red-600">
+              <span>Reduction</span>
+              <span>-{{ formatCurrency(cartStore.couponValue) }}</span>
+            </div>
+            
             <div v-if="shippingCost > 0" class="flex justify-between text-sm text-gray-600">
               <span>Livraison</span>
               <span>{{ formatCurrency(shippingCost) }}</span>
@@ -647,7 +639,7 @@ const steps = ref([
 ]);
 
 const currentStep = ref(0);
-const selectedAddress = ref('');
+const selectedAddress = ref('new');
 const loading = ref(false);
 const errorMessage = ref('');
 
@@ -759,7 +751,7 @@ const shippingCost = computed(() => {
 });
 
 const orderTotal = computed(() => {
-  return subtotal.value + shippingCost.value;
+  return ((subtotal.value + shippingCost.value) - cartStore.couponValue);
 });
 
 const estimatedDelivery = computed(() => {
@@ -787,9 +779,7 @@ const canProceed = computed(() => {
       if (selectedAddress.value && selectedAddress.value !== 'new') {
         console.log('Address selected, proceeding allowed');
         return true;
-      }
-      
-      if (selectedAddress.value === 'new') {
+      } else {
         const requiredFields = [
           shipping.type?.trim(), 
           shipping.street_line?.trim(), 
@@ -1032,16 +1022,18 @@ async function submitOrder() {
     const response = await orderStore.createOrder(
       addressId, 
       paymentData, 
-      phoneNumber
+      phoneNumber,
+      subtotal.value,
+      shippingCost.value
     );
 
-    console.log('Ma response', response.data.payment_token.url)
+    console.log('Ma response', response)
     
 
     // 7. Gestion de la réponse
-    if (response.data.payment_token.url) {
+    if (response.data.data.payment_token.payment_url) {
       // Redirection vers le paiement en ligne
-      window.location.href = response.data.payment_token.url;
+      window.location.href = response.data.data.payment_token.payment_url;
     } else {
       // Succès mais pas d'URL de paiement
       currentStep.value = 3;

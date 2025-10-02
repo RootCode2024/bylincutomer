@@ -36,7 +36,7 @@
       <div class="flex justify-between items-center mt-2">
         <!-- Bouton ajout panier -->
         <button
-          @click="addToCart"
+          @click="openVariantModal"
           :disabled="isAddingToCart"
           class="p-2 rounded-full bg-gray-100 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Ajouter au panier"
@@ -50,6 +50,12 @@
         />
       </div>
     </div>
+    <ProductVariantModal
+      :product="product"
+      :is-open="showVariantModal"
+      @close="showVariantModal = false"
+      @added="onProductAdded"
+    />
   </div>
 </template>
 
@@ -59,6 +65,8 @@ import { useCurrencyStore } from '@/stores/currency'
 import { useCartStore } from '@/stores/cart'
 import { PlusIcon } from 'lucide-vue-next'
 import FavoriteButton from '@/components/ui/FavoriteButton.vue'
+import ProductVariantModal from '@/components/Product/ProductVariantModal.vue'
+import { max } from 'lodash'
 
 const props = defineProps({
   product: {
@@ -70,6 +78,17 @@ const props = defineProps({
 const currencyStore = useCurrencyStore()
 const cartStore = useCartStore()
 const isAddingToCart = ref(false)
+
+const showVariantModal = ref(false)
+
+const openVariantModal = () => {
+  showVariantModal.value = true
+}
+
+const onProductAdded = (cartItem) => {
+  console.log('Produit ajouté:', cartItem)
+  // Optionnel: afficher une notification toast
+}
 
 const formattedPrice = computed(() => {
   // Utiliser final_price ou price selon ce qui est disponible
@@ -117,6 +136,7 @@ const addToCart = async () => {
       name: props.product.name,
       price: props.product.final_price || props.product.price,
       quantity: 1,
+      maxQuantity: props.product.available_stock || 99,
       image: props.product.main_image_url,
       selectedColor: selectedColor,
       selectedSize: selectedSize,

@@ -450,13 +450,21 @@
             <ArrowLeftIcon :size="16" class="mr-2" />
             Modifier
           </button>
-          <button 
+            <button 
             @click="confirmAndShare"
-            class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center shadow-sm hover:shadow-md"
-          >
+            :disabled="loadingConfAndShare"
+            :class="[
+              'px-6 py-3 bg-indigo-600 text-white rounded-lg transition flex items-center shadow-sm hover:shadow-md',
+              loadingConfAndShare ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700'
+            ]"
+            >
             <SendIcon :size="16" class="mr-2" />
-            Confirmer et partager
-          </button>
+            <span v-if="loadingConfAndShare" class="flex items-center">
+              <Spinner class="mr-2" />
+              Partage en cours...
+            </span>
+            <span v-else>Partager le panier</span>
+            </button>
         </div>
       </div>
 
@@ -623,6 +631,7 @@ const steps = [
 
 const currentStep = ref(0);
 const loading = ref(false);
+const loadingConfAndShare = ref(false);
 const deliveryError = ref(null);
 const copied = ref(false);
 const loadingCities = ref(false);
@@ -878,6 +887,8 @@ const shareViaEmail = () => {
 // Confirmer et partager le panier
 const confirmAndShare = async () => {
   try {
+
+    loadingConfAndShare.value = true;
     // Synchroniser le panier si nécessaire
     if (!cartStore.currentCartId) {
       await cartStore.syncCartWithServer(true);
@@ -897,6 +908,8 @@ const confirmAndShare = async () => {
   } catch (error) {
     console.error('Erreur lors du partage du panier :', error);
     // TODO: Afficher un toast d'erreur
+  } finally {
+    loadingConfAndShare.value = false;
   }
 };
 

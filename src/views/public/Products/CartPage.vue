@@ -488,7 +488,7 @@ const formatPrice = (price) => {
 
 const incrementQuantity = (id) => {
   const item = cartItems.value.find(item => item.product_id === id);
-  if (item) {
+  if (item && item.quantity < item.maxQuantity) {
     item.quantity++;
     // Mettre à jour le store
     cartStore.updateQuantity(id, item.quantity);
@@ -537,6 +537,7 @@ const applyDiscount = async () => {
   discountError.value = '';
 
   try {
+    cartStore.syncCartWithServer(false)
     const response = await axios.post(`${apiStore.apiUrl}/cart/coupon`, {
       code: discountCode.value.trim().toUpperCase()
     });

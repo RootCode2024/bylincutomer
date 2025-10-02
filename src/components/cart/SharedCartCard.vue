@@ -37,7 +37,7 @@
         />
         <CartInfoItem 
           icon="time" 
-          :text="`Clôture: ${formatDate(cart.closing_date)}`"
+          :text="`Clôture: ${formatDate(cart.expires_at)}`"
           color="info"
         />
         <CartInfoItem 

@@ -8,22 +8,23 @@
       </p>
     </div>
 
-    <div v-if="sharedCarts.length > 0" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <!-- Stats -->
+    <div v-if="!loading && !error && sharedCarts.length > 0" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-white px-4 py-4 space-y-2 rounded-lg shadow border border-gray-100">
         <p class="text-sm text-gray-500">Total paniers</p>
         <p class="text-2xl font-bold">{{ sharedCarts.length }}</p>
       </div>
       <div class="bg-white px-4 py-4 space-y-2 rounded-lg shadow border border-gray-100">
         <p class="text-sm text-gray-500">Balance</p>
-        <p class="text-2xl font-bold text-indigo-600">{{ currencyStore.formatCurrency(balance) }}</p>
+        <p class="text-2xl font-bold text-indigo-600">{{ currencyStore.formatCurrency(totalAmount) }}</p>
       </div>
       <div class="bg-white px-4 py-4 space-y-2 rounded-lg shadow border border-gray-100">
         <p class="text-sm text-gray-500">Encaissé</p>
-        <p class="text-2xl font-bold">{{ currencyStore.formatCurrency(rest) }}</p>
+        <p class="text-2xl font-bold">{{ currencyStore.formatCurrency(totalPaid) }}</p>
       </div>
       <div class="bg-white px-4 py-4 space-y-2 rounded-lg shadow border border-gray-100">
         <p class="text-sm text-gray-500">Contributeurs</p>
-        <p class="text-2xl font-bold">0</p>
+        <p class="text-2xl font-bold">{{ totalContributors }}</p>
       </div>
     </div>
     
@@ -40,15 +41,15 @@
     <template v-else>
       <div class="mb-6 flex justify-end relative">
         <PrimaryButton
-          :disabled="sharedCarts.length === 3"
+          :disabled="sharedCarts.length >= 3"
           @click="createNewCart"
-          @mouseenter="showTooltip = sharedCarts.length === 3"
+          @mouseenter="showTooltip = sharedCarts.length >= 3"
           @mouseleave="showTooltip = false"
           icon="plus"
           label="Créer un nouveau panier"
         />
         <div 
-          v-if="showTooltip"
+          v-if="showTooltip && sharedCarts.length >= 3"
           class="absolute z-10 w-64 p-2 mt-2 text-sm text-white bg-gray-800 rounded-md shadow-lg tooltip-box"
           style="top: 100%; right: 0;"
         >
@@ -76,24 +77,22 @@
       <!-- Liste des paniers -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <SharedCartCard 
-            v-for="cart in sharedCarts" 
-            :key="cart.shared_cart_id"
-            :cart="{
-              ...cart,
-              status: cart.status || 'inactive', // Valeur par défaut
-              ownerName: authStore.userName || 'Inconnu'
-            }"
-            @click="viewCartDetails(cart.shared_cart_id)"
-          />
+          v-for="cart in sharedCarts" 
+          :key="cart.shared_cart_id"
+          :cart="cart"
+          @click="viewCartDetails(cart.shared_cart_id)"
+        />
       </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
+import { useCurrencyStore } from '@/stores/currency'
+import { useAuthStore } from '@/stores/auth'
 
 // Composants UI
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
@@ -101,8 +100,6 @@ import ErrorMessage from '@/components/ui/ErrorMessage.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import PrimaryButton from '@/components/ui/PrimaryButton.vue'
 import SharedCartCard from '@/components/cart/SharedCartCard.vue'
-import { useCurrencyStore } from '@/stores/currency'
-import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -110,32 +107,35 @@ const currencyStore = useCurrencyStore()
 const authStore = useAuthStore()
 
 // États
-const sharedCarts = ref([])
-const balance = ref(0)
-const rest = ref(0)
 const loading = ref(true)
 const error = ref(null)
 const showTooltip = ref(false)
+
+// Computed properties pour les données du store
+const sharedCarts = computed(() => cartStore.sharedCarts || [])
+const totalAmount = computed(() => cartStore.total || 0)
+
+// Calculer les totaux à partir des paniers
+const totalPaid = computed(() => {
+  return sharedCarts.value.reduce((sum, cart) => sum + (cart.total_paid_by_contributors || 0), 0)
+})
+
+const totalContributors = computed(() => {
+  return sharedCarts.value.reduce((sum, cart) => sum + (cart.total_contributors || 0), 0)
+})
 
 // Méthodes
 const loadSharedCarts = async () => {
   try {
     loading.value = true
     error.value = null
-    const response = await cartStore.fetchSharedCarts()
-    sharedCarts.value = response.data
-
-    balance.value = response.total
-
-    sharedCarts.value.forEach(cart => {
-      rest.value -= cart.total_paid_by_contributors
-    });
     
-    // rest.value = balance.value  - sharedCarts.value.total_paid_by_contributors
-
-    console.log('Paniers partagés chargés:', rest.value)
+    // Appeler la méthode du store
+    await cartStore.fetchSharedCarts()
+    
+    console.log('Paniers partagés chargés:', sharedCarts.value)
   } catch (err) {
-    error.value = err.message || 'Échec du chargement des paniers'
+    error.value = err.response?.data?.message || err.message || 'Échec du chargement des paniers'
     console.error('Erreur:', err)
   } finally {
     loading.value = false
@@ -144,17 +144,20 @@ const loadSharedCarts = async () => {
 
 const viewCartDetails = (cartId) => {
   if (!cartId) {
-    console.error('No cart ID provided');
-    return;
+    console.error('No cart ID provided')
+    return
   }
-  console.log('Navigating to cart with ID:', cartId); // Add this before router.push
+  console.log('Navigating to cart with ID:', cartId)
   router.push({ 
     name: 'dashboard.shared.carts.details', 
     params: { id: cartId } 
-  });
+  })
 }
 
 const createNewCart = () => {
+  if (sharedCarts.value.length >= 3) {
+    return // Empêcher la création si limite atteinte
+  }
   router.push({ name: 'CreateSharedCart' })
 }
 
@@ -172,10 +175,5 @@ onMounted(() => {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeOut {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-5px); }
 }
 </style>
