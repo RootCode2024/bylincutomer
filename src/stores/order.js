@@ -184,7 +184,7 @@ export const useOrdersStore = defineStore('orders', () => {
   }
 
   async function verifyPayment(transactionId) {
-      const response = await axios.get(`http://localhost:8000/api/payments/verify`, {
+      const response = await axios.get(`https://api.bylin-style.com/api/payments/verify`, {
         params: { transaction_id: transactionId }
       })
       

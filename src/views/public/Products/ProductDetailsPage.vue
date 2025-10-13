@@ -1060,7 +1060,7 @@ const fetchProduct = async () => {
 
 const getImageUrl = (imagePath) => {
   // console.log
-  return 'http://localhost:8000' + imagePath
+  return 'https://api.bylin-style.com' + imagePath
 }
 
 const handleImageError = (event) => {

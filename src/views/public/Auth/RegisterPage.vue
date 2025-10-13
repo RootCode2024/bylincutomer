@@ -776,7 +776,7 @@ const goBack = () => {
 
 const loginWithGoogle = () => {
   socialLoading.value = true
-  window.location.href = 'http://localhost:8000/api/customer/auth/google'
+  window.location.href = 'https://api.bylin-style.com/api/customer/auth/google'
 }
 
 const calculatePasswordStrength = () => {

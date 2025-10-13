@@ -4,7 +4,7 @@ import router from '@/router'
 
 // 1. Configuration de base avec des paramètres optimisés
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/customer',
+  baseURL: 'https://api.bylin-style.com/api/customer',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

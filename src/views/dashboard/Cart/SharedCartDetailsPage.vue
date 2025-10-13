@@ -362,7 +362,7 @@ const error = ref(null);
 const copied = ref(false);
 
 const shareLink = computed(() => {
-  return cart.value ? `http://localhost:5173/shared-cart/${cart.value.token}` : '';
+  return cart.value ? `https://bylincustomer.vercel.app/shared-cart/${cart.value.token}` : '';
 });
 
 const remainingTime = computed(() => {

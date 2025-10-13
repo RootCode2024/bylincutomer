@@ -21,7 +21,7 @@ export const useUIStore = defineStore('ui', () => {
 
   const getCountries = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/countries');
+      const response = await axios.get('https://api.bylin-style.com/api/countries');
       countries.value = response.data.data;
       console.log('Countries:', response.data.data);
       return response.data.data;
@@ -33,7 +33,7 @@ export const useUIStore = defineStore('ui', () => {
 
   const getCountry = async (code) => {
     try {
-      const response = await axios.get('http://localhost:8000/api/countries/' + code);
+      const response = await axios.get('https://api.bylin-style.com/api/countries/' + code);
       countries.value = response.data.data;
       console.log('Country:', response.data.data);
       return response.data.data;

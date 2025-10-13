@@ -246,7 +246,7 @@
   const loginWithGoogle = () => {
     loading.value = true
     try {
-      window.location.href = 'http://localhost:8000/api/customer/auth/google'
+      window.location.href = 'https://api.bylin-style.com/api/customer/auth/google'
     } catch (error) {
       console.error('Login with Google error:', error)
       errorMessage.value = error.message || 'Échec de la connexion avec Google'
