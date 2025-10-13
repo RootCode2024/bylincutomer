@@ -23,164 +23,240 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref(null)
   const loading = ref(false)
 
-
   // Getters
   const isAuthenticated = computed(() => !!token.value)
   const userName = computed(() => { return user.value?.name || 'Utilisateur' })
   const userEmail = computed(() => { return user.value?.email || 'example@email.com' })
   const isEmailVerified = computed(() => { return user.value?.email_verified_at })
 
-    /**
-     * Enhanced login with token refresh handling
-    */
-    async function login(credentials) {
-      return withLoading(async () => {
-        try {
-          
-          const response = await axios.post(`${apiUrl}${API_ROUTES.auth.login}`, credentials);
-          
-          if (!response) {
-            throw new Error('Réponse d\'authentification invalide');
-          }
-          console.log('Login response:', response.data.token);
-          console.log(typeof(response.data.token));
 
-          // Stockez les données d'authentification
-          // token.value = response.data.token,
-          setAuthData(
-            response.data.token,
-            response.data.user,
-            response.data.roles,
-            response.data.permissions
-          );
-
-          // Attendre que le token soit bien enregistré
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          // Charger les données utilisateur
-          await handleCartSync();
-          
-          return response;
-        } catch (error) {
-          console.error('Login error:', error);
-          throw error; // Important pour que le composant puisse gérer l'erreur
-        }
-      });
-    }
-
-    /**
-     * Set complete auth data
-    */
-    function setAuthData(authToken, authUser, rolesData = null, permissionsData = null) {
-      if (!authToken) {
-        throw new Error('Invalid token format');
-      }
-
-      if (!authUser || typeof authUser !== 'object' || !authUser.id) {
-        throw new Error('User data must be a valid user object');
-      }
-
-      // 1. Mise à jour du state
-      token.value = authToken; // This updates the ref value
-      user.value = authUser;
-
-      // 2. Persistance locale
+  /**
+   * Enhanced login with token refresh handling
+   */
+  async function login(credentials) {
+    return withLoading(async () => {
       try {
-        localStorage.setItem('auth_token', authToken);
-        localStorage.setItem('auth_user', JSON.stringify(authUser));
-        localStorage.setItem('roles', JSON.stringify(rolesData));
-        localStorage.setItem('permissions', JSON.stringify(permissionsData));
-      } catch (e) {
-        console.error('LocalStorage error:', e);
-      }
-
-      // 3. Configuration Axios
-      setAuthToken(authToken); // Pass the raw token string
-    }
-
-    // Keep only this version of setAuthToken
-    function setAuthToken(tokenValue) {
-      try {
-        if (tokenValue) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${tokenValue}`;
-        } else {
-          delete axios.defaults.headers.common['Authorization'];
-        }
-      } catch (error) {
-        console.error('Failed to set auth header:', error);
-      }
-    }
-
-    // Helper pour Axios
-    // function setAuthToken(token) {
-    //   // console.log('Auth TOKEN dans setAuthToken :', token)
-    //   try {
-    //     if (token) {
-    //       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    //     } else {
-    //       delete axios.defaults.headers.common['Authorization']
-    //     }
-    //   } catch (error) {
-    //     console.error('Failed to set auth header:', error);
-    //   }
-    // }
-
-    /**
-     * Enhanced logout with cleanup
-     */
-    // async function logout() {
-    //   try {
+        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.login}`, credentials);
         
-    //     if (token.value) {
-    //       await axios.post(`${apiUrl}${API_ROUTES.auth.logout}`, null, {
-    //         headers: { Authorization: `Bearer ${token.value}` }
-    //       })
-    //     }
-    //   } catch (error) {
-    //     console.warn('Logout API error:', error)
-    //   } finally {
-    //     cleanupAuthState()
-    //   }
-    // }
+        if (!response) {
+          throw new Error('Réponse d\'authentification invalide');
+        }
 
-    /**
-     * Complete auth state cleanup
-    */
-    function cleanupAuthState() {
-      user.value = null
-      token.value = null
-      roles.value = null
-      permissions.value = null
-      error.value = null
-      loading.value = false
-      initialized.value = false
+        // Stockez les données d'authentification
+        setAuthData(
+          response.data.token,
+          response.data.user,
+          response.data.roles,
+          response.data.permissions
+        );
 
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      localStorage.removeItem('roles')
-      localStorage.removeItem('permissions')
+        // Attendre que le token soit bien enregistré
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Charger les données utilisateur
+        await handleCartSync();
+        
+        return response;
+      } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
+    });
+  }
 
-      delete axios.defaults.headers.common['Authorization']
+  /**
+   * Set complete auth data
+   */
+  function setAuthData(authToken, authUser, rolesData = null, permissionsData = null) {
+    if (!authToken) {
+      throw new Error('Invalid token format');
     }
 
-    /**
-     * Verify token validity with server
-    */
-    async function verifyToken() {
-      if (!token.value) return false;
+    if (!authUser || typeof authUser !== 'object' || !authUser.id) {
+      throw new Error('User data must be a valid user object');
+    }
 
+    // 1. Mise à jour du state
+    token.value = authToken;
+    user.value = authUser;
+
+    // 2. Persistance locale
+    try {
+      localStorage.setItem('auth_token', authToken);
+      localStorage.setItem('auth_user', JSON.stringify(authUser));
+      localStorage.setItem('roles', JSON.stringify(rolesData));
+      localStorage.setItem('permissions', JSON.stringify(permissionsData));
+    } catch (e) {
+      console.error('LocalStorage error:', e);
+    }
+
+    // 3. Configuration Axios
+    setAuthToken(authToken);
+  }
+
+  function setAuthToken(tokenValue) {
+    try {
+      if (tokenValue) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${tokenValue}`;
+      } else {
+        delete axios.defaults.headers.common['Authorization'];
+      }
+    } catch (error) {
+      console.error('Failed to set auth header:', error);
+    }
+  }
+
+  /**
+   * Complete auth state cleanup
+   */
+  function cleanupAuthState() {
+    user.value = null
+    token.value = null
+    roles.value = []
+    permissions.value = []
+    error.value = null
+    loading.value = false
+    initialized.value = false
+
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+    localStorage.removeItem('roles')
+    localStorage.removeItem('permissions')
+
+    delete axios.defaults.headers.common['Authorization']
+  }
+
+  /**
+   * Fetch current user data WITH 401 HANDLING
+   */
+  async function fetchUser() {
+    try {
+      // Vérifier d'abord si le token existe
+      if (!token.value) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await axios.get(`${apiUrl}${API_ROUTES.auth.me}`, {
+        headers: { Authorization: `Bearer ${token.value}` }
+      });
+      
+      if (!response || typeof response !== 'object') {
+        throw new Error('Invalid API response structure');
+      }
+
+      return response;
+
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+      
+      // CORRECTION : Gérer l'erreur 401 en déconnectant
+      if (error.response?.status === 401 || error.code === 'ERR_BAD_REQUEST') {
+        console.warn('Authentication invalid during fetchUser, logging out...');
+        await logout(true); // Déconnexion silencieuse
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Enhanced logout with better error handling
+   */
+  async function logout(silent = false) {
+    try {
+      const cartStore = useCartStore();
+      
+      // Synchroniser le panier avant déconnexion
+      if (cartStore.items.length > 0) {
+        try {
+          await cartStore.syncCartWithServer(false);
+          console.log('Cart synchronized with server before logout...');
+        } catch (cartError) {
+          console.warn('Cart sync error during logout:', cartError);
+        }
+      }
+
+      // Appel API de déconnexion si token existe
+      if (token.value && !silent) {
+        try {
+          await axios.post(`${apiUrl}${API_ROUTES.auth.logout}`, null, {
+            headers: { Authorization: `Bearer ${token.value}` },
+            timeout: 5000
+          });
+        } catch (error) {
+          console.warn('Logout API call failed, but cleaning local state:', error);
+        }
+      }
+    } catch (error) {
+      console.warn('Logout process error:', error);
+    } finally {
+      // TOUJOURS nettoyer le state local
+      cleanupAuthState();
+      
+      // Rediriger vers la page de login si ce n'est pas une déconnexion silencieuse
+      if (!silent && typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+      
+      console.log('User logged out successfully');
+    }
+  }
+
+  /**
+   * Setup global axios interceptor for auth errors
+   */
+  function setupAuthInterceptor() {
+    // CORRECTION : Éviter les boucles en utilisant une variable de contrôle
+    let logoutInProgress = false;
+
+    axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (error.response?.status === 401 && !logoutInProgress) {
+          console.warn('Global interceptor: Authentication failed, logging out...');
+          logoutInProgress = true;
+          await logout(true);
+          logoutInProgress = false;
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  // CORRECTION : Initialisation améliorée
+  async function initializeStore() {
+    const storedToken = localStorage.getItem('auth_token');
+    const storedUser = localStorage.getItem('auth_user');
+    
+    if (storedToken && storedUser) {
       try {
-        const response = await axios.get(`${apiUrl}${API_ROUTES.auth.verifyToken}`, {
-          headers: { Authorization: `Bearer ${token.value}` },
-          timeout: 10000
-        });
+        // Restaurer les données depuis le localStorage
+        token.value = storedToken;
+        user.value = JSON.parse(storedUser);
+        roles.value = JSON.parse(localStorage.getItem('roles') || '[]');
+        permissions.value = JSON.parse(localStorage.getItem('permissions') || '[]');
 
-        return false;
+        // Configurer Axios avec le token
+        setAuthToken(storedToken);
+
+        // Configurer l'intercepteur global
+        setupAuthInterceptor();
+
+        // CORRECTION : Tenter fetchUser avec gestion d'erreur
+        try {
+          await fetchUser();
+        } catch (error) {
+          // Si fetchUser échoue avec 401, logout sera appelé automatiquement
+          console.warn('Initial user fetch failed:', error.message);
+        }
+
       } catch (error) {
-        console.warn('Token verification failed (will attempt refresh):', error.message);
-        return false; // Laisser une chance au refresh
+        console.error('Store initialization failed:', error);
+        cleanupAuthState();
       }
     }
+    initialized.value = true;
+  }
 
     /**
      * Register new user
@@ -244,29 +320,6 @@ export const useAuthStore = defineStore('auth', () => {
         throw err
       } finally {
         loading.value = false
-      }
-    }
-
-    /**
-     * Fetch current user data
-    */
-    async function fetchUser() {
-      try {
-        const response = await axios.get(`${apiUrl}${API_ROUTES.auth.me}`, {
-            headers: { Authorization: `Bearer ${token.value}` }
-          })
-        
-        if (!response || typeof response !== 'object') {
-          throw new Error('Invalid API response structure');
-        }
-        console.log('resultat Fetch user : ', response)
-
-        // Normalisation des données reçues
-        return response;
-
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-        throw error; // Propagation pour gestion centralisée
       }
     }
 
@@ -356,24 +409,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     /**
-     * Set auth token in axios and store
-    */
-    // function setAuthToken(token) {
-    //   token.value = token
-    //   if (token) {
-    //     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    //     localStorage.setItem('auth_token', token)
-    //   } else {
-    //     token.value = null
-    //     delete axios.defaults.headers.common['Authorization']
-    //     localStorage.removeItem('auth_token')
-    //   }
-    // }
-
-    /**
      * Set return URL
     */
-    function setReturnUrl (url) {
+    function setReturnUrl(url) {
       returnUrl.value = url
     }
 
@@ -455,31 +493,6 @@ export const useAuthStore = defineStore('auth', () => {
     fetchUser(); // En arrière-plan
   }
 
-  // Initialisation automatique (remplacez la fin de votre store par ceci)
-  async function initializeStore() {
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('auth_user');
-    
-    if (storedToken && storedUser) {
-      try {
-        // Restaurer les données depuis le localStorage
-        token.value = storedToken;
-        user.value = JSON.parse(storedUser);
-        roles.value = JSON.parse(localStorage.getItem('roles') || '[]');
-        permissions.value = JSON.parse(localStorage.getItem('permissions') || '[]');
-
-        // Configurer Axios avec le token
-        setAuthToken(storedToken);
-
-      } catch (error) {
-        console.error('Store initialization failed:', error);
-        cleanupAuthState();
-      }
-    } else {
-      initialized.value = true;
-    }
-  }
-
   // 3. Modifier la fonction verifyToken pour être moins stricte
   async function verifyToken() {
     if (!token.value) return false;
@@ -530,34 +543,6 @@ export const useAuthStore = defineStore('auth', () => {
     
     initialized.value = true
     return true
-  }
-
-  // 5. Améliorer la fonction logout pour gérer les paramètres
-  async function logout(silent = false) {
-    try {
-      
-      const cartStore = useCartStore()
-      if (cartStore.items.length > 0) {
-        await cartStore.syncCartWithServer(false)
-        console.log('Cart syncroniser avec le server avant logout...')
-      } else {
-        console.log('Cart vide, suppression de la cart dans la db avant logout...')
-        await axios.delete(`${apiUrl}/cart`)
-      }
-
-      if (token.value && !silent) {
-        await axios.post(`${apiUrl}${API_ROUTES.auth.logout}`, null, {
-          headers: { Authorization: `Bearer ${token.value}` },
-          // timeout: 5000
-        });
-      }
-    } catch (error) {
-      if (!silent) {
-        console.warn('Logout API error:', error);
-      }
-    } finally {
-      cleanupAuthState();
-    }
   }
 
   async function handleGoogleLogin(responseData) {

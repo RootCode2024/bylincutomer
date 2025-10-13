@@ -16,7 +16,7 @@
       <div class="w-full max-w-md space-y-8">
         <div class="text-center">
           <router-link to="/" class="inline-block mb-6">
-            <img src="@/assets/images/logo.png" alt="Logo" class="h-10 mx-auto">
+            <img src="@/assets/images/logo-blue.png" alt="Logo" class="h-10 mx-auto">
           </router-link>
           <h1 class="text-3xl font-bold text-gray-900">
             {{ step === 1 ? 'Réinitialisation de mot de passe' : 'Vérification OTP' }}

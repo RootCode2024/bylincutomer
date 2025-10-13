@@ -1,185 +1,301 @@
 <template>
-  <div class="bg-gray-50 min-h-screen">
-    <!-- Bannière de la liste des articles -->
-    <div class="bg-gradient-to-r from-indigo-500 to-purple-400">
-      <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between">
-            <div>
-            <h1 class="text-3xl font-bold text-white">Boutique Bylin</h1>
-            <p class="mt-2 text-indigo-100">Découvrez les meilleurs produits, marques et tendances sur Bylin</p>
-            </div>
-          <div class="flex space-x-3">
-            <button 
-              @click="goToCart"
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-indigo-700 bg-white hover:bg-indigo-50 transition-colors duration-200"
-            >
-              <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              Voir le panier
-            </button>
-          </div>
+  <div class="min-h-screen bg-gray-50 font-poppins">
+    <!-- Hero Section -->
+    <section class="relative h-[400px] md:h-[500px] bg-gradient-to-r from-indigo-800 to-indigo-700 overflow-hidden">
+      <div class="absolute inset-0 flex items-center justify-between px-8 md:px-16">
+        <div class="text-white z-10">
+          <h1 class="text-5xl md:text-7xl font-light mb-2">L'élégance</h1>
+          <h1 class="text-5xl md:text-7xl font-light">dans la simplicité</h1>
+        </div>
+        <div class="hidden md:block absolute right-0 bottom-0 h-full w-2/3">
+          <img 
+            src="@/assets/images/trending/fedora.png" 
+            alt="Fashion model"
+            class="h-full w-full object-contain"
+          />
+        </div>
+        <button class="absolute bottom-8 right-8 w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/40 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- Products Section -->
+    <div class="mx-auto px-4 py-8">
+      <!-- Header with breadcrumb and results -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <div>
+          <p class="text-sm text-gray-600 mb-2">Accueil > Articles</p>
+          <h2 class="text-2xl font-semibold">{{ totalProducts }} résultat{{ totalProducts > 1 ? 's' : '' }} pour {{ selectedCategory ? getCategoryName(selectedCategory) : 'articles' }}</h2>
+        </div>
+        <div class="flex items-center gap-4 mt-4 md:mt-0">
+          <button 
+            @click="showFilters = !showFilters"
+            class="md:hidden px-4 py-2 bg-[#0066bf] text-white rounded-lg"
+          >
+            Filtres {{ activeFiltersCount > 0 ? `(${activeFiltersCount})` : '' }}
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Main Shop Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div class="flex flex-col md:flex-row gap-8">
+      <div class="flex flex-col lg:flex-row gap-8">
         <!-- Sidebar Filters -->
-        <div class="w-full md:w-64 flex-shrink-0">
-          <div class="bg-white p-6 rounded-lg shadow-sm sticky top-4 border border-gray-100">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Filtrer par</h3>
-            
-            <!-- Brands Filter -->
-            <div class="mb-6">
-              <h4 class="text-sm font-medium text-gray-900 mb-3">Marques</h4>
-              <div class="space-y-2">
-                <select 
-                  v-model="selectedBrand"
-                  @change="applyBrandFilter"
-                  class="w-full p-2 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all duration-200"
-                >
-                  <option v-for="brand in brands" :value="brand.id" :key="brand.id">{{ brand.name }}</option>
-                </select>
-              </div>
-            </div>
-            
-            <!-- Categories Filter -->
-            <div class="mb-6">
-              <h4 class="text-sm font-medium text-gray-900 mb-3">Catégories</h4>
-              <div class="space-y-2">
-                <div 
-                  v-for="category in categories" 
-                  :key="category.id || 'all'"
-                  @click="selectCategory(category.id)"
-                  class="flex items-center py-2 px-3 rounded-md cursor-pointer transition-colors duration-200"
-                  :class="{
-                    'bg-indigo-50 text-indigo-700': selectedCategory === category.id,
-                    'hover:bg-gray-50': selectedCategory !== category.id
-                  }"
-                >
-                  <span class="ml-2 text-sm">{{ category.name }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Price Filter -->
-            <div class="mb-6">
-              <h4 class="text-sm font-medium text-gray-900 mb-3">Prix</h4>
-              <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                  <input 
-                    v-model="priceRange.min"
-                    type="number" 
-                    placeholder="Min" 
-                    class="w-20 p-2 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all duration-200"
-                    @change="applyPriceFilter"
-                  >
-                  <span class="mx-2 text-gray-500">à</span>
-                  <input 
-                    v-model="priceRange.max"
-                    type="number" 
-                    placeholder="Max" 
-                    class="w-20 p-2 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all duration-200"
-                    @change="applyPriceFilter"
-                  >
-                </div>
-                <button 
-                  @click="applyPriceFilter"
-                  class="w-full py-2 px-4 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors duration-200"
-                >
-                  Appliquer
-                </button>
-              </div>
-            </div>
-
-            <!-- Reset Filters -->
+        <aside 
+          :class="[
+            'lg:w-64 bg-white rounded-lg p-6 shadow-sm',
+            showFilters ? 'block' : 'hidden lg:block'
+          ]"
+        >
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-semibold text-lg">Filtrer</h3>
             <button 
               @click="resetFilters"
-              class="w-full mt-4 py-2 px-4 border border-gray-200 text-sm rounded-md hover:bg-gray-50 flex items-center justify-center transition-colors duration-200"
+              class="text-[#0066bf] text-sm hover:underline"
             >
-              <RefreshCcw class="h-4 w-4 mr-2" />
               Réinitialiser
             </button>
           </div>
-        </div>
 
-        <!-- Main Content -->
-        <div class="flex-1">
-          <!-- Header with title and sort options -->
-          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
-            
-            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 w-full md:w-auto">
-              <!-- Sort Dropdown -->
-              <div class="relative">
-                <button 
-                  @click="toggleSortDropdown" 
-                  class="inline-flex justify-center w-full rounded-md border border-gray-200 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition-colors duration-200"
-                >
-                  Trier par: {{ selectedSort.label }}
-                  <ChevronDown class="-mr-1 ml-2 h-5 w-5" />
-                </button>
-                
-                <transition name="fade">
-                  <div 
-                    v-if="sortDropdownOpen" 
-                    class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 border border-gray-100"
-                  >
-                    <div class="py-1">
-                      <div 
-                        v-for="sortOption in filters.sort_options" 
-                        :key="sortOption.value"
-                        @click="selectSort(sortOption.value)"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors duration-200"
-                        :class="{ 'bg-indigo-50 text-indigo-700': selectedSort.value === sortOption.value }"
-                      >
-                        {{ sortOption.label }}
-                      </div>
-                    </div>
-                  </div>
-                </transition>
+          <!-- Categories Filter -->
+          <div class="mb-6">
+            <button 
+              @click="categoryOpen = !categoryOpen"
+              class="w-full flex items-center justify-between py-3 border-b"
+            >
+              <span class="font-medium">Catégories</span>
+              <svg 
+                :class="['w-5 h-5 transition-transform', categoryOpen ? 'rotate-180' : '']"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-show="categoryOpen" class="mt-3 space-y-2 max-h-48 overflow-y-auto">
+              <div 
+                v-for="category in categories" 
+                :key="category.id"
+                @click="selectCategory(category.id)"
+                :class="[
+                  'flex items-center gap-3 p-2 rounded cursor-pointer transition-colors',
+                  selectedCategory === category.id ? 'bg-[#0066bf] text-white' : 'hover:bg-gray-100'
+                ]"
+              >
+                <span class="text-sm">{{ category.name }}</span>
               </div>
-              
-              <!-- View Toggle -->
-              <div class="flex items-center space-x-2 bg-gray-50 rounded-md p-1">
-                <button 
-                  @click="setGridView(true)" 
-                  class="p-2 rounded-md transition-colors duration-200"
-                  :class="{ 'bg-white shadow-sm text-indigo-600': gridView, 'text-gray-500': !gridView }"
-                  aria-label="Vue grille"
+            </div>
+          </div>
+
+          <!-- Brand Filter -->
+          <div class="mb-6">
+            <button 
+              @click="brandOpen = !brandOpen"
+              class="w-full flex items-center justify-between py-3 border-b"
+            >
+              <span class="font-medium">Marques</span>
+              <svg 
+                :class="['w-5 h-5 transition-transform', brandOpen ? 'rotate-180' : '']"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-show="brandOpen" class="mt-3 space-y-2 max-h-48 overflow-y-auto">
+              <div 
+                v-for="brand in brands" 
+                :key="brand.id"
+                @click="selectedBrand = brand.id; applyBrandFilter()"
+                class="flex items-center gap-2 cursor-pointer"
+              >
+                <input 
+                  type="checkbox" 
+                  :checked="selectedBrand === brand.id"
+                  class="w-4 h-4 accent-[#0066bf]"
+                />
+                <span class="text-sm">{{ brand.name }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Filter -->
+          <div class="mb-6">
+            <button 
+              @click="priceOpen = !priceOpen"
+              class="w-full flex items-center justify-between py-3 border-b"
+            >
+              <span class="font-medium">Prix</span>
+              <svg 
+                :class="['w-5 h-5 transition-transform', priceOpen ? 'rotate-180' : '']"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-show="priceOpen" class="mt-3 space-y-3">
+              <div class="flex gap-2">
+                <input 
+                  v-model="priceRange.min"
+                  type="number" 
+                  placeholder="Min"
+                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0066bf]"
+                />
+                <input 
+                  v-model="priceRange.max"
+                  type="number" 
+                  placeholder="Max"
+                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0066bf]"
+                />
+              </div>
+              <button 
+                @click="applyPriceFilter"
+                class="w-full py-2 bg-[#0066bf] text-white rounded-lg text-sm hover:bg-[#005cac] transition-colors"
+              >
+                Appliquer
+              </button>
+            </div>
+          </div>
+
+          <!-- Size Filter -->
+          <div class="mb-6">
+            <button 
+              @click="sizeOpen = !sizeOpen"
+              class="w-full flex items-center justify-between py-3 border-b"
+            >
+              <span class="font-medium">Taille</span>
+              <svg 
+                :class="['w-5 h-5 transition-transform', sizeOpen ? 'rotate-180' : '']"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-show="sizeOpen" class="mt-3 grid grid-cols-3 gap-2">
+              <button
+                v-for="size in sizes"
+                :key="size.id"
+                @click="toggleSize(size)"
+                :class="[
+                  'px-3 py-2 border rounded-lg text-sm font-medium transition-colors',
+                  isSizeSelected(size) 
+                    ? 'bg-[#0066bf] text-white border-[#0066bf]' 
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-[#0066bf]'
+                ]"
+              >
+                {{ size.name }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Color Filter -->
+          <div class="mb-6">
+            <button 
+              @click="colorOpen = !colorOpen"
+              class="w-full flex items-center justify-between py-3 border-b"
+            >
+              <span class="font-medium">Couleur</span>
+              <svg 
+                :class="['w-5 h-5 transition-transform', colorOpen ? 'rotate-180' : '']"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-show="colorOpen" class="mt-3 flex flex-wrap gap-2">
+              <button
+                v-for="color in colors"
+                :key="color.id"
+                @click="toggleColor(color)"
+                :class="[
+                  'w-10 h-10 rounded-full border-2 transition-all',
+                  isColorSelected(color) 
+                    ? 'border-[#0066bf] scale-110' 
+                    : 'border-gray-300'
+                ]"
+                :style="{ backgroundColor: color.hex_code }"
+                :title="color.name"
+              />
+            </div>
+          </div>
+        </aside>
+
+        <!-- Products Grid -->
+        <main class="flex-1">
+          <!-- Toolbar -->
+          <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-lg shadow-sm">
+            <div class="flex items-center gap-2">
+              <button 
+                @click="viewGrid = true"
+                :class="[
+                  'p-2 rounded',
+                  viewGrid ? 'bg-[#0066bf] text-white' : 'text-gray-600 hover:bg-gray-100'
+                ]"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/>
+                </svg>
+              </button>
+              <button 
+                @click="viewGrid = false"
+                :class="[
+                  'p-2 rounded',
+                  !viewGrid ? 'bg-[#0066bf] text-white' : 'text-gray-600 hover:bg-gray-100'
+                ]"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="relative">
+              <button 
+                @click="sortDropdownOpen = !sortDropdownOpen"
+                class="flex items-center gap-2 px-4 py-2 border rounded-lg hover:border-[#0066bf] transition-colors"
+              >
+                <span class="text-sm">Trier par: {{ selectedSort.label }}</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div 
+                v-show="sortDropdownOpen"
+                class="absolute right-0 mt-2 w-56 bg-white border rounded-lg shadow-lg z-10"
+              >
+                <button
+                  v-for="option in filters.sort_options"
+                  :key="option.value"
+                  @click="selectSort(option.value)"
+                  :class="[
+                    'w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors',
+                    selectedSort.value === option.value ? 'bg-blue-50 text-[#0066bf]' : ''
+                  ]"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
-                </button>
-                <button 
-                  @click="setGridView(false)" 
-                  class="p-2 rounded-md transition-colors duration-200"
-                  :class="{ 'bg-white shadow-sm text-indigo-600': !gridView, 'text-gray-500': gridView }"
-                  aria-label="Vue liste"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
+                  {{ option.label }}
                 </button>
               </div>
             </div>
           </div>
 
           <!-- Loading State -->
-          <div v-if="loading" class="text-center py-16">
-            <div class="animate-pulse">
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <div v-for="n in 8" :key="n" class="bg-gray-100 h-64 rounded-lg"></div>
-              </div>
-            </div>
+          <div v-if="loading" class="flex justify-center items-center h-64">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0066bf]"></div>
           </div>
 
           <!-- Products Grid/List -->
-          <div v-else-if="products && products.length > 0">
+          <div v-else="products && products.length > 0">
             <!-- Grid View -->
-            <div v-if="gridView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div v-if="viewGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               <ProductCard 
                 v-for="product in paginatedProducts" 
                 :key="`page-${currentPage}-product-${product.id}`"
@@ -199,141 +315,94 @@
                 @add-to-wishlist="addToWishlist"
               />
             </div>
-            
-            <!-- Pagination -->
-            <div v-if="totalPages > 1" class="mt-12 flex justify-center">
-              <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button 
-                  @click="prevPage" 
-                  :disabled="currentPage === 1"
-                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-200 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  <span class="sr-only">Précédent</span>
-                  <ChevronLeft class="h-5 w-5" aria-hidden="true" />
-                </button>
-                
-                <!-- Pages dynamiques -->
-                <template v-for="page in getVisiblePages()" :key="page">
-                  <button 
-                    v-if="page !== '...'"
-                    @click="goToPage(page)"
-                    :class="{ 
-                      'bg-indigo-50 border-indigo-500 text-indigo-600': currentPage === page,
-                      'z-10': currentPage === page
-                    }"
-                    class="relative inline-flex items-center px-4 py-2 border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    {{ page }}
-                  </button>
-                  <span 
-                    v-else
-                    class="relative inline-flex items-center px-4 py-2 border border-gray-200 bg-white text-sm font-medium text-gray-700"
-                  >
-                    ...
-                  </span>
-                </template>
-                
-                <button 
-                  @click="nextPage" 
-                  :disabled="currentPage === totalPages"
-                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-200 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  <span class="sr-only">Suivant</span>
-                  <ChevronRight class="h-5 w-5" aria-hidden="true" />
-                </button>
-              </nav>
-            </div>
           </div>
           
-          <!-- Empty State -->
-          <div v-else class="text-center py-16">
-            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 class="mt-2 text-lg font-medium text-gray-900">Aucun produit trouvé</h3>
-            <p class="mt-1 text-sm text-gray-500">Essayez de modifier vos filtres de recherche.</p>
-            <div class="mt-6">
-              <button 
-                @click="resetFilters"
-                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none transition-colors duration-200"
-              >
-                <RefreshCcw class="-ml-1 mr-2 h-5 w-5" />
-                Réinitialiser les filtres
-              </button>
-            </div>
+          <!-- No Results -->
+          <div v-if="!loading && filteredProducts.length === 0" class="text-center py-16">
+            <p class="text-gray-500 text-lg">Aucun produit trouvé</p>
+            <button 
+              @click="resetFilters"
+              class="mt-4 px-6 py-2 bg-[#0066bf] text-white rounded-lg hover:bg-[#005cac] transition-colors"
+            >
+              Réinitialiser les filtres
+            </button>
           </div>
-        </div>
+
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-8">
+            <button 
+              @click="prevPage"
+              :disabled="currentPage === 1"
+              :class="[
+                'px-4 py-2 rounded-lg transition-colors',
+                currentPage === 1 
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                  : 'bg-white border hover:bg-[#0066bf] hover:text-white'
+              ]"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <button
+              v-for="page in getVisiblePages()"
+              :key="page"
+              @click="page !== '...' && goToPage(page)"
+              :class="[
+                'px-4 py-2 rounded-lg transition-colors',
+                page === currentPage 
+                  ? 'bg-[#0066bf] text-white' 
+                  : page === '...' 
+                    ? 'cursor-default' 
+                    : 'bg-white border hover:bg-[#0066bf] hover:text-white'
+              ]"
+            >
+              {{ page }}
+            </button>
+
+            <button 
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              :class="[
+                'px-4 py-2 rounded-lg transition-colors',
+                currentPage === totalPages 
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                  : 'bg-white border hover:bg-[#0066bf] hover:text-white'
+              ]"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </main>
       </div>
     </div>
 
-    <!-- Newsletter -->
-    <div class="bg-white py-16 sm:py-24">
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-indigo-50 rounded-2xl px-6 py-16 sm:p-16">
-          <div class="max-w-xl mx-auto lg:max-w-none lg:flex lg:items-center lg:justify-between">
-            <div class="text-center lg:text-left">
-              <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                <span class="block">Restez connecté</span>
-                <span class="block text-indigo-600">Abonnez-vous à notre newsletter</span>
-              </h2>
-              <p class="mt-3 max-w-md mx-auto text-lg text-gray-500 sm:text-xl md:mt-5 md:max-w-3xl">
-                Recevez en exclusivité nos offres spéciales, les nouvelles collections et les conseils de style.
-              </p>
-            </div>
-            <div class="mt-8 sm:w-full sm:max-w-md lg:mt-0 lg:ml-8">
-              <form class="sm:flex" @submit.prevent="subscribeNewsletter">
-                <label for="email-address" class="sr-only">Email</label>
-                <input 
-                  v-model="email" 
-                  id="email-address" 
-                  name="email" 
-                  type="email" 
-                  autocomplete="email" 
-                  required 
-                  class="w-full px-5 py-3 border border-gray-200 shadow-sm placeholder-gray-400 rounded-md focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all duration-200"
-                  placeholder="Votre email"
-                >
-                <button 
-                  type="submit" 
-                  :disabled="isSubscribing"
-                  class="mt-3 w-full flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  <span v-if="!isSubscribing">S'abonner</span>
-                  <span v-else>Inscription...</span>
-                </button>
-              </form>
-              <p class="mt-3 text-sm text-gray-500">
-                Nous respectons votre vie privée. Désabonnez-vous à tout moment.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ProductVariantModal
+      :product="product"
+      :is-open="showVariantModal"
+      @close="showVariantModal = false"
+      @added="onProductAdded"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { ChevronDown, ChevronLeft, ChevronRight, RefreshCcw } from 'lucide-vue-next'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import api from '@/api/axiosConfig'
+import { useCurrencyStore } from '@/stores/currency'
 import ProductCard from '@/components/Product/ProductCard.vue'
 import ProductListItem from '@/components/Product/ProductListItem.vue'
-import { useAuthStore } from '@/stores/auth'
-import api from '@/api/axiosConfig'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
-
-// Reactive data
+// Props du script fourni
 const products = ref([])
-const categories = ref([
-  { id: null, name: 'Toutes les catégories' },
-])
-const brands = ref([
-  { id: null, name: 'Toutes les marques' },
-])
+const colors = ref([])
+const sizes = ref([])
+const categories = ref([{ id: null, name: 'Toutes les catégories' }])
+const brands = ref([{ id: null, name: 'Toutes les marques' }])
 const loading = ref(true)
-const authStore = useAuthStore()
 
 const filters = ref({
   sort_options: [
@@ -346,44 +415,63 @@ const filters = ref({
   ]
 })
 
-// Filter and sort states
+const currencyStore = useCurrencyStore()
+
+// Filter states
 const selectedCategory = ref(null)
 const selectedBrand = ref(null)
-const priceRange = ref({
-  min: '',
-  max: ''
-})
+const selectedColors = ref([])
+const selectedSizes = ref([])
+const priceRange = ref({ min: '', max: '' })
 const selectedSort = ref(filters.value.sort_options[0])
 const sortDropdownOpen = ref(false)
 
-// View and pagination states
-const gridView = ref(true)
+// UI states
+const viewGrid = ref(true)
+const viewList = ref(false)
 const currentPage = ref(1)
-const itemsPerPage = ref(12)
+const itemsPerPage = ref(50)
+const showFilters = ref(false)
 
-// Newsletter
-const email = ref('')
-const isSubscribing = ref(false)
+// Accordion states
+const categoryOpen = ref(true)
+const brandOpen = ref(true)
+const priceOpen = ref(true)
+const sizeOpen = ref(true)
+const colorOpen = ref(true)
 
-// Computed properties
-const totalProducts = computed(() => {
-  return filteredProducts.value.length
-})
+// Computed
+const totalProducts = computed(() => filteredProducts.value.length)
 
 const filteredProducts = computed(() => {
   let filtered = [...products.value]
 
-  // Filter by category
   if (selectedCategory.value) {
-    filtered = filtered.filter(product => product.category_id === selectedCategory.value)
+    filtered = filtered.filter(p => p.category_id === selectedCategory.value)
   }
   
-  // Filter by brand
   if (selectedBrand.value) {
-    filtered = filtered.filter(product => product.brand_id === selectedBrand.value)
+    filtered = filtered.filter(p => p.brand_id === selectedBrand.value)
   }
 
-  // Filter by price range
+  if (selectedColors.value.length > 0) {
+    filtered = filtered.filter(product => {
+      if (!product.variants?.length) return false
+      return product.variants.some(v => 
+        v.color?.name && selectedColors.value.includes(v.color.name)
+      )
+    })
+  }
+
+  if (selectedSizes.value.length > 0) {
+    filtered = filtered.filter(product => {
+      if (!product.variants?.length) return false
+      return product.variants.some(v => 
+        v.size?.name && selectedSizes.value.includes(v.size.name)
+      )
+    })
+  }
+
   if (priceRange.value.min || priceRange.value.max) {
     filtered = filtered.filter(product => {
       const price = parseFloat(product.final_price || product.price || 0)
@@ -393,7 +481,7 @@ const filteredProducts = computed(() => {
     })
   }
 
-  // Sort products
+  // Sort
   switch (selectedSort.value.value) {
     case 'price_asc':
       filtered.sort((a, b) => parseFloat(a.final_price || a.price || 0) - parseFloat(b.final_price || b.price || 0))
@@ -410,10 +498,8 @@ const filteredProducts = computed(() => {
     case 'popularity':
       filtered.sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
       break
-    case 'newest':
     default:
       filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
-      break
   }
 
   return filtered
@@ -425,45 +511,43 @@ const paginatedProducts = computed(() => {
   return filteredProducts.value.slice(start, end)
 })
 
-const totalPages = computed(() => {
-  return Math.ceil(filteredProducts.value.length / itemsPerPage.value)
+const totalPages = computed(() => 
+  Math.ceil(filteredProducts.value.length / itemsPerPage.value)
+)
+
+const activeFiltersCount = computed(() => {
+  let count = 0
+  if (selectedCategory.value) count++
+  if (selectedBrand.value) count++
+  count += selectedColors.value.length
+  count += selectedSizes.value.length
+  if (priceRange.value.min || priceRange.value.max) count++
+  return count
 })
 
 // Methods
 const loadProducts = async () => {
   try {
     loading.value = true
+    // Simuler un appel API avec vos données
     const response = await api.get('/products')
-    console.log('Response fetched:', response)
+    console.log(response)
     
-    // Gestion flexible de la structure de réponse
-    if (response) {
-      products.value = response.products?.data || response.data || []
-      
-      // Traitement des catégories
-      const responseCategories = response.categories || []
-      categories.value = [
-        { id: null, name: 'Toutes les catégories' },
-        ...responseCategories.map(category => ({
-          id: category.id,
-          name: category.name,
-          parent_id: category.parent_id
-        }))
-      ]
-
-      // Traitement des marques
-      const responseBrands = response.brands || []
-      brands.value = [
-        { id: null, name: 'Toutes les marques' },
-        ...responseBrands.map(brand => ({
-          id: brand.id,
-          name: brand.name,
-        }))
-      ]
-    }
+    products.value = response.products.data || []
+    colors.value = response.colors || []
+    sizes.value = response.sizes || []
+    
+    categories.value = [
+      { id: null, name: 'Toutes les catégories' },
+      ...(response.categories || [])
+    ]
+    
+    brands.value = [
+      { id: null, name: 'Toutes les marques' },
+      ...(response.brands || [])
+    ]
   } catch (error) {
-    console.error('Erreur lors du chargement des produits:', error)
-    products.value = []
+    console.error('Erreur:', error)
   } finally {
     loading.value = false
   }
@@ -472,6 +556,42 @@ const loadProducts = async () => {
 const selectCategory = (categoryId) => {
   selectedCategory.value = categoryId
   currentPage.value = 1
+}
+
+const getCategoryName = (id) => {
+  return categories.value.find(c => c.id === id)?.name || 'clothes'
+}
+
+const toggleColor = (color) => {
+  const colorName = typeof color === 'object' ? color.name : color
+  const index = selectedColors.value.indexOf(colorName)
+  if (index > -1) {
+    selectedColors.value.splice(index, 1)
+  } else {
+    selectedColors.value.push(colorName)
+  }
+  currentPage.value = 1
+}
+
+const isColorSelected = (color) => {
+  const colorName = typeof color === 'object' ? color.name : color
+  return selectedColors.value.includes(colorName)
+}
+
+const toggleSize = (size) => {
+  const sizeName = typeof size === 'object' ? size.name : size
+  const index = selectedSizes.value.indexOf(sizeName)
+  if (index > -1) {
+    selectedSizes.value.splice(index, 1)
+  } else {
+    selectedSizes.value.push(sizeName)
+  }
+  currentPage.value = 1
+}
+
+const isSizeSelected = (size) => {
+  const sizeName = typeof size === 'object' ? size.name : size
+  return selectedSizes.value.includes(sizeName)
 }
 
 const applyBrandFilter = () => {
@@ -485,36 +605,25 @@ const applyPriceFilter = () => {
 const resetFilters = () => {
   selectedCategory.value = null
   selectedBrand.value = null
+  selectedColors.value = []
+  selectedSizes.value = []
   priceRange.value = { min: '', max: '' }
   selectedSort.value = filters.value.sort_options[0]
   currentPage.value = 1
 }
 
-const toggleSortDropdown = () => {
-  sortDropdownOpen.value = !sortDropdownOpen.value
-}
-
 const selectSort = (sortValue) => {
-  selectedSort.value = filters.value.sort_options.find(option => option.value === sortValue)
+  selectedSort.value = filters.value.sort_options.find(o => o.value === sortValue)
   sortDropdownOpen.value = false
   currentPage.value = 1
 }
 
-const setGridView = (isGrid) => {
-  gridView.value = isGrid
-}
-
-// Pagination methods
 const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
+  if (currentPage.value > 1) currentPage.value--
 }
 
 const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
+  if (currentPage.value < totalPages.value) currentPage.value++
 }
 
 const goToPage = async (page) => {
@@ -528,12 +637,8 @@ const getVisiblePages = () => {
   const pages = []
 
   if (total <= 7) {
-    // Si moins de 7 pages, afficher toutes
-    for (let i = 1; i <= total; i++) {
-      pages.push(i)
-    }
+    for (let i = 1; i <= total; i++) pages.push(i)
   } else {
-    // Logique pour pagination intelligente
     if (current <= 3) {
       pages.push(1, 2, 3, 4, '...', total)
     } else if (current >= total - 2) {
@@ -542,118 +647,80 @@ const getVisiblePages = () => {
       pages.push(1, '...', current - 1, current, current + 1, '...', total)
     }
   }
-
   return pages
 }
 
-// Cart and wishlist methods
-const addToCart = (product) => {
-  console.log('Ajout au panier:', product)
-  // Logique d'ajout au panier
-}
-
 const addToWishlist = (product) => {
-  console.log('Ajout à la wishlist:', product)
-  // Logique d'ajout à la wishlist
+  console.log('Wishlist:', product)
 }
 
-// Navigation methods
-const goToCart = () => {
-  router.push({ name: 'cart' })
-}
-
-// Newsletter avec gestion d'erreur améliorée
-const subscribeNewsletter = async () => {
+const addToCart = async () => {
+  if (isAddingToCart.value) return
+  
   try {
-    isSubscribing.value = true
-    const response = await fetch('/api/newsletter/subscribe', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email: email.value })
-    })
+    isAddingToCart.value = true
     
-    if (response.ok) {
-      alert('Inscription réussie à la newsletter!')
-      email.value = ''
-    } else {
-      const errorData = await response.json()
-      alert(errorData.message || 'Erreur lors de l\'inscription')
+    // Récupérer les variants du produit
+    const colorVariants = props.product.variants?.filter(variant => variant.type === 'color') || []
+    const sizeVariants = props.product.variants?.filter(variant => variant.type === 'size') || []
+    
+    // Auto-sélectionner les premières options disponibles
+    let selectedColor = null
+    let selectedSize = null
+    let selectedVariantId = null
+    
+    if (colorVariants.length > 0) {
+      selectedColor = colorVariants[0]
+      selectedVariantId = colorVariants[0].id
     }
+    
+    if (sizeVariants.length > 0) {
+      selectedSize = sizeVariants[0]
+      // Si on a déjà une couleur, combiner, sinon utiliser la taille
+      selectedVariantId = sizeVariants[0].id
+    }
+
+    // Créer l'objet à ajouter au panier adapté à votre structure
+    const cartItem = {
+      product_id: props.product.id,
+      name: props.product.name,
+      price: props.product.final_price || props.product.price,
+      quantity: 1,
+      maxQuantity: props.product.available_stock || 99,
+      image: props.product.main_image_url,
+      selectedColor: selectedColor,
+      selectedSize: selectedSize,
+      variant_id: selectedVariantId // Pour la DB
+    }
+
+    // Ajouter au store local
+    cartStore.addItem(cartItem)
+    
+    // Optionnel: afficher un message de succès
+    console.log('Produit ajouté au panier:', cartItem)
+    
   } catch (error) {
-    console.error('Erreur newsletter:', error)
-    alert('Erreur lors de l\'inscription')
+    console.error('Erreur lors de l\'ajout au panier:', error)
+    // Optionnel: afficher un message d'erreur à l'utilisateur
   } finally {
-    isSubscribing.value = false
+    isAddingToCart.value = false
   }
 }
 
-// Close dropdown when clicking outside
-const handleClickOutside = (event) => {
-  if (!event.target.closest('.relative')) {
-    sortDropdownOpen.value = false
-  }
-}
-
-// Lifecycle hooks
 onMounted(() => {
   loadProducts()
-  document.addEventListener('click', handleClickOutside)
 })
 
-// Watchers avec debounce pour éviter trop d'appels
-let filterTimeout = null
-watch([selectedCategory, selectedBrand, priceRange, selectedSort], () => {
-  if (filterTimeout) clearTimeout(filterTimeout)
-  filterTimeout = setTimeout(() => {
-    currentPage.value = 1
-  }, 300)
+watch([selectedCategory, selectedBrand, selectedColors, selectedSizes, priceRange, selectedSort], () => {
+  currentPage.value = 1
 }, { deep: true })
-
-// Cleanup
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  if (filterTimeout) clearTimeout(filterTimeout)
-})
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.product-card:hover .product-actions {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Animation de chargement */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .5;
-  }
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Transition douce pour les interactions */
-.transition-all {
-  transition-property: all;
-}
-
-.duration-200 {
-  transition-duration: 200ms;
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

@@ -67,7 +67,7 @@ const handleLogout = async () => {
           class="flex items-center gap-2 overflow-hidden"
         >
           <img 
-            src="@/assets/images/logo.png" 
+            src="@/assets/images/logo-blue.png" 
             alt="Logo"
             class="h-8 w-auto"
           >

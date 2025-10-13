@@ -149,10 +149,10 @@ const formattedPrice = computed(() => {
   const basePrice = props.product.final_price || props.product.price || 0
   const symbol = currencyStore.symbol
   const rate = currencyStore.rate
-  const fromXAF = basePrice / currencyStore.rates['XAF'] * rate
-  const finalPrice = fromXAF * quantity.value
+  const fromXOF = basePrice / currencyStore.rates['XOF'] * rate
+  const finalPrice = fromXOF * quantity.value
 
-  return currencyStore.selectedCurrency === 'XAF'
+  return currencyStore.selectedCurrency === 'XOF'
     ? `${finalPrice.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} ${symbol}`
     : `${symbol}${finalPrice.toFixed(2)}`
 })

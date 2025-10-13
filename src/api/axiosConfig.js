@@ -4,13 +4,13 @@ import router from '@/router'
 
 // 1. Configuration de base avec des paramètres optimisés
 const api = axios.create({
-  baseURL: 'https://stagging.bylin-style.com/api/customer',
+  baseURL: 'http://localhost:8000/api/customer',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
   },
-  withCredentials: true, // À activer si vous utilisez des cookies de session
+  withCredentials: true,
 })
 
 // 2. Intercepteur de requête avancé
@@ -26,12 +26,6 @@ api.interceptors.request.use(
     // Gestion du token d'authentification
     if (authStore.token) {
       config.headers.Authorization = `Bearer ${authStore.token}`
-
-      // Invalidate le token si expiré (préventif)
-      if (authStore.isTokenExpired) {
-        authStore.logout()
-        throw new axios.Cancel('Token expiré - Déconnexion automatique')
-      }
     }
 
     if (config.data instanceof FormData) {
@@ -51,49 +45,33 @@ api.interceptors.request.use(
     return config
   },
   (error) => {
-    // Journalisation des erreurs de requête
     console.error('[API] Request Error:', error)
     return Promise.reject(error)
   }
 )
 
-// 3. Intercepteur de réponse complet
-// Update the response interceptor to better handle errors
+// 3. Intercepteur de réponse complet - CORRIGÉ
+// Dans api.js - intercepteur de réponse
 api.interceptors.response.use(
   (response) => response.data,
   async (error) => {
-    const { response } = error
+    const { config, response } = error;
 
-    if (response) {
-      // Handle 419 CSRF token mismatch
-      if (response.status === 419) {
-        try {
-          // await axios.get('https://stagging.bylin-style.com/sanctum/csrf-cookie', {
-          //   // withCredentials: true
-          // });
-          // Retry the original request
-          return api(error.config);
-        } catch (csrfError) {
-          console.error('Failed to refresh CSRF token:', csrfError);
-        }
+    if (response?.status === 401) {
+      const authStore = useAuthStore();
+      
+      // IMPORTANT: Utiliser le logout du store
+      await authStore.logout(true); // silent = true
+      
+      // Redirection
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
       }
-
-      // Handle validation errors
-      if (response.status === 422) {
-        const errors = response.data.errors
-        const firstError = Object.values(errors)[0][0]
-        error.message = firstError || 'Validation error'
-      }
-
-      // Handle 401 unauthorized
-      if (response?.status === 401) {
-        const authStore = useAuthStore();
-        authStore.clearAuthData();
-        window.location.href = "/register"; // Redirection forcée
-      }
+      
+      return Promise.reject(new Error('Authentication required'));
     }
-
-    return Promise.reject(error)
+    
+    return Promise.reject(error);
   }
 )
 

@@ -369,29 +369,37 @@ export const useCartStore = defineStore('cart', {
     },
 
     // Récupérer tous les paniers partagés
-  async fetchSharedCarts() {
-    try {
-      const apiStore = useApiStore()
-      const authStore = useAuthStore()
-      
-      const response = await axios.get(`${apiStore.apiUrl}/shared-carts`, {
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      console.log('Paniers partagés récupérés:', response.data)
+async fetchSharedCarts() {
+  try {
+    const apiStore = useApiStore()
+    const authStore = useAuthStore()
+    
+    const response = await axios.get(`${apiStore.apiUrl}/shared-carts`, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    console.log('Paniers partagés récupérés:', response.data)
 
-      // Stocker les données dans le store
-      this.sharedCarts = response.data.data || [] // Accéder à response.data.data
-      this.total = response.data.total || 0 // Stocker le total
-      
-      return response // Retourner toute la réponse
-    } catch (error) {
-      console.error('Failed to fetch shared carts:', error)
-      throw error
+    const newData = response.data.data || []
+    const newTotal = response.data.total || 0
+
+    // Évitez les réassignations inutiles
+    if (JSON.stringify(this.sharedCarts) !== JSON.stringify(newData)) {
+      this.sharedCarts = newData
     }
-  },
+    
+    if (this.total !== newTotal) {
+      this.total = newTotal
+    }
+    
+    return response
+  } catch (error) {
+    console.error('Failed to fetch shared carts:', error)
+    throw error
+  }
+},
 
     // Supprimer le panier côté serveur
     async deleteCartFromServer() {

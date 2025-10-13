@@ -12,7 +12,7 @@
       :aria-expanded="open"
     >
       <span class="flex items-center gap-2">
-        <span class="text-indigo-600 font-medium">{{ selectedCurrency }}</span>
+        <span class="text-indigo-800 font-medium">{{ selectedCurrency }}</span>
         <span class="text-gray-500">({{ symbols[selectedCurrency] }})</span>
       </span>
       <svg
@@ -48,7 +48,7 @@
             @click="selectCurrency(code)"
             class="flex items-center justify-between w-full px-4 py-2.5 text-sm transition-colors"
             :class="{
-              'text-indigo-600 bg-indigo-50/50': code === selectedCurrency,
+              'text-indigo-700 bg-indigo-50/50': code === selectedCurrency,
               'text-gray-700 hover:bg-gray-50': code !== selectedCurrency
             }"
           >

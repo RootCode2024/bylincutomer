@@ -38,7 +38,7 @@
         </div>
         
         <!-- Actions -->
-        <div class="col-span-6 md:col-span-3 flex justify-end space-x-2">
+        <div class="col-span-6 md:col-span-3 flex justify-start space-x-4">
           <button 
             @click="goToOrderDetails(order)"
             class="text-xs md:text-sm text-blue-600 hover:text-blue-900 flex items-center"
@@ -117,9 +117,10 @@
 import { computed } from 'vue'
 import { MapPin, X, RotateCcw, Eye } from 'lucide-vue-next'
 import { useCurrencyStore } from '@/stores/currency'
-import router from '@/router'
+import { useRouter } from 'vue-router'
 
 const currencyStore = useCurrencyStore()
+const router = useRouter()
 
 const props = defineProps({
   order: {
@@ -168,6 +169,7 @@ const statusClass = computed(() => {
     delivered: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
     returned: 'bg-gray-100 text-gray-800',
+    paid: 'bg-green-100 text-green-800',
     paye: 'bg-green-100 text-green-800',
     en_attente: 'bg-yellow-100 text-yellow-800',
     expedie: 'bg-purple-100 text-purple-800',
@@ -193,7 +195,7 @@ const getItemImage = (item) => {
   return item.product?.image || 
          item.product?.main_image || 
          item.image || 
-         'https://placehold.co/80?text=No+Image'
+         'https://placehold.co/80?text=bylin'
 }
 
 const getItemName = (item) => {
@@ -201,7 +203,7 @@ const getItemName = (item) => {
 }
 
 const handleImageError = (event) => {
-  event.target.src = 'https://placehold.co/80?text=No+Image'
+  event.target.src = 'https://placehold.co/80?text=bylin'
 }
 
 const formatDate = (dateString) => {
@@ -211,6 +213,6 @@ const formatDate = (dateString) => {
 }
 
 const goToOrderDetails = (order) => {
-  router.push(`/dashboard/orders/${order.order_number}`)
+  router.push(`/orders/${order.order_number}/invoice/download`)
 }
 </script>

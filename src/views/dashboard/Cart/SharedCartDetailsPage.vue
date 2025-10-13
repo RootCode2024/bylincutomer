@@ -219,7 +219,7 @@
                 <div class="flex items-start space-x-4">
                   <div class="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shadow-sm">
                     <img 
-                      :src="item.product.main_image_url || 'https://placehold.co/80?text=No+Image'" 
+                      :src="item.product.main_image_url || 'https://placehold.co/80?text=bylin'" 
                       :alt="item.product.name"
                       class="w-full h-full object-cover"
                       @error="handleImageError"
@@ -460,7 +460,7 @@ const deleteCart = async () => {
 };
 
 const handleImageError = (event) => {
-  event.target.src = 'https://placehold.co/80?text=No+Image';
+  event.target.src = 'https://placehold.co/80?text=bylin';
 };
 
 // Cycle de vie

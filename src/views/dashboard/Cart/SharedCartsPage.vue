@@ -1,3 +1,102 @@
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useCartStore } from '@/stores/cart'
+import { useCurrencyStore } from '@/stores/currency'
+import { useAuthStore } from '@/stores/auth'
+
+// Composants UI
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import ErrorMessage from '@/components/ui/ErrorMessage.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import PrimaryButton from '@/components/ui/PrimaryButton.vue'
+import SharedCartCard from '@/components/cart/SharedCartCard.vue'
+
+const router = useRouter()
+const cartStore = useCartStore()
+const currencyStore = useCurrencyStore()
+const authStore = useAuthStore()
+
+// États
+const loading = ref(true)
+const error = ref(null)
+const showTooltip = ref(false)
+const hasLoaded = ref(false) // Garde contre les rechargements multiples
+
+// Computed properties pour les données du store
+const sharedCarts = computed(() => cartStore.sharedCarts || [])
+const totalAmount = computed(() => cartStore.total || 0)
+
+// Calculer les totaux à partir des paniers
+const totalPaid = computed(() => {
+  return sharedCarts.value.reduce((sum, cart) => sum + (cart.total_paid_by_contributors || 0), 0)
+})
+
+const totalContributors = computed(() => {
+  return sharedCarts.value.reduce((sum, cart) => sum + (cart.total_contributors || 0), 0)
+})
+
+// Méthodes
+const loadSharedCarts = async () => {
+  if (hasLoaded.value) return // Empêche tout rechargement après le premier
+  try {
+    loading.value = true
+    error.value = null
+
+    console.log('Chargement des paniers partagés...')
+    await cartStore.fetchSharedCarts()
+    console.log('Paniers partagés chargés:', sharedCarts.value.length)
+    
+    hasLoaded.value = true
+  } catch (err) {
+    error.value = err.response?.data?.message || err.message || 'Échec du chargement des paniers'
+    console.error('Erreur:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+
+const viewCartDetails = (cartId) => {
+  if (!cartId) {
+    console.error('No cart ID provided')
+    return
+  }
+  console.log('Navigation vers le panier:', cartId)
+  router.push({ 
+    name: 'dashboard.shared.carts.details', 
+    params: { id: cartId } 
+  })
+}
+
+const createNewCart = () => {
+  if (sharedCarts.value.length >= 3) {
+    return // Empêcher la création si limite atteinte
+  }
+  router.push({ name: 'CreateSharedCart' })
+}
+
+// Cycle de vie
+onMounted(() => {
+  if (!hasLoaded.value) {
+    loadSharedCarts()
+  }
+})
+
+
+// DEBUG: Watcher pour voir les changements
+watch(sharedCarts, (newCarts, oldCarts) => {
+  console.log('🔄 sharedCarts a changé:', {
+    ancien: oldCarts?.length || 0,
+    nouveau: newCarts?.length || 0
+  })
+})
+
+watch(loading, (newLoading) => {
+  console.log('⏳ Loading state:', newLoading)
+})
+</script>
+
 <template>
   <div class="px-4 py-6 max-w-7xl mx-auto">
     <div class="mb-8">
@@ -86,86 +185,6 @@
     </template>
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useCartStore } from '@/stores/cart'
-import { useCurrencyStore } from '@/stores/currency'
-import { useAuthStore } from '@/stores/auth'
-
-// Composants UI
-import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
-import ErrorMessage from '@/components/ui/ErrorMessage.vue'
-import EmptyState from '@/components/ui/EmptyState.vue'
-import PrimaryButton from '@/components/ui/PrimaryButton.vue'
-import SharedCartCard from '@/components/cart/SharedCartCard.vue'
-
-const router = useRouter()
-const cartStore = useCartStore()
-const currencyStore = useCurrencyStore()
-const authStore = useAuthStore()
-
-// États
-const loading = ref(true)
-const error = ref(null)
-const showTooltip = ref(false)
-
-// Computed properties pour les données du store
-const sharedCarts = computed(() => cartStore.sharedCarts || [])
-const totalAmount = computed(() => cartStore.total || 0)
-
-// Calculer les totaux à partir des paniers
-const totalPaid = computed(() => {
-  return sharedCarts.value.reduce((sum, cart) => sum + (cart.total_paid_by_contributors || 0), 0)
-})
-
-const totalContributors = computed(() => {
-  return sharedCarts.value.reduce((sum, cart) => sum + (cart.total_contributors || 0), 0)
-})
-
-// Méthodes
-const loadSharedCarts = async () => {
-  try {
-    loading.value = true
-    error.value = null
-    
-    // Appeler la méthode du store
-    await cartStore.fetchSharedCarts()
-    
-    console.log('Paniers partagés chargés:', sharedCarts.value)
-  } catch (err) {
-    error.value = err.response?.data?.message || err.message || 'Échec du chargement des paniers'
-    console.error('Erreur:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-const viewCartDetails = (cartId) => {
-  if (!cartId) {
-    console.error('No cart ID provided')
-    return
-  }
-  console.log('Navigating to cart with ID:', cartId)
-  router.push({ 
-    name: 'dashboard.shared.carts.details', 
-    params: { id: cartId } 
-  })
-}
-
-const createNewCart = () => {
-  if (sharedCarts.value.length >= 3) {
-    return // Empêcher la création si limite atteinte
-  }
-  router.push({ name: 'CreateSharedCart' })
-}
-
-// Cycle de vie
-onMounted(() => {
-  loadSharedCarts()
-})
-</script>
 
 <style scoped>
 .tooltip-box {

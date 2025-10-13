@@ -76,9 +76,9 @@ const getNavItemClasses = (itemPath) => {
   const isActive = isActiveRoute(itemPath);
   
   if (isActive) {
-    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg bg-gradient-to-tr from-blue-400 to-blue-600 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-[0.85] w-full flex items-center gap-4 px-4 capitalize';
+    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg bg-indigo-800 text-white shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/40 active:opacity-[0.85] w-full flex items-center gap-4 px-4 capitalize';
   } else {
-    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize';
+    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 w-full flex items-center gap-4 px-4 capitalize';
   }
 };
 
@@ -100,14 +100,14 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-<div class="min-h-screen bg-gray-50/50">
+<div class="min-h-screen bg-white">
   <!-- Sidebar Navigation Client -->
-  <aside class="bg-gradient-to-br from-blue-600 to-blue-800 -translate-x-80 fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 rounded-xl transition-transform duration-300 xl:translate-x-0">
-    <div class="relative border-b border-white/20">
+  <aside class="bg-white border-r border-gray-200 -translate-x-80 fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 rounded-xl transition-transform duration-300 xl:translate-x-0">
+    <div class="relative border-b border-gray-200">
       <router-link class="flex items-center gap-4 py-6 px-8" to="/">
-       <img src="@/assets/images/logo-black.png" class="h-24 w-24" />
+       <img src="@/assets/images/logo-blue.png" class="h-24 w-24" />
       </router-link>
-      <button class="middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-8 max-w-[32px] h-8 max-h-[32px] rounded-lg text-xs text-white hover:bg-white/10 active:bg-white/30 absolute right-0 top-0 grid rounded-br-none rounded-tl-none xl:hidden" type="button">
+      <button class="middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-8 max-w-[32px] h-8 max-h-[32px] rounded-lg text-xs text-gray-900 hover:bg-gray-100 active:bg-gray-200 absolute right-0 top-0 grid rounded-br-none rounded-tl-none xl:hidden" type="button">
         <span class="absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
           <Menu class="h-5 w-5" />
         </span>
@@ -130,7 +130,7 @@ watch(() => route.path, () => {
         </li>
         <li>
           <a class="" href="#">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize" type="button">
+            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 w-full flex items-center gap-4 px-4 capitalize" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
               <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Historique</p>
             </button>
@@ -139,11 +139,11 @@ watch(() => route.path, () => {
       </ul>
       <ul class="mb-4 flex flex-col gap-1">
         <li class="mx-3.5 mt-4 mb-2">
-          <p class="block antialiased font-sans text-sm leading-normal text-white font-black uppercase opacity-75">Paramètres</p>
+          <p class="block antialiased font-sans text-sm leading-normal text-gray-600 font-black uppercase opacity-75">Paramètres</p>
         </li>
         <li>
           <a class="" href="#">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize" type="button">
+            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 w-full flex items-center gap-4 px-4 capitalize" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
                 <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z" clip-rule="evenodd" />
               </svg>
@@ -153,7 +153,7 @@ watch(() => route.path, () => {
         </li>
         <li>
           <a class="" href="#">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize" type="button">
+            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 w-full flex items-center gap-4 px-4 capitalize" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
                 <path d="M4.5 3.75a3 3 0 00-3 3v.75h21v-.75a3 3 0 00-3-3h-15z" />
                 <path fill-rule="evenodd" d="M22.5 9.75h-21v7.5a3 3 0 003 3h15a3 3 0 003-3v-7.5zm-18 3.75a.75.75 0 01.75-.75h6a.75.75 0 010 1.5h-6a.75.75 0 01-.75-.75zm.75 2.25a.75.75 0 000 1.5h3a.75.75 0 000-1.5h-3z" clip-rule="evenodd" />
@@ -168,22 +168,22 @@ watch(() => route.path, () => {
 
   <!-- Main Content Area -->
   <div class="p-4 xl:ml-80">
-    <nav class="block w-full max-w-full bg-transparent text-white shadow-none rounded-xl transition-all px-0 py-1">
+    <nav class="block w-full max-w-full bg-white text-gray-900 shadow-sm rounded-xl transition-all px-0 py-1 border border-gray-200">
       <div class="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
         <div class="capitalize">
           <h6 class="block antialiased tracking-normal font-sans text-base font-semibold leading-relaxed text-gray-900">Bienvenue, {{ authStore?.user?.name }}</h6>
         </div>
         <div class="flex items-center">
-          <button class="relative middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-10 max-w-[40px] h-10 max-h-[40px] rounded-lg text-xs text-gray-500 hover:bg-blue-gray-500/10 active:bg-blue-gray-500/30" type="button">
+          <button class="relative middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-10 max-w-[40px] h-10 max-h-[40px] rounded-lg text-xs text-gray-500 hover:bg-indigo-800/10 active:bg-indigo-800/20" type="button">
             <span class="absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5 text-blue-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5 text-gray-500">
                 <path fill-rule="evenodd" d="M5.25 9a6.75 6.75 0 0113.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 01-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 11-7.48 0 24.585 24.585 0 01-4.831-1.244.75.75 0 01-.298-1.205A8.217 8.217 0 005.25 9.75V9zm4.502 8.9a2.25 2.25 0 104.496 0 25.057 25.057 0 01-4.496 0z" clip-rule="evenodd"></path>
               </svg>
             </span>
           </button>
           <div class="relative mx-4">
             <button
-              class="middle none font-sans font-bold center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-500 hover:bg-blue-gray-500/10 active:bg-blue-gray-500/30 flex items-center gap-1 px-4"
+              class="middle none font-sans font-bold center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 flex items-center gap-1 px-4 border border-gray-200"
               type="button"
               @click="dropdownOpen = !dropdownOpen"
             >
@@ -192,7 +192,7 @@ watch(() => route.path, () => {
               </template>
               <template v-else>
               <div
-                class="inline-block relative w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-base"
+                class="inline-block relative w-8 h-8 rounded-full bg-indigo-800 text-white flex items-center justify-center font-bold text-base"
                 :title="authStore.user?.name"
               >
                 {{ (authStore.user?.name?.[0] || '').toUpperCase() }}{{ (authStore.user?.name?.[1] || '').toUpperCase() }}
@@ -200,19 +200,19 @@ watch(() => route.path, () => {
               </template>
               <span class="hidden xl:block">{{ authStore.user?.name }}</span>
             </button>
-            <div v-show="dropdownOpen" class="absolute right-0 mt-2 origin-top-right bg-white rounded-md shadow-lg w-36 z-50">
+            <div v-show="dropdownOpen" class="absolute right-0 mt-2 origin-top-right bg-white rounded-md shadow-lg w-36 z-50 border border-gray-200">
               <div class="py-1">
-                <router-link to="/dashboard/profile" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
+                <router-link to="/dashboard/profile" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-800/10 text-left">
                   <CircleUser class="mr-3 h-5 w-5 text-gray-500" />
                   Mon profil
                 </router-link>
-                <router-link to="/dashboard/setting" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
+                <router-link to="/dashboard/setting" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-800/10 text-left">
                   <Settings class="mr-3 h-5 w-5 text-gray-500" />
                   Paramètres
                 </router-link>
                 <button
                   @click="handleLogout"
-                  class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                  class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-800/10 text-left"
                 >
                   <LogOut class="mr-3 h-5 w-5 text-gray-500" />
                   Déconnexion
@@ -228,21 +228,21 @@ watch(() => route.path, () => {
       <router-view></router-view>
     </div>
 
-    <div class="text-blue-gray-600">
+    <div class="text-gray-600">
       <footer class="py-2">
         <div class="flex w-full flex-wrap items-center justify-center gap-6 px-2 md:justify-between">
             <p class="block antialiased font-sans text-sm leading-normal font-normal text-inherit">
-            © {{ new Date().getFullYear() }} BylIn Style. Tous droits réservés.
+            © {{ new Date().getFullYear() }} bylin Style. Tous droits réservés.
             </p>
           <ul class="flex items-center gap-4">
             <li>
-              <a href="#" class="block antialiased font-sans text-sm leading-normal py-0.5 px-1 font-normal text-inherit transition-colors hover:text-blue-500">Conditions générales</a>
+              <a href="#" class="block antialiased font-sans text-sm leading-normal py-0.5 px-1 font-normal text-inherit transition-colors hover:text-indigo-800">Conditions générales</a>
             </li>
             <li>
-              <a href="#" class="block antialiased font-sans text-sm leading-normal py-0.5 px-1 font-normal text-inherit transition-colors hover:text-blue-500">Politique de confidentialité</a>
+              <a href="#" class="block antialiased font-sans text-sm leading-normal py-0.5 px-1 font-normal text-inherit transition-colors hover:text-indigo-800">Politique de confidentialité</a>
             </li>
             <li>
-              <a href="#" class="block antialiased font-sans text-sm leading-normal py-0.5 px-1 font-normal text-inherit transition-colors hover:text-blue-500">Contact</a>
+              <a href="#" class="block antialiased font-sans text-sm leading-normal py-0.5 px-1 font-normal text-inherit transition-colors hover:text-indigo-800">Contact</a>
             </li>
           </ul>
         </div>

@@ -1,7 +1,7 @@
 <!-- src/layouts/PublicLayout.vue -->
 <template>
   <div class="public-layout">
-    <header class="bg-white mb-24">
+    <header class="bg-white">
       <!-- header commun public -->
       <NavBarComponent />
     </header>

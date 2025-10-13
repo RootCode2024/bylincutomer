@@ -64,9 +64,9 @@
             <!-- Sélection de couleur -->
             <div class="color-selection">
               <h3 class="section-title">Couleur: <span>{{ selectedColor.name }}</span></h3>
-              <div class="color-options">
+              <div class="color-options" v-if="product.availableColors">
                 <div 
-                  v-for="color in product.availableColors" 
+                  v-for="color in product?.availableColors" 
                   :key="color.code"
                   class="color-option"
                   :class="{ active: selectedColor.code === color.code }"
@@ -148,7 +148,7 @@ export default {
   data() {
     return {
       selectedImage: null,
-      selectedColor: this.product.availableColors[0],
+      selectedColor: this.product?.availableColors[0],
       selectedSize: null,
       quantity: 1
     };

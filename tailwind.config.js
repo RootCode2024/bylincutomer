@@ -9,6 +9,7 @@ export default {
       colors: {
         indigo: {
           800: '#0066bf',
+          700: '#005cac'
         },
       },
     },

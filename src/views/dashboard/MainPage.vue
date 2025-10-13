@@ -251,19 +251,19 @@ const defaultSuggestions = [
     id: 1,
     name: 'Casque Audio Premium',
     price: 129.99,
-    image: 'https://via.placeholder.com/80'
+    image: 'https://placehold.co/80?text=bylin'
   },
   {
     id: 2,
     name: 'Montre Connectée',
     price: 199.99,
-    image: 'https://via.placeholder.com/80'
+    image: 'https://placehold.co/80?text=bylin'
   },
   {
     id: 3,
     name: 'Haut-parleur Bluetooth',
     price: 79.99,
-    image: 'https://via.placeholder.com/80'
+    image: 'https://placehold.co/80?text=bylin'
   }
 ]
 
@@ -345,7 +345,7 @@ function showProduct(product) {
 }
 
 function handleImageError(event) {
-  event.target.src = 'https://via.placeholder.com/80?text=No+Image'
+  event.target.src = 'https://placehold.co/80?text=bylin'
 }
 
 async function loadMoreSuggestions() {

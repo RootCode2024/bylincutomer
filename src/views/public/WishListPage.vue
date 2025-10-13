@@ -702,10 +702,10 @@ const formattedPrice = (price) => {
   
   const symbol = currencyStore.symbol
   const rate = currencyStore.rate
-  const fromXAF = price / currencyStore.rates['XAF'] * rate
-  const finalPrice = fromXAF
+  const fromXOF = price / currencyStore.rates['XOF'] * rate
+  const finalPrice = fromXOF
 
-  return currencyStore.selectedCurrency === 'XAF'
+  return currencyStore.selectedCurrency === 'XOF'
     ? `${finalPrice.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} ${symbol}`
     : `${symbol}${finalPrice.toFixed(2)}`
 }

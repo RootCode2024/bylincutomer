@@ -4,7 +4,7 @@
     <div class="hidden md:flex flex-1 bg-gradient-to-br from-indigo-600 to-purple-600 relative overflow-hidden">
       <div class="absolute inset-0 flex items-center justify-center p-12">
         <img 
-          src="@/assets/images/logo.png" 
+          src="@/assets/images/logo-blue.png" 
           alt="Logo Bylin" 
           class="w-full max-w-md object-contain filter drop-shadow-xl"
         >
@@ -35,9 +35,9 @@
         <div class="text-center">
           <router-link to="/" class="inline-block mb-6">
             <img 
-              src="@/assets/images/logo.png" 
+              src="@/assets/images/logo-blue.png" 
               alt="Logo" 
-              class="h-10 mx-auto"
+              class="h-36 mx-auto"
             >
           </router-link>
           <h1 class="text-3xl font-bold text-gray-900">Content de vous revoir</h1>
@@ -246,7 +246,7 @@
   const loginWithGoogle = () => {
     loading.value = true
     try {
-      window.location.href = 'https://stagging.bylin-style.com/api/customer/auth/google'
+      window.location.href = 'http://localhost:8000/api/customer/auth/google'
     } catch (error) {
       console.error('Login with Google error:', error)
       errorMessage.value = error.message || 'Échec de la connexion avec Google'

@@ -1,6 +1,6 @@
 <template>
   <div class="group relative bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-    <div class="flex flex-col sm:flex-row">
+    <div class="flex flex-col sm:flex-row px-2">
       <!-- Product Image -->
       <div class="relative w-full sm:w-48 h-48 sm:h-auto flex-shrink-0">
         <RouterLink 
@@ -56,9 +56,9 @@
                     {{ product.name }}
                   </RouterLink>
                 </h3>
-                <!-- <p class="mt-1 text-sm text-gray-500 capitalize">
-                  {{ product.category }}
-                </p> -->
+                <p class="mt-1 text-sm text-gray-500 capitalize">
+                  {{ product.category.name }}
+                </p>
               </div>
               
               <!-- Desktop Price -->
@@ -79,7 +79,7 @@
                   v-for="i in 5"
                   :key="i"
                   :class="[
-                    averageRating >= i ? 'text-yellow-400' : 'text-gray-300',
+                    product.average_rating >= i ? 'text-yellow-400' : 'text-gray-300',
                     'h-5 w-5 flex-shrink-0'
                   ]"
                   xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +93,7 @@
                 </svg>
               </div>
               <p class="ml-2 text-sm text-gray-500">
-                {{ averageRating.toFixed(1) }} sur 5 ({{ reviewCount }} avis)
+                {{ product.average_rating }} sur 5 ({{ product.ratings_count }} avis)
               </p>
             </div>
 
@@ -127,7 +127,7 @@
             <!-- Actions -->
             <div class="flex space-x-3 mt-5">
               <div
-                class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700"
               >
               <FavoriteButton 
                 @click="addToWishlist"
@@ -135,8 +135,9 @@
               />
               </div>
               <button
-                @click="addToCart(product)"
-                class="flex-1 inline-flex items-center justify-center px-4 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                @click="openVariantModal"
+                :disabled="isAddingToCart"
+                class="flex-1 inline-flex items-center justify-center px-4 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-800 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-800"
               >
                 <ShoppingBag class="h-5 w-5" />
                 <span class="ml-2">Ajouter au panier</span>
@@ -146,6 +147,12 @@
         </div>
       </div>
     </div>
+    <ProductVariantModal
+      :product="product"
+      :is-open="showVariantModal"
+      @close="showVariantModal = false"
+      @added="onProductAdded"
+    />
   </div>
 </template>
 
@@ -156,6 +163,7 @@ import { useCurrencyStore } from '@/stores/currency'
 import { useCartStore } from '@/stores/cart'
 import { onMounted, computed, ref } from 'vue'
 import FavoriteButton from '@/components/ui/FavoriteButton.vue'
+import ProductVariantModal from '@/components/Product/ProductVariantModal.vue'
 
 const currencyStore = useCurrencyStore()
 
@@ -166,62 +174,24 @@ const props = defineProps({
   }
 })
 
-const isFavorited = ref(true)
 const product = props.product
 
-const averageRating = computed(() => {
-  console.log(product)
-  if (!product?.reviews?.length) return 0;
-  const total = product.reviews.reduce((sum, r) => sum + r.rating, 0);
-  return total / product.reviews.length;
-});
+const cartStore = useCartStore()
+const isAddingToCart = ref(false)
 
-const reviewCount = computed(() => {
-  return product?.reviews?.length || 0;
-});
+const showVariantModal = ref(false)
 
-// onMounted(() => {
-//   console.log(product)
-// })
+const openVariantModal = () => {
+  showVariantModal.value = true
+}
 
-const getColorHex = (colorName) => {
-    // Mappez les noms de couleurs aux codes hexadécimaux
-    const colorMap = {
-      'Noir': '#000000',
-      'Blanc': '#FFFFFF',
-      'Rouge': '#FF0000',
-      'Bleu': '#0000FF',
-      'Vert': '#00FF00',
-      // Ajoutez d'autres couleurs au besoin
-    };
-    
-    return colorMap[colorName] || '#CCCCCC'; // Couleur par défaut si non trouvée
-  }
+const onProductAdded = (cartItem) => {
+  console.log('Produit ajouté:', cartItem)
+  // Optionnel: afficher une notification toast
+}
+
 
 const emit = defineEmits(['add-to-cart', 'add-to-wishlist'])
-
-const categories = [
-  { value: 'tshirts', label: 'T-shirts' },
-  { value: 'pants', label: 'Pantalons' },
-  { value: 'dresses', label: 'Robes' },
-  { value: 'jackets', label: 'Vestes' },
-  { value: 'shoes', label: 'Chaussures' },
-  { value: 'sweaters', label: 'Pulls' }
-]
-
-const ecoPrice = (price, discount) => {
-  
-  const eco = (price * discount) / 100
-  const reductPrice = price - eco
-  return eco
-}
-
-const reductPrice = (price, discount) => {
-  
-  const eco = (price * discount) / 100
-  const reductPrice = price - eco
-  return reductPrice
-}
 
 const addToCart = async (product) => {
   const dataToSend = {
@@ -242,22 +212,6 @@ const addToWishlist = (product) => {
   emit('add-to-wishlist', product)
 }
 
-// const getColorHex = (color) => {
-//   const colors = {
-//     'Noir': '#000000',
-//     'Blanc': '#FFFFFF',
-//     'Bleu': '#3B82F6',
-//     'Rouge': '#EF4444',
-//     'Jaune': '#F59E0B',
-//     'Vert': '#10B981',
-//     'Bleu clair': '#93C5FD',
-//     'Bleu foncé': '#1D4ED8',
-//     'Gris': '#6B7280',
-//     'Bordeaux': '#7F1D1D',
-//     'Crème': '#FEF3C7'
-//   }
-//   return colors[color] || '#CCCCCC'
-// }
 </script>
 
 <style scoped>

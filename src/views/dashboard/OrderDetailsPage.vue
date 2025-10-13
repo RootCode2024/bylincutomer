@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-7xl mx-auto">
       <!-- Header avec navigation -->
       <div class="mb-8">
         <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-4">
@@ -97,7 +97,7 @@
                 <li v-if="parsedMetadata.phone">
                   <span class="font-medium">Numéro de facturation:</span> {{ parsedMetadata.phone }}
                 </li>
-                <li v-if="parsedMetadata.initiation_response?.payment_url">
+                <li v-if="parsedMetadata.initiation_response?.payment_url && payment.status === 'pending'">
                   <span class="font-medium">URL de paiement:</span> 
                   <a :href="parsedMetadata.initiation_response.payment_url" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
                     Lien de paiement
@@ -211,6 +211,7 @@
             
             <button 
               @click="downloadInvoice"
+              :disabled="!order?.invoice_path"
               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               <Download class="w-4 h-4 mr-2" />
@@ -270,16 +271,19 @@ import {
 } from 'lucide-vue-next'
 import { useOrdersStore } from '@/stores/order'
 import { useCurrencyStore } from '@/stores/currency'
+import { useAuthStore } from '@/stores/auth'
 import { useUIStore } from '@/stores/ui'
 import CancelOrderModal from '@/components/ui/CancelOrderModal.vue'
 import ReturnOrderModal from '@/components/ui/ReturnOrderModal.vue'
 import OrderTrackingModal from '@/components/ui/OrderTrackingModal.vue'
+import api from '@/api/axiosConfig'
 
 const route = useRoute()
 const router = useRouter()
 const ordersStore = useOrdersStore()
 const currencyStore = useCurrencyStore()
 const uiStore = useUIStore()
+const authStore = useAuthStore()
 
 // Data
 const order = ref(null)
@@ -311,18 +315,6 @@ const parsedMetadata = computed(() => {
     return null
   }
 })
-
-// Méthode pour obtenir le statut du paiement
-const getPaymentStatus = (status) => {
-  const statusMap = {
-    'pending': 'En attente',
-    'completed': 'Complété',
-    'failed': 'Échoué',
-    'cancelled': 'Annulé',
-    'refunded': 'Remboursé'
-  }
-  return statusMap[status] || status
-}
 
 // Méthode pour formater la date
 const formatDate = (dateString) => {
@@ -363,6 +355,7 @@ const statusClass = computed(() => {
     delivered: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
     returned: 'bg-gray-100 text-gray-800',
+    paid: 'bg-green-100 text-green-800',
     paye: 'bg-green-100 text-green-800'
   }
   return classes[currentStatus.value] || 'bg-gray-100 text-gray-800'
@@ -432,7 +425,7 @@ const getProductImage = (item) => {
   return item.product?.image || 
          item.product?.main_image || 
          item.image || 
-         'https://via.placeholder.com/80?text=No+Image'
+         'https://placehold.co/80?text=bylin'
 }
 
 const getProductName = (item) => {
@@ -466,7 +459,7 @@ const getCountryName = (countryCode) => {
 }
 
 const handleImageError = (event) => {
-  event.target.src = 'https://via.placeholder.com/80?text=No+Image'
+  event.target.src = 'https://placehold.co/80?text=bylin'
 }
 
 const generateDemoTracking = (order) => {
@@ -564,15 +557,67 @@ const submitReturn = async (data) => {
   }
 }
 
-const downloadInvoice = () => {
-  // Implémentation du téléchargement de facture
-  console.log('Téléchargement de la facture pour la commande:', order.value.id)
-  // Ici vous pouvez appeler une API pour générer/télécharger la facture
-}
+const downloadInvoice = async () => {
+  try {
+    console.log('Téléchargement de la facture pour la commande:', order.value.id);
+    
+    if (!order.value.invoice_path) {
+      alert('Aucune facture disponible pour cette commande.');
+      return;
+    }
+
+    const response = await api.get(`/orders/${order.value.id}/invoice/download`, {
+      responseType: 'blob',
+      headers: {
+        'Authorization': `Bearer ${authStore.token}`,
+      },
+    });
+
+    console.log('Response reçue:', response);
+    console.log('Taille des données:', response.size, 'bytes');
+    console.log('Type des données:', typeof response.type);
+
+    // Vérifier que c'est bien un Blob
+    if (!(response instanceof Blob)) {
+      console.error('Les données ne sont pas un Blob:', response);
+      throw new Error('Format de réponse invalide');
+    }
+
+    // Créer l'URL directement depuis response.data (qui est déjà un Blob)
+    const url = window.URL.createObjectURL(response);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `facture-commande-${order.value.id}.pdf`;
+    
+    // Ajouter des styles pour s'assurer que le lien est visible (pour le debug)
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    
+    // Déclencher le téléchargement
+    link.click();
+    
+    // Nettoyer
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    console.log('Téléchargement déclenché avec succès');
+    
+  } catch (error) {
+    console.error('Erreur détaillée:', error);
+    
+    if (error.response?.status === 404) {
+      alert('Facture non trouvée pour cette commande.');
+    } else if (error.response?.status === 403) {
+      alert('Vous n\'êtes pas autorisé à télécharger cette facture.');
+    } else {
+      alert('Erreur lors du téléchargement: ' + error.message);
+    }
+  }
+};
 
 const contactSupport = () => {
-  // Redirection vers la page de support
-  router.push('/support?order=' + order.value.id)
+  router.push('/dashboard/support/order/' + order.value.order_number)
 }
 
 // Lifecycle

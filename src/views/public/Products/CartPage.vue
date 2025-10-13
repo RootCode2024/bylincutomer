@@ -134,7 +134,7 @@
     </div>
 
     <!-- Contenu principal -->
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-full mx-32">
       <div>
         <h1 class="text-3xl font-medium text-gray-900 mb-2">Votre Panier</h1>
         <span class="text-gray-600">{{ cartStore.totalQuantity }} article{{ cartStore.totalQuantity > 1 ? 's' : '' }}</span> dans votre panier.
@@ -165,18 +165,12 @@
             <div class="divide-y divide-gray-200">
               <div v-for="item in cartItems" :key="item.product_id" class="p-6 flex flex-col sm:flex-row gap-6">
                 <div class="item-image flex-shrink-0 w-24 h-24 rounded-md overflow-hidden bg-gray-100">
-                  <img v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover object-center" />
-                  <div
-                      v-else
-                      class="w-full h-full flex items-center justify-center text-center text-xs bg-gray-200 object-cover object-center"
-                  >
-                    No Image
-                  </div>
+                  <img :src="item.image || 'https://placehold.co/80?text=bylin'" :alt="item.name" class="w-full h-full object-cover object-center" />
                 </div>
                 
                 <div class="flex-grow flex flex-col sm:flex-row gap-4">
                   <div class="item-details flex-grow">
-                    <h3 class="text-gray-900 tracking-wide text-sm font-medium mb-2">{{ item.name }}</h3>
+                    <h3 class="text-gray-900 tracking-wide text-lg font-thin mb-2">{{ item.name }}</h3>
                     
                     <!-- Prix unitaire -->
                     <div class="text-gray-900 font-medium text-sm mb-3">
@@ -212,13 +206,14 @@
                     </button>
                     <span class="w-8 text-center font-medium text-sm">{{ item.quantity }}</span>
                     <button @click="incrementQuantity(item.product_id)"
-                            class="w-7 h-7 flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 transition-colors text-gray-600 hover:text-gray-800">
+                            :disabled="item.maxQuantity === item.quantity"
+                            class="w-7 h-7 flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed transition-colors text-gray-600 hover:text-gray-800">
                       <PlusIcon :size="14" />
                     </button>
                   </div>
                   
                   <!-- Prix total pour l'article -->
-                  <div class="item-total font-medium text-gray-900 text-sm w-20 text-right self-center">
+                  <div class="item-total font-medium text-gray-900 text-sm min-w-20 text-right self-center">
                     {{ formatPrice(item.price * item.quantity) }}
                   </div>
                   
@@ -232,142 +227,196 @@
           </div>
         </div>
 
-        <!-- Summary -->
-        <div class="lg:w-1/3 mt-8 lg:mt-0">
-          <div class="bg-white rounded-lg shadow-sm p-6 sticky top-8">
-            <h3 class="text-xl font-medium text-gray-900 mb-6">Récapitulatif</h3>
-            
-            <div class="space-y-4 mb-6">
-              <div class="summary-row flex justify-between">
-                <span class="text-gray-600">Sous-total</span>
-                <span class="font-medium">{{ formatPrice(subtotal) }}</span>
-              </div>
-              <div class="text-sm text-gray-500 flex items-end">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+<!-- Summary -->
+<div class="lg:w-1/3 mt-8 lg:mt-0">
+  <div class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 p-8 sticky top-8 backdrop-blur-sm">
+    <h3 class="text-2xl font-bold text-gray-900 mb-8 pb-4 border-b-2 border-gray-200">Récapitulatif</h3>
+    
+    <div class="space-y-5 mb-8">
+      <div class="summary-row flex justify-between items-center">
+        <span class="text-gray-600 font-medium">Sous-total</span>
+        <span class="text-lg font-bold text-gray-900">{{ formatPrice(subtotal) }}</span>
+      </div>
+      <div class="text-sm text-amber-700 bg-amber-50 rounded-lg px-4 py-3 flex items-start border border-amber-200">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <span class="font-medium">Frais de livraison calculés à l'étape suivante</span>
+      </div>
+
+      <!-- Section Code promo améliorée -->
+      <div class="summary-row discount pt-6 border-t-2 border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+          <h4 class="font-bold text-gray-800 text-lg flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2 text-gray-600">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+            </svg>
+            Code promo
+          </h4>
+          <span v-if="discountApplied" class="text-xs bg-green-100 text-green-800 px-3 py-1.5 rounded-full font-semibold shadow-sm">
+            ✓ Appliqué
+          </span>
+        </div>
+        
+        <div class="discount-input flex gap-2" v-if="!discountApplied">
+          <input
+            type="text" 
+            v-model="discountCode" 
+            placeholder="Entrez votre code"
+            class="flex-grow px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none transition-all text-sm font-medium placeholder:text-gray-400"
+          >
+          <button
+            @click="applyDiscount"
+            :disabled="!discountCode || isLoading"
+            class="px-5 py-3 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white font-bold max-w-32 min-w-32 rounded-xl transition-all shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none transform hover:scale-105 active:scale-95"
+          >
+            <div class="flex items-center justify-center gap-2">
+              <div v-if="isLoading" class="loader"></div>
+              <div class="text-sm">{{ isLoading ? 'Vérif.' : 'Appliquer' }}</div>
+            </div>
+          </button>
+        </div>
+        
+        <transition name="fade-slide" mode="out-in">
+          <div v-if="discountApplied" key="success" class="mt-3 flex justify-between items-center rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 px-5 py-4 shadow-md transition-all duration-500">
+            <span class="text-sm font-bold text-green-800 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+              Réduction appliquée
+            </span>
+            <span class="text-green-900 font-bold text-lg">-{{ formatPrice(discountAmount) }}</span>
+          </div>
+        </transition>
+
+        <transition name="fade-slide" mode="out-in">
+          <div v-if="discountError !== ''" key="error" class="mt-3 flex justify-between items-center rounded-xl border-2 border-red-200 bg-gradient-to-r from-red-50 to-rose-50 px-5 py-4 shadow-md transition-all duration-500">
+            <span class="text-sm font-bold text-red-800 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+              {{ discountError }}
+            </span>
+          </div>
+        </transition>
+      </div>
+    </div>
+    
+    <!-- Total avec mise en valeur -->
+    <div class="summary-total border-t-2 border-gray-200 pt-6 mb-8">
+      <div class="flex justify-between items-center bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-5 shadow-lg">
+        <span class="text-xl font-bold text-white">Total</span>
+        <span class="total-price text-2xl font-black text-white">
+          {{ formatPrice(total) }}
+        </span>
+      </div>
+      <p class="text-xs text-gray-500 text-center mt-3 font-medium">TVA incluse</p>
+    </div>
+    
+    <!-- Boutons d'action -->
+    <div class="space-y-3 mb-8" v-if="authStore.isAuthenticated">
+      <CheckoutButton />
+      <button 
+        :disabled="authStore.sharedCartCount > 2"
+        class="disabled:cursor-not-allowed disabled:opacity-50 share-cart-btn w-full flex items-center justify-center px-6 py-4 border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+        @click="shareCart"
+      >
+        <Share2Icon :size="20" class="mr-2" />
+        Partager le panier
+      </button>
+    </div>
+    <div class="space-y-4 mb-8" v-else>
+      <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-5 shadow-md">
+        <div class="flex items-start">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 mt-0.5 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+          </svg>
+          <div>
+            <h4 class="font-bold text-blue-900 mb-2 text-lg">Connexion requise</h4>
+            <p class="text-sm text-blue-800 mb-3 font-medium">
+              Connectez-vous pour finaliser votre commande et profiter de tous vos avantages :
+            </p>
+            <ul class="space-y-2 text-sm text-blue-700">
+              <li class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-blue-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-                <span>Frais de livraison non inclus</span>
-              </div>
-
-              <!-- Section Code promo améliorée -->
-              <div class="summary-row discount pt-4 border-t border-gray-200">
-                <div class="flex items-center justify-between mb-2">
-                  <h4 class="font-medium text-gray-700">Code promo</h4>
-                  <span v-if="discountApplied" class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                    Code appliqué
-                  </span>
-                </div>
-                
-                <div class="discount-input flex gap-2" v-if="!discountApplied">
-                  <input
-                    type="text" 
-                    v-model="discountCode" 
-                    placeholder="Entrez votre code"
-                    class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 outline-none transition"
-                  >
-                  <button
-                    @click="applyDiscount"
-                    :disabled="!discountCode || isLoading"
-                    class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white font-medium max-w-32 min-w-32 rounded-md transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    <div class="flex items-center justify-center gap-2">
-                      <div v-if="isLoading" class="loader"></div>
-                      <div>{{ isLoading ? 'Verification ' : 'Appliquer' }}</div>
-                    </div>
-                  </button>
-                </div>
-                
-                <transition name="fade-slide" mode="out-in">
-                  <div v-if="discountApplied" key="success" class="mt-2 flex justify-between items-center rounded-md border border-gray-200 bg-gray-100 px-4 py-2 shadow-sm transition-all duration-500">
-                    <span class="text-sm text-gray-700">Réduction appliquée</span>
-                    <span class="text-gray-900 font-semibold">-{{ formatPrice(discountAmount) }}</span>
-                  </div>
-                </transition>
-
-                <transition name="fade-slide" mode="out-in">
-                  <div v-if="discountError !== ''" key="error" class="mt-2 flex justify-between items-center rounded-md border border-gray-300 bg-gray-100 px-4 py-2 shadow-sm transition-all duration-500">
-                    <span class="text-sm text-gray-700">Erreur :</span>
-                    <span class="text-gray-900 font-semibold">{{ discountError }}</span>
-                  </div>
-                </transition>
-              </div>
-            </div>
-            
-            <!-- Total avec mise en valeur -->
-            <div class="summary-total border-t border-gray-200 pt-4 mb-6">
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-lg font-medium">Total</span>
-                <span class="total-price text-xl font-bold text-gray-900">
-                  {{ formatPrice(total) }}
-                </span>
-              </div>
-            </div>
-            
-            <!-- Boutons d'action -->
-            <div class="space-y-3 mb-6" v-if="authStore.isAuthenticated">
-              <CheckoutButton />
-              <button 
-                :disabled="authStore.sharedCartCount > 2"
-                class="disabled:cursor-not-allowed share-cart-btn w-full flex items-center justify-center px-6 py-3 border border-gray-900 text-gray-900 hover:bg-gray-50 font-medium rounded-md transition-colors"
-                @click="shareCart"
-              >
-                <Share2Icon :size="18" class="mr-2" />
-                Partager le panier
-              </button>
-            </div>
-            <div class="space-y-3 mb-6" v-else>
-              <div class="bg-gray-50 border border-gray-200 rounded-md p-4 mb-4">
-                <div class="flex items-start">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
-                  </svg>
-                  <div>
-                    <h4 class="font-medium text-gray-800 mb-1">Connexion requise</h4>
-                    <p class="text-sm text-gray-600">
-                      Connectez-vous pour finaliser votre commande et bénéficier de :
-                    </p>
-                    <ul class="list-disc list-inside text-xs text-gray-600 mt-1 space-y-1">
-                      <li>Suivi de votre commande en temps réel</li>
-                      <li>Historique de vos achats</li>
-                      <li>Service client prioritaire</li>
-                      <li>Accès à vos avantages fidélité</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                @click="showLoginModal = true"
-                class="w-full flex items-center justify-center px-6 py-4 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-md transition-colors shadow-sm"
-              >
-                <LogInIcon :size="18" class="mr-2" />
-                Se connecter pour payer
-              </button>
-
-              <div class="text-center text-sm text-gray-500 mt-2">
-                Pas encore de compte ? 
-                <router-link to="/register" class="text-gray-900 hover:text-gray-700 font-medium" @click.prevent="showRegisterInstead">
-                  Créer un compte
-                </router-link>
-              </div>
-            </div>
-            
-            <!-- Méthodes de paiement -->
-            <div class="payment-methods mb-6">
-              <p class="text-xs text-gray-500 mb-2 uppercase tracking-wider">Méthodes de paiement acceptées :</p>
-              <div class="flex gap-4 items-center justify-center p-2 border border-gray-200 bg-gray-100 rounded-md">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/MasterCard_Logo.svg/2560px-MasterCard_Logo.svg.png" alt="Mastercard" class="h-8">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" alt="Visa" class="h-8">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/1200px-American_Express_logo_%282018%29.svg.png" alt="American Express" class="h-8">
-              </div>
-            </div>
-            
-            <router-link to="/shop" class="continue-shopping flex items-center justify-center text-gray-900 hover:text-gray-700 font-medium transition-colors">
-              <ArrowLeftIcon :size="16" class="mr-2" />
-              <span>Continuer vos achats</span>
-            </router-link>
+                <span>Suivi de commande en temps réel</span>
+              </li>
+              <li class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-blue-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <span>Historique de vos achats</span>
+              </li>
+              <li class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-blue-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <span>Service client prioritaire</span>
+              </li>
+              <li class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-blue-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <span>Accès à vos avantages fidélité</span>
+              </li>
+            </ul>
           </div>
         </div>
+      </div>
+
+      <button
+        @click="showLoginModal = true"
+        class="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+      >
+        <LogInIcon :size="20" class="mr-2" />
+        Se connecter pour payer
+      </button>
+
+      <div class="text-center text-sm text-gray-600 mt-3">
+        Pas encore de compte ? 
+        <router-link to="/register" class="text-gray-900 hover:text-gray-700 font-bold underline decoration-2 underline-offset-2" @click.prevent="showRegisterInstead">
+          Créer un compte
+        </router-link>
+      </div>
+    </div>
+    
+    <!-- Méthodes de paiement -->
+    <div class="payment-methods mb-8">
+      <p class="text-xs text-gray-500 mb-3 uppercase tracking-widest font-bold text-center">Paiement 100% sécurisé</p>
+      <div class="flex gap-4 items-center justify-center p-4 border-2 border-gray-200 bg-white rounded-xl shadow-sm">
+        <!-- Bank Transfer -->
+        <div class="flex flex-col items-center opacity-80 hover:opacity-100 transition-opacity cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-gray-700">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
+          </svg>
+          <span class="text-xs text-gray-600 mt-1 font-medium">Banque</span>
+        </div>
+        
+        <!-- Mobile Payment -->
+        <div class="flex flex-col items-center opacity-80 hover:opacity-100 transition-opacity cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-gray-700">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+          </svg>
+          <span class="text-xs text-gray-600 mt-1 font-medium">Mobile</span>
+        </div>
+        
+        <!-- PayPal -->
+        <div class="flex flex-col items-center opacity-80 hover:opacity-100 transition-opacity cursor-pointer">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/2560px-PayPal.svg.png" alt="PayPal" class="h-7">
+          <span class="text-xs text-gray-600 mt-1 font-medium">PayPal</span>
+        </div>
+      </div>
+    </div>
+    
+    <router-link to="/shop" class="continue-shopping flex items-center justify-center text-gray-700 hover:text-gray-900 font-bold transition-all group">
+      <ArrowLeftIcon :size="18" class="mr-2 transform group-hover:-translate-x-1 transition-transform" />
+      <span class="border-b-2 border-transparent group-hover:border-gray-900 transition-all">Continuer vos achats</span>
+    </router-link>
+  </div>
+</div>
       </div>
 
       <!-- Nos services -->
@@ -707,7 +756,6 @@ onMounted(() => {
 }
 
 .total-price {
-  color: #111827;
   font-size: 1.25rem;
 }
 

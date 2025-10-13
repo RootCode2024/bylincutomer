@@ -14,6 +14,7 @@ import ContactPage from '@/views/public/ContactPage.vue'
 // Vues du shop
 import ShopPage from '@/views/public/Products/ProductsListPage.vue'
 import CollectionPage from '@/views/public/Products/CollectionsPage.vue'
+import CollectionDetailsPage from '@/views/public/Products/CollectionDetailsPage.vue'
 import ProductCategoryPage from '@/views/public/Categories/CategoryPage.vue'
 import CategoriesListPage from '@/views/public/Categories/CategoriesListPage.vue'
 import ProductDetailsPage from '@/views/public/Products/ProductDetailsPage.vue'
@@ -34,6 +35,7 @@ import ResetPasswordPage from '@/views/public/Auth/ResetPasswordPage.vue'
 // Vues du tableau de bord client
 import CustomerDashboardHome from '@/views/dashboard/MainPage.vue'
 import CustomerOrders from '@/views/dashboard/OrdersPage.vue'
+import supportOrderPage from '@/views/dashboard/SupportOrderPage.vue'
 import CustomerOrderDetails from '@/views/dashboard/OrderDetailsPage.vue'
 import CustomerAddresses from '@/views/dashboard/AddressesPage.vue'
 import CustomerAccount from '@/views/dashboard/AccountPage.vue'
@@ -42,7 +44,6 @@ import SharedCartsPage from '@/views/dashboard/Cart/SharedCartsPage.vue'
 import SharedCartDetailsPage from '@/views/dashboard/Cart/SharedCartDetailsPage.vue'
 import DashboardWishListPage from '@/views/dashboard/WishListPage.vue'
 import WishListPage from '@/views/public/WishListPage.vue'
-// import NewReviewPage from '@/views/dashboard/Review/NewReviewPage.vue'
 import ReviewsPage from '@/views/dashboard/Review/ReviewPage.vue'
 
 const router = createRouter({
@@ -58,6 +59,7 @@ const router = createRouter({
         { path: 'contact', name: 'contact', component: ContactPage },
         { path: 'services', name: 'services', component: ContactPage },
         { path: 'collections', name: 'collections', component: CollectionPage },
+        { path: 'collections/:slug', name: 'collection', component: CollectionDetailsPage },
         { path: 'shipping', name: 'shipping', component: ContactPage },
         { path: 'sitemap', name: 'sitemap', component: ContactPage },
         { path: 'blog', name: 'blog', component: ContactPage },
@@ -154,6 +156,11 @@ const router = createRouter({
         { path: 'shared-carts', name: 'dashboard.shared.carts', component: SharedCartsPage },
         { path: 'shared-carts/:id(\\d+)', name: 'dashboard.shared.carts.details', component: SharedCartDetailsPage },
         { path: 'wishlists', name: 'wishlist', component: DashboardWishListPage },
+        {
+          path: 'support/order/:orderNumber',
+          name: 'dashboard.support.order',
+          component: supportOrderPage,
+        },
         {
           path: 'review/order/:orderId',
           name: 'dashboard.review',

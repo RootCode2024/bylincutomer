@@ -4,7 +4,7 @@
     <div class="flex items-center space-x-2">
       <button 
         @click.stop="toggleAccountMenu"
-        class="flex items-center justify-center p-1 text-gray-600 hover:text-indigo-600 transition-colors group"
+        class="flex items-center justify-center p-1 text-gray-600 hover:text-indigo-800 transition-colors group"
         aria-label="Mon compte"
         :aria-expanded="accountMenuOpen"
       >
@@ -12,7 +12,7 @@
           Bonjour, {{ authStore.userName }}
         </span>
         <div class="relative">
-          <UserIcon class="h-4 w-4 md:h-5 md:w-5 transition-transform duration-200 group-hover:scale-110" />
+          <User stroke-width="1" class="transition-transform duration-200 group-hover:scale-110" />
           <span class="absolute -bottom-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
         </div>
       </button>
@@ -39,31 +39,31 @@
         
         <RouterLink 
           to="/dashboard" 
-          class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-indigo-600 transition-colors"
+          class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-indigo-800 transition-colors"
           role="menuitem"
           @click="closeAccountMenu"
         >
-          <UserCircleIcon class="w-5 h-5 mr-2 text-gray-400" />
+          <User stroke-width="1" class="mr-2" />
           Mon compte
         </RouterLink>
         
         <RouterLink 
           to="/dashboard/orders" 
-          class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-indigo-600 transition-colors"
+          class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-indigo-800 transition-colors"
           role="menuitem"
           @click="closeAccountMenu"
         >
-          <ShoppingBagIcon class="w-5 h-5 mr-2 text-gray-400" />
+          <ShoppingBag stroke-width="1" class="mr-2" />
           Mes commandes
         </RouterLink>
         
         <RouterLink 
           to="/wishlists" 
-          class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-indigo-600 transition-colors"
+          class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-indigo-800 transition-colors"
           role="menuitem"
           @click="closeAccountMenu"
         >
-          <HeartIcon class="w-5 h-5 mr-2 text-gray-400" />
+          <Heart stroke-width="1" class="mr-2" />
           Favoris
         </RouterLink>
 
@@ -74,7 +74,7 @@
           class="flex items-center w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-red-600 transition-colors"
           role="menuitem"
         >
-          <LogOutIcon class="w-5 h-5 mr-2 text-gray-400" />
+          <LogOut class="mr-2" />
           Déconnexion
         </button>
       </div>
@@ -85,13 +85,13 @@
   <div class="hidden md:flex items-center space-x-4" v-else>
     <RouterLink
       to="/login"
-      class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50"
+      class="text-sm font-medium text-gray-600 hover:text-indigo-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50"
     >
       Connexion
     </RouterLink>
     <RouterLink
       to="/register"
-      class="text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors px-3 py-1.5 rounded-lg shadow-sm"
+      class="text-sm font-medium text-white bg-indigo-800 hover:bg-indigo-700 transition-colors px-3 py-1.5 rounded-lg shadow-sm"
     >
       Inscription
     </RouterLink>
@@ -101,12 +101,11 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import { 
-  UserIcon,
-  UserCircleIcon,
-  ShoppingBagIcon,
-  HeartIcon,
-  LogOutIcon
+import {
+  ShoppingBag,
+  Heart,
+  User,
+  LogOut
 } from 'lucide-vue-next';
 
 const authStore = useAuthStore();

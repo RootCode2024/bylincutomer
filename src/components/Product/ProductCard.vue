@@ -1,26 +1,56 @@
 <template>
-  <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden group relative">
+  <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden group relative">
     <!-- Image du produit -->
-    <div class="relative overflow-hidden aspect-square">
+    <div class="relative overflow-hidden aspect-square rounded-xl bg-gray-50">
       <img
-        v-if="product.main_image_url"
-        :src="`${product.main_image_url}`"
+        :src="product.main_image_url || 'https://placehold.co/80?text=bylin'"
         :alt="product.name"
-        class="w-full h-full object-cover transition duration-300 group-hover:scale-105"
+        class="w-full h-full object-contain transition duration-300 group-hover:scale-105"
       />
-      <div
-        v-else
-        class="w-full h-full flex items-center justify-center bg-gray-200"
-      >
-        No Image
-      </div>
 
-      <!-- Badge promo/nouveau -->
-      <div
-        v-if="product.discount || product.isNew"
-        class="absolute top-2 left-2 bg-rose-500 text-white text-xs font-medium px-2 py-1 rounded-full"
-      >
-        {{ product.discount ? 'Promo' : 'New' }}
+      <!-- Badges -->
+      <div class="absolute top-2 left-2 flex flex-col gap-2">
+        <!-- Badge Promo -->
+        <transition name="fade">
+          <div
+            v-if="product.is_trending"
+            class="backdrop-blur-sm bg-rose-500/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-md flex items-center gap-1 animate-fade-in"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 8c-.825 0-1.5.675-1.5 1.5S11.175 11 12 11s1.5-.675 1.5-1.5S12.825 8 12 8zm0 0V6m0 8v2m-6-2v2m12-2v2m-9-4H7m10 0h-2" />
+            </svg>
+            Promo
+          </div>
+        </transition>
+
+        <!-- Badge Nouveau -->
+        <transition name="fade">
+          <div
+            v-if="product.is_featured"
+            class="backdrop-blur-sm bg-indigo-600/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-md flex items-center gap-1 animate-fade-in"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" />
+            </svg>
+            Nouveau
+          </div>
+        </transition>
       </div>
     </div>
 
@@ -28,8 +58,9 @@
     <div class="p-4">
       <!-- Titre et prix -->
       <router-link :to="`/product/${product.slug}`" class="block mb-2">
-        <h3 class="text-gray-800 font-medium truncate">{{ product.name }}</h3>
-        <p class="text-indigo-600 font-semibold">{{ formattedPrice }}</p>
+        <h2 class="text-gray-800 font-medium text-xl truncate">{{ product.name }}</h2>
+        <h3 class="text-gray-500 font-thin truncate my-3">{{ product?.category.name }}</h3>
+        <p class="text-indigo-800 font-bold text-xl">{{ formattedPrice }}</p>
       </router-link>
 
       <!-- Actions -->
@@ -96,10 +127,10 @@ const formattedPrice = computed(() => {
   
   const symbol = currencyStore.symbol
   const rate = currencyStore.rate
-  const fromXAF = basePrice / currencyStore.rates['XAF'] * rate
-  const finalPrice = fromXAF
+  const fromXOF = basePrice / currencyStore.rates['XOF'] * rate
+  const finalPrice = fromXOF
 
-  return currencyStore.selectedCurrency === 'XAF'
+  return currencyStore.selectedCurrency === 'XOF'
     ? `${finalPrice.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} ${symbol}`
     : `${symbol}${finalPrice.toFixed(2)}`
 })
@@ -157,3 +188,14 @@ const addToCart = async () => {
   }
 }
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

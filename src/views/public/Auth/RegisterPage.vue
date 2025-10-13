@@ -4,7 +4,7 @@
     <div class="hidden md:flex flex-1 bg-gradient-to-br from-indigo-600 to-purple-600 relative overflow-hidden">
       <div class="absolute inset-0 flex items-center justify-center p-12">
         <img 
-          src="@/assets/images/logo-black.png" 
+          src="@/assets/images/logo-blue.png" 
           alt="Logo Bylin" 
           class="w-full max-w-md object-contain filter drop-shadow-xl"
         >
@@ -37,7 +37,7 @@
         <div class="text-center">
           <router-link to="/" class="inline-block mb-6 transition-transform hover:scale-105">
             <img 
-              src="@/assets/images/logo-black.png" 
+              src="@/assets/images/logo-blue.png" 
               alt="Logo Bylin" 
               class="h-24 mx-auto"
             >
@@ -776,7 +776,7 @@ const goBack = () => {
 
 const loginWithGoogle = () => {
   socialLoading.value = true
-  window.location.href = 'https://stagging.bylin-style.com/api/customer/auth/google'
+  window.location.href = 'http://localhost:8000/api/customer/auth/google'
 }
 
 const calculatePasswordStrength = () => {

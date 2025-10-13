@@ -328,139 +328,399 @@
             </div>
           </section>
 
-          <!-- Payment -->
+          <!-- Payment Section -->
           <section v-show="currentStep === 2" class="space-y-6">
             <div class="flex items-center gap-3 mb-6">
-              <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                 </svg>
               </div>
-              <h2 class="text-2xl font-semibold text-gray-900">Paiement</h2>
+              <h2 class="text-2xl font-bold text-gray-900">Méthode de paiement</h2>
             </div>
-            
+  
             <!-- Payment Method Tabs -->
-            <div v-if="availablePaymentTabs.length > 0" class="flex border-b border-gray-200 bg-gray-50 rounded-t-lg overflow-hidden">
+            <div v-if="availablePaymentTabs.length > 0" class="flex gap-2 p-1.5 bg-gray-100 rounded-xl">
               <button 
                 v-for="tab in availablePaymentTabs" 
                 :key="tab.id" 
-                class="flex-1 px-6 py-4 font-medium text-sm transition-colors duration-200 relative"
+                class="flex-1 px-6 py-3.5 font-semibold text-sm transition-all duration-300 rounded-lg relative"
                 :class="{ 
-                  'bg-white text-blue-600 shadow-sm': paymentMethod === tab.id,
-                  'text-gray-500 hover:text-gray-700 hover:bg-gray-100': paymentMethod !== tab.id
+                  'bg-white text-blue-600 shadow-md transform scale-105': paymentMethod === tab.id,
+                  'text-gray-600 hover:text-gray-800 hover:bg-gray-50': paymentMethod !== tab.id
                 }"
                 @click="paymentMethod = tab.id"
               >
-                {{ tab.label }}
-                <div v-if="paymentMethod === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
+                <div class="flex justify-center items-center space-x-4">
+                  <svg v-if="tab.id === 'mobile_money'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-8 h-8 text-gray-700">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                  </svg>
+                  <svg v-if="tab.id === 'credit_card'" data-slot="icon" fill="none" stroke-width="1" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-8 h-8 text-gray-700">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"></path>
+                  </svg>
+                  <svg v-if="tab.id === 'paypal'" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <circle cx="24" cy="24" r="20" fill="#0070BA"></circle> <path d="M32.3305 18.0977C32.3082 18.24 32.2828 18.3856 32.2542 18.5351C31.2704 23.5861 27.9046 25.331 23.606 25.331H21.4173C20.8916 25.331 20.4486 25.7127 20.3667 26.2313L19.2461 33.3381L18.9288 35.3527C18.8755 35.693 19.1379 36 19.4815 36H23.3634C23.8231 36 24.2136 35.666 24.286 35.2127L24.3241 35.0154L25.055 30.3772L25.1019 30.1227C25.1735 29.6678 25.5648 29.3338 26.0245 29.3338H26.6051C30.3661 29.3338 33.3103 27.8068 34.1708 23.388C34.5303 21.5421 34.3442 20.0008 33.393 18.9168C33.1051 18.59 32.748 18.3188 32.3305 18.0977Z" fill="white" fill-opacity="0.6"></path> <path d="M31.3009 17.6871C31.1506 17.6434 30.9955 17.6036 30.8364 17.5678C30.6766 17.5328 30.5127 17.5018 30.3441 17.4748C29.754 17.3793 29.1074 17.334 28.4147 17.334H22.5676C22.4237 17.334 22.2869 17.3666 22.1644 17.4254C21.8948 17.5551 21.6944 17.8104 21.6459 18.1229L20.402 26.0013L20.3662 26.2311C20.4481 25.7126 20.8911 25.3308 21.4168 25.3308H23.6055C27.9041 25.3308 31.2699 23.5851 32.2537 18.5349C32.2831 18.3854 32.3078 18.2398 32.33 18.0975C32.0811 17.9655 31.8115 17.8525 31.5212 17.7563C31.4496 17.7324 31.3757 17.7094 31.3009 17.6871Z" fill="white" fill-opacity="0.8"></path> <path d="M21.6461 18.1231C21.6946 17.8105 21.895 17.5552 22.1646 17.4264C22.2879 17.3675 22.4239 17.3349 22.5678 17.3349H28.4149C29.1077 17.3349 29.7542 17.3803 30.3444 17.4757C30.513 17.5027 30.6768 17.5338 30.8367 17.5687C30.9957 17.6045 31.1508 17.6443 31.3011 17.688C31.3759 17.7103 31.4498 17.7334 31.5222 17.7564C31.8125 17.8527 32.0821 17.9664 32.331 18.0976C32.6237 16.231 32.3287 14.9601 31.3194 13.8093C30.2068 12.5424 28.1986 12 25.629 12H18.169C17.6441 12 17.1963 12.3817 17.1152 12.9011L14.0079 32.5969C13.9467 32.9866 14.2473 33.3381 14.6402 33.3381H19.2458L20.4022 26.0014L21.6461 18.1231Z" fill="white"></path> </g></svg>
+                  <span>{{ tab.label }}</span>
+                </div>
               </button>
             </div>
 
             <!-- Mobile Money Options -->
-            <div v-if="paymentMethod" class="space-y-6 p-6 bg-white border border-gray-200 rounded-b-lg">
+            <div v-if="paymentMethod === 'mobile_money'" class="space-y-6 p-6 bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl shadow-sm">
+              <div class="text-center mb-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Choisissez votre opérateur mobile</h3>
+                <p class="text-sm text-gray-600">Paiement sécurisé via Mobile Money</p>
+              </div>
+
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- MTN Mobile Money -->
                 <div 
-                  v-for="method in mobileMoneyMethods" 
-                  :key="method.id"
-                  class="p-4 border-2 rounded-xl text-center cursor-pointer transition-all duration-200 hover:border-blue-300 hover:shadow-sm"
+                  v-if="shipping.country_code === 'BJ'"
+                  class="group p-5 border-3 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                   :class="{ 
-                    'border-blue-500 bg-blue-50': selectedMobileMoney === method.id, 
-                    'border-gray-200': selectedMobileMoney !== method.id 
+                    'border-yellow-500 bg-gradient-to-br from-yellow-50 to-yellow-100 shadow-lg scale-105': selectedMobileMoney === 'mtn', 
+                    'border-gray-200 bg-white hover:border-yellow-300': selectedMobileMoney !== 'mtn' 
                   }"
-                  @click="selectMobileMoney(method.id)"
+                  @click="selectMobileMoney('mtn')"
                 >
-                  <div class="mb-3">
-                    <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mx-auto flex items-center justify-center">
-                      <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
-                      </svg>
+                  <div class="mb-4 flex justify-center">
+                    <div style="background-color: #ffcb05;" class="w-20 h-20 rounded-2xl shadow-md flex items-center justify-center p-3 transition-transform group-hover:scale-110">
+                      <img 
+                        src="https://www.mtn.com/wp-content/themes/mtn-refresh/public/img/mtn-logo.svg" 
+                        alt="MTN Mobile Money" 
+                        class="w-full h-full object-contain"
+                      >
                     </div>
                   </div>
-                  <div class="text-sm font-medium text-gray-900">{{ method.name }}</div>
+                  <div class="text-base font-bold text-gray-900">MTN Mobile Money</div>
+                  <div class="text-xs text-gray-600 mt-1">Paiement instantané</div>
+                  <div v-if="selectedMobileMoney === 'mtn'" class="mt-3 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Moov Money -->
+                <div 
+                  v-if="shipping.country_code === 'BJ' || shipping.country_code === 'TG' || shipping.country_code === 'CI'"
+                  class="group p-5 border-3 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                  :class="{ 
+                    'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg scale-105': selectedMobileMoney === 'moov', 
+                    'border-gray-200 bg-white hover:border-blue-300': selectedMobileMoney !== 'moov' 
+                  }"
+                  @click="selectMobileMoney('moov')"
+                >
+                  <div class="mb-4 flex justify-center">
+                    <div style="background-color: #0055bb;" class="w-20 h-20 rounded-2xl shadow-md flex items-center justify-center p-3 transition-transform group-hover:scale-110">
+                      <img 
+                        src="https://www.moov-africa.bj/wp-content/uploads/2022/10/LOGO-MOOV-AFRICA-.png" 
+                        alt="Moov Money" 
+                        class="w-full h-full object-contain"
+                      >
+                    </div>
+                  </div>
+                  <div class="text-base font-bold text-gray-900">Moov Money</div>
+                  <div class="text-xs text-gray-600 mt-1">Paiement instantané</div>
+                  <div v-if="selectedMobileMoney === 'moov'" class="mt-3 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Celtiis Money -->
+                <div 
+                  v-if="shipping.country_code === 'BJ'"
+                  class="group p-5 border-3 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                  :class="{ 
+                    'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg scale-105': selectedMobileMoney === 'celtiis', 
+                    'border-gray-200 bg-white hover:border-blue-300': selectedMobileMoney !== 'celtiis' 
+                  }"
+                  @click="selectMobileMoney('celtiis')"
+                >
+                  <div class="mb-4 flex justify-center">
+                    <div style="background-color: #1c3b72;" class="w-20 h-20 rounded-2xl shadow-md flex items-center justify-center p-3 transition-transform group-hover:scale-110">
+                      <img 
+                        src="https://celtiis.bj/_next/image?url=%2Fceltiis-logo-rounded.svg&w=128&q=75" 
+                        alt="Celtiis" 
+                        class="w-full h-full object-contain"
+                      >
+                    </div>
+                  </div>
+                  <div class="text-base font-bold text-gray-900">Celtiis Cash</div>
+                  <div class="text-xs text-gray-600 mt-1">Paiement instantané</div>
+                  <div v-if="selectedMobileMoney === 'celtiis'" class="mt-3 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Orange Money -->
+                <div 
+                  v-if="shipping.country_code === 'SN' || shipping.country_code === 'CI' || shipping.country_code === 'BF'"
+                  class="group p-5 border-3 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                  :class="{ 
+                    'border-orange-500 bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg scale-105': selectedMobileMoney === 'orange', 
+                    'border-gray-200 bg-white hover:border-orange-300': selectedMobileMoney !== 'orange' 
+                  }"
+                  @click="selectMobileMoney('orange')"
+                >
+                  <div class="mb-4 flex justify-center">
+                    <div class="w-20 h-20 bg-white rounded-2xl shadow-md flex items-center justify-center p-3 transition-transform group-hover:scale-110">
+                      <img 
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Orange_logo.svg/2560px-Orange_logo.svg.png" 
+                        alt="Orange Money" 
+                        class="w-full h-full object-contain"
+                      >
+                    </div>
+                  </div>
+                  <div class="text-base font-bold text-gray-900">Orange Money</div>
+                  <div class="text-xs text-gray-600 mt-1">Paiement instantané</div>
+                  <div v-if="selectedMobileMoney === 'orange'" class="mt-3 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Wave -->
+                <div 
+                  v-if="shipping.country_code === 'SN' || shipping.country_code === 'CI'"
+                  class="group p-5 border-3 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                  :class="{ 
+                    'border-[#1AB3E5] bg-gradient-to-br from-[#1ab2e53a] to-[#1ab2e593] shadow-lg scale-105': selectedMobileMoney === 'wave', 
+                    'border-gray-200 bg-white hover:border-[#1ab2e59c]': selectedMobileMoney !== 'wave' 
+                  }"
+                  @click="selectMobileMoney('wave')"
+                >
+                  <div class="mb-4 flex justify-center">
+                    <div class="w-20 h-20 bg-white rounded-2xl shadow-md flex items-center justify-center p-3 transition-transform group-hover:scale-110">
+                      <img 
+                        src="https://www.wave.com/img/nav-logo.png" 
+                        alt="Wave" 
+                        class="w-full h-full object-contain"
+                      >
+                    </div>
+                  </div>
+                  <div class="text-base font-bold text-gray-900">Wave</div>
+                  <div class="text-xs text-gray-600 mt-1">Paiement instantané</div>
+                  <div v-if="selectedMobileMoney === 'wave'" class="mt-3 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-[#1AB3E5]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Free Sénégal -->
+                <div 
+                  v-if="shipping.country_code === 'SN'"
+                  class="group p-5 border-3 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                  :class="{ 
+                    'border-[#FFD100] bg-gradient-to-br from-[#ffd00056] to-[#ffd0006f] shadow-lg scale-105': selectedMobileMoney === 'freesn', 
+                    'border-[#FFD100]-white hover:border-[#FFD100]': selectedMobileMoney !== 'freesn' 
+                  }"
+                  @click="selectMobileMoney('freesn')"
+                >
+                  <div class="mb-4 flex justify-center">
+                    <div class="w-20 h-20 bg-[#FFD100] rounded-2xl shadow-md flex items-center justify-center p-3 transition-transform group-hover:scale-110">
+                      <img 
+                        src="https://cdn-ilcckdd.nitrocdn.com/zWDfZJLqRQmQVXoaKATzBZGWqfDqvOXo/assets/images/optimized/rev-45fe558/www.yas.sn/wp-content/uploads/2024/02/jem_logo.svg" 
+                        alt="Free Senegal" 
+                        class="w-full h-full object-contain"
+                      >
+                    </div>
+                  </div>
+                  <div class="text-base font-bold text-gray-900">Free Money</div>
+                  <div class="text-xs text-gray-600 mt-1">Paiement instantané</div>
+                  <div v-if="selectedMobileMoney === 'freesn'" class="mt-3 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-[#FFD100]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                  </div>
                 </div>
               </div>
 
-              <div v-if="selectedMobileMoney" class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Numéro de téléphone *</label>
-                  <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span class="text-gray-500 sm:text-sm">+229</span>
+              <!-- Phone Number Input -->
+              <transition name="fade-slide">
+                <div v-if="selectedMobileMoney" class="space-y-4 p-6 bg-white rounded-xl border-2 border-gray-200 shadow-sm">
+                  <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                      </svg>
                     </div>
-                    <input 
-                      type="tel" 
-                      v-model="mobilePayment.phone" 
-                      placeholder="XX XX XX XX"
-                      class="block w-full pl-12 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                      required
-                    >
+                    <div>
+                      <h4 class="font-bold text-gray-900">Numéro de téléphone</h4>
+                      <p class="text-sm text-gray-600">Entrez votre numéro {{ selectedMobileMoney.toUpperCase() }}</p>
+                    </div>
                   </div>
-                  <p class="mt-2 text-xs text-gray-600">Entrez votre numéro sans l'indicatif pays</p>
+
+                  <div class="flex gap-3">
+                    <!-- Country Code Select - Version améliorée -->
+                    <div class="relative flex-1 max-w-44">
+                      <select 
+                        v-model="mobilePayment.countryCode"
+                        class="w-full h-full pl-4 pr-10 py-4 text-base border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium appearance-none bg-white cursor-pointer hover:border-gray-400"
+                      >
+                        <option value="+229" v-if="shipping.country_code === 'BJ'">Bénin +229</option>
+                        <option value="+225" v-if="shipping.country_code === 'CI'">Côte d'Ivoire +225</option>
+                        <option value="+226" v-if="shipping.country_code === 'BF'">Burkina Faso +226</option>
+                        <option value="+228" v-if="shipping.country_code === 'TG'">Togo +228</option>
+                        <option value="+221" v-if="shipping.country_code === 'SN'">Sénégal +221</option>
+                      </select>
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                      </div>
+                    </div>
+
+                    <!-- Phone Number Input -->
+                    <div class="flex-1">
+                      <input 
+                        type="tel" 
+                        v-model="mobilePayment.phone" 
+                        :placeholder="getPhonePlaceholder()"
+                        maxlength="15"
+                        class="block w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium placeholder-gray-400"
+                        @input="formatPhoneNumber"
+                        required
+                      >
+                    </div>
+                  </div>
+
+                  <!-- Phone number format helper -->
+                  <div class="text-xs text-gray-500 px-1">
+                    Format: {{ getPhoneFormatExample() }}
+                  </div>
+
+                  <div class="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-xs text-blue-800 font-medium">
+                      Vous recevrez une notification sur votre téléphone pour valider le paiement
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </transition>
             </div>
 
             <!-- Credit Card Form -->
-            <div v-else-if="paymentMethod === 'credit_card'" class="space-y-6 p-6 bg-white border border-gray-200 rounded-b-lg">
-              <div class="grid grid-cols-1 gap-6">
+            <div v-else-if="paymentMethod === 'credit_card'" class="space-y-6 p-6 bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl shadow-sm">
+              <div class="text-center mb-6">
+                <div class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg mb-4">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                  </svg>
+                  <h3 class="text-lg font-bold text-white">Carte bancaire</h3>
+                </div>
+                <p class="text-sm text-gray-600">Paiement sécurisé SSL</p>
+              </div>
+
+              <div class="grid grid-cols-1 gap-5">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Numéro de carte *</label>
+                  <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                      <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                    </svg>
+                    Numéro de carte
+                  </label>
                   <input 
                     type="text" 
                     v-model="payment.cardNumber" 
                     placeholder="1234 5678 9012 3456"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    maxlength="19"
+                    class="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-mono"
+                    @input="formatCardNumber"
                     required
                   >
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Nom sur la carte *</label>
+                  <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    Nom sur la carte
+                  </label>
                   <input 
                     type="text" 
                     v-model="payment.cardName" 
-                    placeholder="John Doe"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    placeholder="JEAN DUPONT"
+                    class="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all uppercase"
                     required
                   >
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Date d'expiration *</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                      <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                      </svg>
+                      Expiration
+                    </label>
                     <input 
                       type="text" 
                       v-model="payment.expiryDate" 
                       placeholder="MM/AA"
-                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      maxlength="5"
+                      class="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-center font-mono"
+                      @input="formatExpiryDate"
                       required
                     >
                   </div>
                   
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">CVV *</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                      <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                      </svg>
+                      CVV
+                    </label>
                     <input 
                       type="text" 
                       v-model="payment.cvv" 
                       placeholder="123"
-                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      maxlength="4"
+                      class="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-center font-mono"
                       required
                     >
                   </div>
                 </div>
               </div>
+
+              <div class="flex items-center justify-center gap-4 pt-4 border-t-2 border-gray-200">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/MasterCard_Logo.svg/2560px-MasterCard_Logo.svg.png" alt="Mastercard" class="h-8 opacity-70">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" alt="Visa" class="h-8 opacity-70">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/1200px-American_Express_logo_%282018%29.svg.png" alt="American Express" class="h-7 opacity-70">
+              </div>
             </div>
 
             <!-- PayPal -->
-            <div v-else-if="paymentMethod === 'paypal'" class="p-8 bg-white border border-gray-200 rounded-b-lg">
+            <div v-else-if="paymentMethod === 'paypal'" class="p-10 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl shadow-sm">
               <div class="text-center">
-                <div class="mb-6">
-                  <div class="w-20 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg mx-auto flex items-center justify-center text-white font-bold text-sm">
-                    PayPal
+                <div class="mb-6 flex justify-center">
+                  <div class="w-32 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center p-4">
+                    <img 
+                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/2560px-PayPal.svg.png" 
+                      alt="PayPal" 
+                      class="w-full h-full object-contain"
+                    >
                   </div>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Paiement sécurisé avec PayPal</h3>
-                <p class="text-gray-600">Vous serez redirigé vers PayPal pour finaliser votre paiement en toute sécurité</p>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Paiement sécurisé avec PayPal</h3>
+                <p class="text-gray-600 mb-6 max-w-md mx-auto">Vous serez redirigé vers PayPal pour finaliser votre paiement en toute sécurité</p>
+                
+                <div class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold shadow-md">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>Paiement 100% sécurisé</span>
+                </div>
               </div>
             </div>
           </section>
@@ -613,7 +873,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue';
+import { ref, computed, reactive, onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cart';
 import { useUserStore } from '@/stores/user';
@@ -670,9 +930,9 @@ const paymentMethod = ref('mobile_money');
 const selectedMobileMoney = ref('');
 
 const paymentTabs = ref([
-  { id: 'mobile_money', label: '📱 Mobile Money' },
-  { id: 'credit_card', label: '💳 Carte de crédit' },
-  { id: 'paypal', label: '🅿️ PayPal' }
+  { id: 'mobile_money', label: 'Mobile Money' },
+  { id: 'credit_card', label: 'Carte de crédit' },
+  { id: 'paypal', label: 'PayPal' }
 ]);
 
 const mobileMoneyMethods = ref([
@@ -683,7 +943,8 @@ const mobileMoneyMethods = ref([
 
 const mobilePayment = reactive({
   phone: '',
-  provider: ''
+  provider: '',
+  countryCode: '+229' // Valeur par défaut pour le Bénin
 });
 
 const shippingMethods = ref([
@@ -708,7 +969,7 @@ const shippingMethods = ref([
     name: 'Livraison Internationale DHL',
     details: '25000 FCFA - Livraison internationale par DHL Express',
     price: 25000,
-    availableCountries: ['FR', 'CI', 'US', 'CA'], // Exemples de codes pays
+    availableCountries: ['FR', 'CI', 'US', 'CA'],
     paymentType: 'online'
   }
 ]);
@@ -798,9 +1059,6 @@ const canProceed = computed(() => {
         return isValid;
       }
       
-      console.log('No address selected');
-      return false;
-      
     case 1:
       const methodValid = !!shipping.method;
       console.log('Shipping method validation:', shipping.method, '=>', methodValid);
@@ -863,6 +1121,129 @@ function previousStep() {
 function selectMobileMoney(method) {
   selectedMobileMoney.value = method;
   mobilePayment.provider = method;
+}
+
+function getPhonePlaceholder() {
+  const country = mobilePayment.countryCode;
+  switch(country) {
+    case '+229': // Bénin
+      return '97 85 41 25';
+    case '+225': // Côte d'Ivoire
+      return '07 85 41 25 36';
+    case '+221': // Sénégal
+      return '77 123 45 67';
+    default:
+      return 'Numéro de téléphone';
+  }
+}
+
+function getPhoneFormatExample() {
+  const country = mobilePayment.countryCode;
+  switch(country) {
+    case '+229': // Bénin
+      return 'Ex: 97 85 41 25 (8 chiffres)';
+    case '+226': // Burkina
+      return 'Ex: 97 85 41 25 (8 chiffres)';
+    case '+228': // Togo
+      return 'Ex: 97 85 41 25 (8 chiffres)';
+    case '+225': // Côte d'Ivoire
+      return 'Ex: 07 85 41 25 36 (10 chiffres)';
+    case '+221': // Sénégal
+      return 'Ex: 77 123 45 67 (9 chiffres)';
+    default:
+      return 'Entrez votre numéro de téléphone';
+  }
+}
+
+function formatPhoneNumber(event) {
+  let value = event.target.value.replace(/\D/g, '');
+  const country = mobilePayment.countryCode;
+  
+  switch(country) {
+    case '+229': // Bénin: 97 85 41 25
+      if (value.length <= 2) {
+        value = value;
+      } else if (value.length <= 4) {
+        value = value.replace(/(\d{2})/, '$1 ');
+      } else if (value.length <= 6) {
+        value = value.replace(/(\d{2})(\d{2})/, '$1 $2 ');
+      } else {
+        value = value.replace(/(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 ');
+      }
+      break;
+      
+    case '+225': // Côte d'Ivoire: 07 85 41 25 36
+      if (value.length <= 2) {
+        value = value;
+      } else if (value.length <= 4) {
+        value = value.replace(/(\d{2})/, '$1 ');
+      } else if (value.length <= 6) {
+        value = value.replace(/(\d{2})(\d{2})/, '$1 $2 ');
+      } else if (value.length <= 8) {
+        value = value.replace(/(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 ');
+      } else {
+        value = value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 ');
+      }
+      break;
+      
+    case '+228': // Togo: 68 00 00 00
+      if (value.length <= 2) {
+        value = value;
+      } else if (value.length <= 4) {
+        value = value.replace(/(\d{2})/, '$1 ');
+      } else if (value.length <= 6) {
+        value = value.replace(/(\d{2})(\d{2})/, '$1 $2 ');
+      } else {
+        value = value.replace(/(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 ');
+      }
+      break;
+    case '+226': // Burkina Faso: 5 66 00 00 00
+      if (value.length <= 2) {
+              value = value;
+            } else if (value.length <= 4) {
+              value = value.replace(/(\d{2})/, '$1 ');
+            } else if (value.length <= 6) {
+              value = value.replace(/(\d{2})(\d{2})/, '$1 $2 ');
+            } else {
+              value = value.replace(/(\d{1})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 ');
+            }
+      break;
+      case '+221': // Sénégal: 77 000 00 00
+        if (value.length <= 2) {
+          value = value;
+        } else if (value.length <= 3) {
+          value = value.replace(/(\d{2})(\d{1})/, '$1 $2');
+        } else if (value.length <= 4) {
+          value = value.replace(/(\d{2})(\d{2})/, '$1 $2');
+        } else if (value.length <= 5) {
+          value = value.replace(/(\d{2})(\d{3})/, '$1 $2');
+        } else if (value.length <= 6) {
+          value = value.replace(/(\d{2})(\d{3})(\d{1})/, '$1 $2 $3');
+        } else if (value.length <= 7) {
+          value = value.replace(/(\d{2})(\d{3})(\d{2})/, '$1 $2 $3');
+        } else if (value.length <= 8) {
+          value = value.replace(/(\d{2})(\d{3})(\d{2})(\d{1})/, '$1 $2 $3 $4');
+        } else {
+          value = value.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+        }
+        break;
+      }
+  
+  mobilePayment.phone = value.trim();
+}
+
+function formatCardNumber(event) {
+  let value = event.target.value.replace(/\s/g, '').replace(/\D/g, '');
+  value = value.replace(/(\d{4})/g, '$1 ').trim();
+  payment.cardNumber = value.substring(0, 19);
+}
+
+function formatExpiryDate(event) {
+  let value = event.target.value.replace(/\D/g, '');
+  if (value.length >= 2) {
+    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+  }
+  payment.expiryDate = value.substring(0, 5);
 }
 
 function getShippingMethod(id) {
@@ -1058,39 +1439,18 @@ async function submitOrder() {
   }
 }
 
-// Also add this helper method to better handle the address validation
-function validateAddressData() {
-  const requiredFields = [
-    { field: 'type', value: shipping.type, name: 'Type d\'adresse' },
-    { field: 'street_line', value: shipping.street_line, name: 'Rue' },
-    { field: 'city', value: shipping.city, name: 'Ville' },
-    { field: 'country_code', value: shipping.country_code, name: 'Pays' },
-    { field: 'phone', value: shipping.phone, name: 'Téléphone' }
-  ];
-
-  const missingFields = requiredFields.filter(f => !f.value?.toString().trim());
-  
-  if (missingFields.length > 0) {
-    const fieldNames = missingFields.map(f => f.name).join(', ');
-    throw new Error(`Champs requis manquants: ${fieldNames}`);
-  }
-
-  // Validate phone number format
-  const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-  if (shipping.phone && !phoneRegex.test(shipping.phone)) {
-    throw new Error('Format de numéro de téléphone invalide');
-  }
-
-  return true;
-}
-
 function trackOrder() {
   router.push(`/orders/${orderNumber.value}`);
 }
 
 function continueShopping() {
-  router.push('/products');
+  router.push('/shop');
 }
+
+// Watch pour reset le numéro quand le pays change
+watch(() => mobilePayment.countryCode, (newCountry) => {
+  mobilePayment.phone = ''; // Reset le numéro quand le pays change
+});
 
 // Lifecycle
 onMounted(async () => {
@@ -1120,22 +1480,28 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Animation pour les transitions */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: all 0.4s ease;
 }
 
-.fade-enter-from, .fade-leave-to {
+.fade-slide-enter-from {
   opacity: 0;
+  transform: translateY(-10px);
 }
 
-/* Style personnalisé pour les inputs */
-input:focus, select:focus, textarea:focus {
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+input:focus {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
-/* Animation du bouton de loading */
+.border-3 {
+  border-width: 3px;
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
