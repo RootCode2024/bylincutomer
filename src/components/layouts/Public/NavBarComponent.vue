@@ -1,29 +1,37 @@
-<template> 
-  <div :class="{'min-h-screen': $route.path === '/'}" class="font-poppins">
-    <!-- Promotion Banner -->
-    <div 
-      v-if="showBanner" 
-      class="promotion-banner bg-black text-white text-center py-2 px-4 text-sm relative z-50"
-    >
-      <div class="flex items-center justify-center gap-4">
-        <span>🎁 Livraison OFFERTE dès {{ currencyStore.formatCurrency(deliverableAmount) }} | Code: FREESHIP</span>
-        <button 
-          @click="dismissBanner"
-          class="text-white hover:text-gray-300 transition-colors"
-        >
-          <X class="w-4 h-4" />
-        </button>
+<template>
+  <div :class="{ 'min-h-screen': $route.path === '/' }" class="font-poppins">
+    <transition name="fade">
+      <div
+        v-if="showBanner"
+        class="promotion-banner relative z-50 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-center py-2 px-4 shadow-md"
+      >
+        <div class="flex items-center justify-center gap-3">
+          <Gift class="w-5 h-5 animate-bounce" />
+          <span class="font-medium tracking-wide">
+            Livraison <span class="font-bold text-yellow-300">OFFERTE</span> dès
+            <span class="underline underline-offset-2">{{
+              currencyStore.formatCurrency(deliverableAmount)
+            }}</span>
+          </span>
+
+          <button
+            @click="dismissBanner"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition"
+          >
+            <X class="w-4 h-4" />
+          </button>
+        </div>
       </div>
-    </div>
+    </transition>
 
     <!-- Top Header -->
     <header :class="headerClass" :style="navBackgroundClass">
       <div class="top-header">
         <!-- Mobile menu button -->
         <div class="mobile-menu-btn lg:hidden">
-          <button 
+          <button
             @click="mobileMenuOpen = !mobileMenuOpen"
-            class="p-2 text-gray-700 hover:text-black transition-colors"
+            class="p-2 text-white hover:text-gray-200 transition-colors"
           >
             <Menu v-if="!mobileMenuOpen" class="w-6 h-6" />
             <X v-else class="w-6 h-6" />
@@ -32,50 +40,49 @@
 
         <!-- Main Navigation -->
         <nav class="main-nav" v-if="!route.path.startsWith('/collections')">
-          <RouterLink 
-            v-for="item in mainLinks" 
+          <RouterLink
+            v-for="item in mainLinks"
             :key="item.to"
             :to="item.to"
-            :class="['nav-link', { 
-              active: isActiveLink(item.to)
-            }]"
+            :class="[
+              'nav-link',
+              {
+                active: isActiveLink(item.to),
+              },
+            ]"
             @mouseenter="item.hasDropdown ? openSubmenu('shop') : null"
             @mouseleave="item.hasDropdown ? closeSubmenuWithDelay() : null"
           >
             {{ item.text }}
           </RouterLink>
-
         </nav>
-        
+
         <!-- Logo -->
         <div class="logo">
           <RouterLink to="/">
-            <img src="@/assets/images/logo-blue.png" class="lg:w-24 lg:h-24 w-16 h-16 object-cover" alt="Logo" />
+            <img
+              src="@/assets/images/logo-white.png"
+              class="lg:w-24 lg:h-24 w-16 h-16 object-contain"
+              alt="Logo"
+            />
           </RouterLink>
         </div>
-        
+
         <!-- Header Icons -->
         <div class="header-icons">
           <!-- Search -->
           <div class="relative">
-            <button 
+            <button
               @click="toggleSearch"
               class="icon"
-              :class="{ 'text-black': searchOpen }"
+              :class="{ 'text-white': searchOpen }"
             >
-              <Search stroke-width="1" class="w-5 h-5" />
+              <Search stroke-width="1" class="w-5 h-5 text-white" />
             </button>
 
             <!-- Search Overlay -->
-            <div 
-              v-if="searchOpen"
-              class="search-overlay"
-              @click="closeSearch"
-            >
-              <div 
-                class="search-container"
-                @click.stop
-              >
+            <div v-if="searchOpen" class="search-overlay" @click="closeSearch">
+              <div class="search-container" @click.stop>
                 <!-- Search Input -->
                 <div class="search-input-wrapper">
                   <Search class="w-5 h-5 text-gray-400" />
@@ -88,13 +95,17 @@
                     @input="handleSearchInput"
                     @keyup.enter="submitSearch"
                   />
-                  <button 
+                  <button
                     v-if="searchQuery"
-                    @click="searchQuery = ''"
-                    class="text-gray-400 hover:text-gray-600"
+                    @click="clearSearch"
+                    class="text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     <X class="w-4 h-4" />
                   </button>
+                  <Loader2 
+                    v-if="searchStore.isLoading" 
+                    class="w-4 h-4 animate-spin text-blue-600" 
+                  />
                 </div>
 
                 <!-- Search Content -->
@@ -116,49 +127,51 @@
                   </div>
 
                   <!-- Trending Searches -->
-                  <div class="search-section">
+                  <div v-if="searchStore.trendingSearches.length" class="search-section">
                     <h3 class="search-section-title">
                       <TrendingUp class="w-4 h-4" />
                       Tendances
                     </h3>
                     <div class="trending-searches">
                       <button
-                        v-for="trend in trendingSearches"
+                        v-for="trend in searchStore.trendingSearches"
                         :key="trend.id"
                         @click="applyTrendingSearch(trend.query)"
                         class="trending-search-item"
                       >
                         <span class="trending-query">{{ trend.query }}</span>
-                        <span class="trending-count">{{ trend.count }} recherches</span>
+                        <span class="trending-count"
+                          >{{ trend.count }} recherches</span
+                        >
                       </button>
                     </div>
                   </div>
 
                   <!-- Recent Searches -->
-                  <div v-if="recentSearches.length" class="search-section">
+                  <div v-if="searchStore.recentSearches.length" class="search-section">
                     <div class="search-section-header">
                       <h3 class="search-section-title">
                         <Clock class="w-4 h-4" />
                         Recherches récentes
                       </h3>
-                      <button 
+                      <button
                         @click="clearRecentSearches"
-                        class="text-xs text-gray-500 hover:text-gray-700"
+                        class="text-xs text-gray-500 hover:text-gray-700 transition-colors"
                       >
                         Tout effacer
                       </button>
                     </div>
                     <div class="recent-searches">
                       <button
-                        v-for="(search, index) in recentSearches"
+                        v-for="(search, index) in searchStore.recentSearches"
                         :key="index"
                         @click="applyRecentSearch(search)"
                         class="recent-search-item"
                       >
                         <span class="recent-query">{{ search }}</span>
-                        <button 
+                        <button
                           @click.stop="removeRecentSearch(index)"
-                          class="text-gray-400 hover:text-gray-600"
+                          class="text-gray-400 hover:text-gray-600 transition-colors"
                         >
                           <X class="w-3 h-3" />
                         </button>
@@ -167,14 +180,14 @@
                   </div>
 
                   <!-- Search Suggestions -->
-                  <div 
-                    v-if="searchQuery && searchSuggestions.length"
+                  <div
+                    v-if="searchQuery && searchStore.searchSuggestions.length"
                     class="search-section"
                   >
                     <h3 class="search-section-title">Suggestions</h3>
                     <div class="search-suggestions">
                       <button
-                        v-for="suggestion in searchSuggestions"
+                        v-for="suggestion in searchStore.searchSuggestions"
                         :key="suggestion"
                         @click="applySuggestion(suggestion)"
                         class="suggestion-item"
@@ -186,35 +199,71 @@
                   </div>
 
                   <!-- Search Results -->
-                  <div 
-                    v-if="searchQuery && searchResults.length"
+                  <div
+                    v-if="searchQuery && searchStore.searchResults.length"
                     class="search-section"
                   >
-                    <h3 class="search-section-title">Résultats</h3>
+                    <h3 class="search-section-title">
+                      Résultats ({{ searchStore.searchResults.length }})
+                    </h3>
                     <div class="search-results">
                       <RouterLink
-                        v-for="result in searchResults"
+                        v-for="result in searchStore.searchResults"
                         :key="result.id"
-                        :to="result.to"
+                        :to="`/product/${result.slug}`"
                         @click="closeSearch"
                         class="search-result-item"
                       >
-                        <span class="result-emoji">{{ result.emoji }}</span>
+                        <img 
+                          :src="result.images?.[0]?.url || '/images/placeholder.jpg'" 
+                          :alt="result.name"
+                          class="w-12 h-12 object-cover rounded-lg"
+                        />
                         <div class="result-info">
                           <span class="result-name">{{ result.name }}</span>
-                          <span class="result-category">{{ result.category }}</span>
+                          <span class="result-category">{{ result.category?.name }}</span>
                         </div>
-                        <span class="result-price">{{ currencyStore.formatCurrency(result.price) }}</span>
+                        <span class="result-price">{{
+                          currencyStore.formatCurrency(result.price)
+                        }}</span>
                       </RouterLink>
                     </div>
                   </div>
 
+                  <!-- Loading State -->
+                  <div v-if="searchStore.isLoading && searchQuery" class="search-section">
+                    <div class="flex items-center justify-center py-8">
+                      <Loader2 class="w-6 h-6 animate-spin text-blue-600 mr-2" />
+                      <span class="text-gray-600">Recherche en cours...</span>
+                    </div>
+                  </div>
+
                   <!-- No Results -->
-                  <div 
-                    v-if="searchQuery && !isSearching && !searchResults.length"
+                  <div
+                    v-if="searchQuery && !searchStore.isLoading && !searchStore.searchResults.length"
                     class="search-no-results"
                   >
-                    Aucun résultat trouvé pour "{{ searchQuery }}"
+                    <div class="text-center py-8">
+                      <Search class="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p class="text-gray-600">Aucun résultat trouvé pour</p>
+                      <p class="text-gray-900 font-medium">"{{ searchQuery }}"</p>
+                      <p class="text-sm text-gray-500 mt-2">Essayez d'autres mots-clés</p>
+                    </div>
+                  </div>
+
+                  <!-- Error State -->
+                  <div
+                    v-if="searchStore.error"
+                    class="search-section"
+                  >
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div class="flex items-center">
+                        <XCircle class="w-5 h-5 text-red-500 mr-2" />
+                        <p class="text-red-800 text-sm">
+                          {{ searchStore.error }}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -225,13 +274,13 @@
           <UserHeaderIconSection />
 
           <!-- Wishlist -->
-          <RouterLink 
-            to="/wishlist" 
+          <RouterLink
+            to="/wishlists"
             class="icon relative"
             :class="{ 'text-red-500': wishlistStore.items.length }"
           >
             <Heart stroke-width="1" class="w-5 h-5" />
-            <span 
+            <span
               v-if="wishlistStore.items.length"
               class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
             >
@@ -249,29 +298,28 @@
 
       <!-- Secondary Navigation -->
       <nav class="secondary-nav" v-if="!route.path.startsWith('/collections')">
-        <RouterLink 
-          v-for="item in navItems" 
+        <RouterLink
+          v-for="item in navItems"
           :key="item.id"
           :to="`/shop/category/${item.slug}`"
-          :class="['nav-item', { 
-            'sale': item.name === 'Sale',
-            'active': route.path.includes(item.name.toLowerCase().replace(' ', '-'))
-          }]"
+          :class="[
+            'nav-item',
+            {
+              sale: item.name === 'Sale',
+            },
+          ]"
         >
           {{ item.name }}
         </RouterLink>
       </nav>
 
       <!-- Mobile Menu -->
-      <div 
+      <div
         v-if="mobileMenuOpen"
         class="mobile-menu-overlay"
         @click="closeAllMenus"
       >
-        <div 
-          class="mobile-menu-content"
-          @click.stop
-        >
+        <div class="mobile-menu-content" @click.stop>
           <!-- Mobile Search -->
           <div class="mobile-search">
             <div class="search-input-wrapper">
@@ -283,9 +331,9 @@
                 class="search-input"
                 @keyup.enter="submitMobileSearch"
               />
-              <button 
+              <button
                 @click="submitMobileSearch"
-                class="text-gray-400 hover:text-gray-600"
+                class="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <ArrowRight class="w-4 h-4" />
               </button>
@@ -302,7 +350,6 @@
               @click="closeAllMenus"
             >
               {{ link.text }}
-              <!-- <span v-if="link.badge" class="mobile-badge">Nouveau</span> -->
             </RouterLink>
 
             <!-- Mobile Categories -->
@@ -348,7 +395,7 @@
     </header>
 
     <!-- Revolution Slider -->
-    <div 
+    <div
       v-if="route.path === '/'"
       class="slider-container"
       @mouseenter="stopAutoPlay"
@@ -366,7 +413,7 @@
         :class="['rev-slide', { active: currentSlide === index }]"
       >
         <!-- Background with Ken Burns Effect -->
-        <div 
+        <div
           class="slide-bg"
           :style="{ backgroundImage: `url(${slide.image})` }"
         ></div>
@@ -383,7 +430,7 @@
             :style="{
               left: particle.left + '%',
               animationDelay: particle.delay + 's',
-              animationDuration: particle.duration + 's'
+              animationDuration: particle.duration + 's',
             }"
           ></div>
         </div>
@@ -414,26 +461,43 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, onBeforeUnmount, watch, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { Search, User, ShoppingBag, Menu, X, Heart, ChevronDown, ArrowRight, TrendingUp, Clock } from 'lucide-vue-next'
-import CurrencySwitcher from '@/components/CurrencySwitcher.vue'
-import { useCurrencyStore } from '@/stores/currency'
-import CartHeaderIconSection from './CartHeaderIconSection.vue'
-import { throttle, debounce } from 'lodash'
-import { useAuthStore } from '@/stores/auth'
-import UserHeaderIconSection from './UserHeaderIconSection.vue'
-import { useCartStore } from '@/stores/cart'
-import { useWishlistStore } from '@/stores/wishlist'
-import api from '@/api/axiosConfig'
+import {
+  ref,
+  computed,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  nextTick,
+} from "vue";
+import { useRoute, useRouter } from "vue-router";
+import {
+  Search,
+  Gift,
+  Menu,
+  X,
+  Heart,
+  ArrowRight,
+  TrendingUp,
+  Clock,
+  Loader2,
+  XCircle
+} from "lucide-vue-next";
+import { throttle, debounce } from "lodash";
+import { useCurrencyStore } from "@/stores/currency";
+import { useWishlistStore } from "@/stores/wishlist";
+import { useCategoryStore } from "@/stores/category";
+import { useSearchStore } from "@/stores/search";
+import CurrencySwitcher from "@/components/CurrencySwitcher.vue";
+import CartHeaderIconSection from "./CartHeaderIconSection.vue";
+import UserHeaderIconSection from "./UserHeaderIconSection.vue";
 
 // Store instances
-const authStore = useAuthStore()
-const cartStore = useCartStore()
-const currencyStore = useCurrencyStore()
-const router = useRouter()
-const route = useRoute()
-const wishlistStore = useWishlistStore()
+const route = useRoute();
+const router = useRouter();
+const currencyStore = useCurrencyStore();
+const wishlistStore = useWishlistStore();
+const categoryStore = useCategoryStore();
+const searchStore = useSearchStore();
 
 // Slider State
 const currentSlide = ref(0);
@@ -442,162 +506,149 @@ const touchStartX = ref(0);
 const touchEndX = ref(0);
 
 // Navigation State
-const mobileMenuOpen = ref(false)
-const showBanner = ref(true)
-const isScrolled = ref(false)
-const searchOpen = ref(false)
-const searchQuery = ref('')
-const mobileSearchQuery = ref('')
-const activeSubmenu = ref(null)
-const isBannerDismissed = ref(localStorage.getItem('bannerDismissed') === 'true')
-const apiCategories = ref([])
-const loadingCategories = ref(false)
-const searchInput = ref(null)
-let submenuTimer = null
+const mobileMenuOpen = ref(false);
+const showBanner = ref(true);
+const isScrolled = ref(false);
+const searchOpen = ref(false);
+const searchQuery = ref("");
+const mobileSearchQuery = ref("");
+const activeSubmenu = ref(null);
+const isBannerDismissed = ref(
+  localStorage.getItem("bannerDismissed") === "true"
+);
+const apiCategories = ref([]);
+const loadingCategories = ref(false);
+const searchInput = ref(null);
+let submenuTimer = null;
 
 // Search data
-const trendingSearches = ref([
-  { id: 1, query: 'T-shirts Pro', count: 1243 },
-  { id: 2, query: 'Costumes Élégants', count: 987 },
-  { id: 3, query: 'Chemises Business', count: 856 },
-  { id: 4, query: 'Accessoires Cuir', count: 654 },
-  { id: 5, query: 'Ensembles Soft', count: 543 }
-])
-
-const recentSearches = ref(JSON.parse(localStorage.getItem('recentSearches')) || [])
-const searchResults = ref([])
-const isSearching = ref(false)
-
 const quickCategories = ref([
-  { name: 'Vêtements Pro', slug: 'vetements-pro', emoji: '👔' },
-  { name: 'Vêtements Soft', slug: 'vetements-soft', emoji: '👕' },
-  { name: 'Accessoires', slug: 'accessoires', emoji: '🧦' },
-  // { name: 'Nouveautés', slug: 'nouveautes', emoji: '🆕' }
-])
+  { name: "Vêtements Pro", slug: "vetements-pro", emoji: "👔" },
+  { name: "Vêtements Soft", slug: "vetements-soft", emoji: "👕" },
+  { name: "Accessoires", slug: "accessoires", emoji: "🧦" },
+]);
 
 // Navigation Data
 const mainLinks = [
-  { to: '/shop', text: 'Boutique', hasDropdown: true },
-  { to: '/collections', text: 'Collections', hasDropdown: false, badge: true },
-  { to: '/tutorials', text: 'Tutoriels', hasDropdown: false },
-]
+  { to: "/shop", text: "Boutique", hasDropdown: true },
+  { to: "/collections", text: "Collections", hasDropdown: false, badge: true },
+  { to: "/tutorials", text: "Tutoriels", hasDropdown: false },
+];
 
 const navItems = ref(null);
 
 const slides = [
   {
     id: 1,
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    image: 'https://images.unsplash.com/photo-1559842905-635a89deef34?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    title: 'Collection Hiver',
-    subtitle: 'Élégance & Chaleur',
-    description: "Découvrez notre nouvelle collection hiver : des pièces chaleureuses et stylées qui allient confort et sophistication. Parfait pour les journées froides sans compromettre votre style.",
-    primaryBtn: 'ACHETER MAINTENANT',
-    secondaryBtn: 'VOIR LA COLLECTION'
+    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    image:
+      "https://images.unsplash.com/photo-1559842905-635a89deef34?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    title: "Collection Hiver",
+    subtitle: "Élégance & Chaleur",
+    description:
+      "Découvrez notre nouvelle collection hiver : des pièces chaleureuses et stylées qui allient confort et sophistication. Parfait pour les journées froides sans compromettre votre style.",
+    primaryBtn: "ACHETER MAINTENANT",
+    secondaryBtn: "VOIR LA COLLECTION",
   },
   {
     id: 2,
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    image: 'https://images.unsplash.com/photo-1546213290-e1b492ab3eee?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    title: 'Nouveautés Printemps',
-    subtitle: 'Renaissance Stylée',
-    description: 'Soyez prêt pour le printemps avec nos dernières créations. Des coupes modernes et des matières légères qui s\'adaptent à toutes vos occasions, du bureau aux sorties entre amis.',
-    primaryBtn: 'DÉCOUVRIR',
-    secondaryBtn: 'EN SAVOIR PLUS'
+    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+    image:
+      "https://images.unsplash.com/photo-1546213290-e1b492ab3eee?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    title: "Nouveautés Printemps",
+    subtitle: "Renaissance Stylée",
+    description:
+      "Soyez prêt pour le printemps avec nos dernières créations. Des coupes modernes et des matières légères qui s'adaptent à toutes vos occasions, du bureau aux sorties entre amis.",
+    primaryBtn: "DÉCOUVRIR",
+    secondaryBtn: "EN SAVOIR PLUS",
   },
   {
     id: 3,
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    image: 'https://images.unsplash.com/photo-1727632028162-9fa28ddf5d7a?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    title: 'Mode Responsable',
-    subtitle: 'Pour un Avenir Meilleur',
-    description: 'Nous croyons en une mode qui respecte notre planète. Nos collections sont conçues avec des matériaux durables et une éthique de production transparente. Beau, bien et responsable.',
-    primaryBtn: 'EXPLORER',
-    secondaryBtn: 'NOTRE ENGAGEMENT'
+    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+    image:
+      "https://images.unsplash.com/photo-1727632028162-9fa28ddf5d7a?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    title: "Mode Responsable",
+    subtitle: "Pour un Avenir Meilleur",
+    description:
+      "Nous croyons en une mode qui respecte notre planète. Nos collections sont conçues avec des matériaux durables et une éthique de production transparente. Beau, bien et responsable.",
+    primaryBtn: "EXPLORER",
+    secondaryBtn: "NOTRE ENGAGEMENT",
   },
   {
     id: 4,
-    gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    title: 'Collection Événement',
-    subtitle: 'Soirées Mémorables',
-    description: 'Des tenues qui subliment chaque moment spécial. Que ce soit pour un mariage, une soirée ou un événement professionnel, trouvez la pièce parfaite qui vous mettra en valeur.',
-    primaryBtn: 'INSPIRATION',
-    secondaryBtn: 'LOOKBOOK'
+    gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+    image:
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    title: "Collection Événement",
+    subtitle: "Soirées Mémorables",
+    description:
+      "Des tenues qui subliment chaque moment spécial. Que ce soit pour un mariage, une soirée ou un événement professionnel, trouvez la pièce parfaite qui vous mettra en valeur.",
+    primaryBtn: "INSPIRATION",
+    secondaryBtn: "LOOKBOOK",
   },
   {
     id: 5,
-    gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-    image: 'https://images.unsplash.com/photo-1485231183945-fffde7cb34e0?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    title: 'Soldes Exclusives',
-    subtitle: 'Jusqu\'à -50%',
-    description: 'Profitez de nos offres exceptionnelles sur une sélection de pièces phares. Des réductions incroyables sur les vêtements et accessoires de nos collections précédentes.',
-    primaryBtn: 'PROFITER',
-    secondaryBtn: 'TOUTES LES OFFRES'
+    gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+    image:
+      "https://images.unsplash.com/photo-1485231183945-fffde7cb34e0?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    title: "Soldes Exclusives",
+    subtitle: "Jusqu'à -50%",
+    description:
+      "Profitez de nos offres exceptionnelles sur une sélection de pièces phares. Des réductions incroyables sur les vêtements et accessoires de nos collections précédentes.",
+    primaryBtn: "PROFITER",
+    secondaryBtn: "TOUTES LES OFFRES",
   },
   {
     id: 6,
-    gradient: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    title: 'Style Urbain',
-    subtitle: 'Streetwear Élégant',
-    description: 'Inspirée par l\'énergie des villes, cette collection mélange le confort du streetwear avec l\'élégance du prêt-à-porter. Parfait pour le quotidien avec une touche d\'audace.',
-    primaryBtn: 'SHOPPER',
-    secondaryBtn: 'INSPIRATION URBAINE'
-  }
+    gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
+    image:
+      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    title: "Style Urbain",
+    subtitle: "Streetwear Élégant",
+    description:
+      "Inspirée par l'énergie des villes, cette collection mélange le confort du streetwear avec l'élégance du prêt-à-porter. Parfait pour le quotidien avec une touche d'audace.",
+    primaryBtn: "SHOPPER",
+    secondaryBtn: "INSPIRATION URBAINE",
+  },
 ];
 
 const particles = Array.from({ length: 30 }, (_, i) => ({
   id: i,
   left: Math.random() * 100,
   delay: Math.random() * 15,
-  duration: Math.random() * 10 + 10
+  duration: Math.random() * 10 + 10,
 }));
 
-const mobileLinks = [
-  ...mainLinks,
-]
+const mobileLinks = [...mainLinks];
 
-const deliverableAmount = 60000
+const deliverableAmount = 60000;
 
 // Computed
-const isHome = computed(() => route.path === '/')
+const isHome = computed(() => route.path === "/");
 
 const navBackgroundClass = computed(() => {
-  return isScrolled.value || !isHome.value 
-    ? 'bg-white shadow-lg backdrop-blur-md bg-opacity-95' 
-    : 'bg-white bg-opacity-90 backdrop-blur-sm'
-})
+  return isScrolled.value || !isHome.value
+    ? "bg-white shadow-lg backdrop-blur-md bg-opacity-95"
+    : "bg-white bg-opacity-90 backdrop-blur-sm";
+});
 
 const headerClass = computed(() => {
   return [
-    'w-full z-50 transition-all duration-300',
-    isScrolled.value ? 'shadow-lg' : ''
-  ]
-})
-
-const searchSuggestions = computed(() => {
-  if (!searchQuery.value) return []
-  const query = searchQuery.value.toLowerCase()
-  return [
-    `${query} homme`,
-    `${query} femme`,
-    `${query} 2024`,
-    `${query} premium`,
-    `${query} pas cher`
-  ]
-})
+    "w-full z-50 transition-all duration-300",
+    isScrolled.value ? "shadow-lg" : "",
+  ];
+});
 
 // Slider Methods
 const startAutoPlay = () => {
   stopAutoPlay();
   progress.value = 0;
-  
+
   progressInterval = setInterval(() => {
     if (progress.value >= 100) {
       progress.value = 0;
     } else {
-      progress.value += (100 / (slideDelay / 100));
+      progress.value += 100 / (slideDelay / 100);
     }
   }, 100);
 
@@ -637,7 +688,7 @@ const handleTouchStart = (e) => {
 const handleTouchEnd = (e) => {
   touchEndX.value = e.changedTouches[0].clientX;
   const diff = touchStartX.value - touchEndX.value;
-  
+
   if (Math.abs(diff) > 50) {
     if (diff > 0) {
       nextSlide();
@@ -648,211 +699,207 @@ const handleTouchEnd = (e) => {
 };
 
 const handleKeyDown = (e) => {
-  if (e.key === 'ArrowLeft') prevSlide();
-  if (e.key === 'ArrowRight') nextSlide();
+  if (e.key === "ArrowLeft") prevSlide();
+  if (e.key === "ArrowRight") nextSlide();
 };
 
 // Navigation Methods
 const isActiveLink = (path) => {
-  return route.path === path || route.path.startsWith(path + '/')
-}
+  return route.path === path || route.path.startsWith(path + "/");
+};
 
 const dismissBanner = () => {
-  showBanner.value = false
-  isBannerDismissed.value = true
-  localStorage.setItem('bannerDismissed', 'true')
-}
+  showBanner.value = false;
+  isBannerDismissed.value = true;
+  localStorage.setItem("bannerDismissed", "true");
+};
 
 const toggleSearch = () => {
-  searchOpen.value = !searchOpen.value
+  searchOpen.value = !searchOpen.value;
   if (searchOpen.value) {
     nextTick(() => {
-      searchInput.value?.focus()
-    })
+      searchInput.value?.focus();
+    });
   } else {
-    searchQuery.value = ''
-    searchResults.value = []
+    clearSearch();
   }
-}
+};
+
+const clearSearch = () => {
+  searchQuery.value = "";
+  searchStore.searchResults = [];
+  searchStore.searchSuggestions = [];
+  searchStore.error = null;
+};
 
 const closeSearch = () => {
-  searchOpen.value = false
-  searchQuery.value = ''
-  searchResults.value = []
-}
+  searchOpen.value = false;
+  clearSearch();
+};
 
 const closeAllMenus = () => {
-  mobileMenuOpen.value = false
-  closeSearch()
-  activeSubmenu.value = null
-  clearTimeout(submenuTimer)
-}
+  mobileMenuOpen.value = false;
+  closeSearch();
+  activeSubmenu.value = null;
+  clearTimeout(submenuTimer);
+};
 
 const openSubmenu = (menuName) => {
-  clearTimeout(submenuTimer)
-  activeSubmenu.value = menuName
-}
+  clearTimeout(submenuTimer);
+  activeSubmenu.value = menuName;
+};
 
 const closeSubmenuWithDelay = () => {
   submenuTimer = setTimeout(() => {
-    activeSubmenu.value = null
-  }, 300)
-}
+    activeSubmenu.value = null;
+  }, 300);
+};
 
 const keepSubmenuOpen = () => {
-  clearTimeout(submenuTimer)
-}
+  clearTimeout(submenuTimer);
+};
 
-const submitSearch = () => {
-  if (searchQuery.value.trim()) {
-    addToRecentSearches(searchQuery.value)
-    router.push({ path: '/search', query: { q: searchQuery.value } })
-    closeSearch()
-  }
-}
-
-const submitMobileSearch = () => {
-  if (mobileSearchQuery.value.trim()) {
-    addToRecentSearches(mobileSearchQuery.value)
-    router.push({ path: '/search', query: { q: mobileSearchQuery.value } })
-    mobileSearchQuery.value = ''
-    closeAllMenus()
-  }
-}
-
-const applySuggestion = (suggestion) => {
-  searchQuery.value = suggestion
-  submitSearch()
-}
-
-const applyTrendingSearch = (query) => {
-  searchQuery.value = query
-  submitSearch()
-}
-
-const applyRecentSearch = (query) => {
-  searchQuery.value = query
-  submitSearch()
-}
-
-const addToRecentSearches = (query) => {
-  const trimmedQuery = query.trim()
-  if (!trimmedQuery) return
-
-  recentSearches.value = recentSearches.value.filter(item => item !== trimmedQuery)
-  recentSearches.value.unshift(trimmedQuery)
-  recentSearches.value = recentSearches.value.slice(0, 5)
-  localStorage.setItem('recentSearches', JSON.stringify(recentSearches.value))
-}
-
-const removeRecentSearch = (index) => {
-  recentSearches.value.splice(index, 1)
-  localStorage.setItem('recentSearches', JSON.stringify(recentSearches.value))
-}
-
-const clearRecentSearches = () => {
-  recentSearches.value = []
-  localStorage.setItem('recentSearches', JSON.stringify([]))
-}
-
-// Simulated search function
+// Search Methods
 const performSearch = debounce(async (query) => {
   if (!query.trim()) {
-    searchResults.value = []
-    isSearching.value = false
-    return
+    searchStore.searchResults = [];
+    searchStore.searchSuggestions = [];
+    return;
   }
 
-  isSearching.value = true
-  
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  searchResults.value = [
-    {
-      id: 1,
-      name: `T-shirt ${query}`,
-      category: 'Vêtements Soft',
-      price: 24900,
-      emoji: '👕',
-      to: `/product/t-shirt-${query.toLowerCase()}`
-    },
-    {
-      id: 2,
-      name: `Chemise ${query}`,
-      category: 'Vêtements Pro',
-      price: 35900,
-      emoji: '👔',
-      to: `/product/chemise-${query.toLowerCase()}`
-    },
-    {
-      id: 3,
-      name: `Costume ${query}`,
-      category: 'Vêtements Pro',
-      price: 89900,
-      emoji: '🥼',
-      to: `/product/costume-${query.toLowerCase()}`
-    }
-  ]
-  
-  isSearching.value = false
-}, 300)
+  try {
+    await searchStore.searchProducts(query);
+  } catch (error) {
+    console.error('Erreur recherche:', error);
+  }
+}, 300);
 
 const handleSearchInput = () => {
-  performSearch(searchQuery.value)
-}
+  const query = searchQuery.value.trim();
+  
+  if (query) {
+    searchStore.getSearchSuggestions(query);
+    performSearch(query);
+  } else {
+    searchStore.searchResults = [];
+    searchStore.searchSuggestions = [];
+  }
+};
 
+const submitSearch = async () => {
+  const query = searchQuery.value.trim();
+  if (!query) return;
+
+  try {
+    searchStore.addToRecentSearches(query);
+    router.push({ 
+      path: "/search", 
+      query: { q: query }
+    });
+    closeSearch();
+  } catch (error) {
+    console.error('Erreur soumission recherche:', error);
+  }
+};
+
+const submitMobileSearch = async () => {
+  const query = mobileSearchQuery.value.trim();
+  if (!query) return;
+
+  try {
+    searchStore.addToRecentSearches(query);
+    router.push({ path: "/search", query: { q: query } });
+    mobileSearchQuery.value = "";
+    closeAllMenus();
+  } catch (error) {
+    console.error('Erreur recherche mobile:', error);
+  }
+};
+
+const applySuggestion = (suggestion) => {
+  searchQuery.value = suggestion;
+  submitSearch();
+};
+
+const applyTrendingSearch = (query) => {
+  searchQuery.value = query;
+  submitSearch();
+};
+
+const applyRecentSearch = (query) => {
+  searchQuery.value = query;
+  submitSearch();
+};
+
+const removeRecentSearch = (index) => {
+  searchStore.removeRecentSearch(index);
+};
+
+const clearRecentSearches = () => {
+  searchStore.clearRecentSearches();
+};
+
+// Categories Methods
 const loadCategories = async () => {
   try {
-    loadingCategories.value = true
-    const response = await api.get('/categories-sidebar')
-    console.log(response)
-    if (response.success) {
-      apiCategories.value = response.data
-      navItems.value = response.sub_categories
+    loadingCategories.value = true;
+    const response = await categoryStore.index();
+
+    if (response) {
+      apiCategories.value = categoryStore.categories;
+      navItems.value = categoryStore.subCategories;
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des catégories:', error)
+    console.error("Erreur lors du chargement des catégories:", error);
     apiCategories.value = [
       {
         id: 1,
-        name: 'Vêtements Soft',
-        slug: 'vetements-soft',
+        name: "Vêtements Soft",
+        slug: "vetements-soft",
         children: [
-          { id: 11, name: 'T-shirts Soft', slug: 't-shirts-soft' },
-          { id: 12, name: 'Pulls Soft', slug: 'pulls-soft' },
-          { id: 13, name: 'Ensembles Soft', slug: 'ensembles-soft' },
-        ]
+          { id: 11, name: "T-shirts Soft", slug: "t-shirts-soft" },
+          { id: 12, name: "Pulls Soft", slug: "pulls-soft" },
+          { id: 13, name: "Ensembles Soft", slug: "ensembles-soft" },
+        ],
       },
       {
         id: 2,
-        name: 'Vêtements Pro',
-        slug: 'vetements-pro',
+        name: "Vêtements Pro",
+        slug: "vetements-pro",
         children: [
-          { id: 21, name: 'Chemises Pro', slug: 'chemises-pro' },
-          { id: 22, name: 'Costumes Pro', slug: 'costumes-pro' },
-          { id: 23, name: 'Ensembles Pro', slug: 'ensembles-pro' },
-        ]
+          { id: 21, name: "Chemises Pro", slug: "chemises-pro" },
+          { id: 22, name: "Costumes Pro", slug: "costumes-pro" },
+          { id: 23, name: "Ensembles Pro", slug: "ensembles-pro" },
+        ],
       },
       {
         id: 3,
-        name: 'Accessoires',
-        slug: 'accessoires',
+        name: "Accessoires",
+        slug: "accessoires",
         children: [
-          { id: 31, name: 'Ceintures', slug: 'ceintures' },
-          { id: 32, name: 'Chaussettes', slug: 'chaussettes' },
-          { id: 33, name: 'Montres', slug: 'montres' },
-        ]
-      }
-    ]
+          { id: 31, name: "Ceintures", slug: "ceintures" },
+          { id: 32, name: "Chaussettes", slug: "chaussettes" },
+          { id: 33, name: "Montres", slug: "montres" },
+        ],
+      },
+    ];
   } finally {
-    loadingCategories.value = false
+    loadingCategories.value = false;
   }
-}
+};
+
+const loadTrendingSearches = async () => {
+  try {
+    await searchStore.fetchTrendingSearches();
+  } catch (error) {
+    console.error('Erreur chargement tendances:', error);
+  }
+};
 
 const handleScroll = throttle(() => {
-  isScrolled.value = window.scrollY > 10
-  showBanner.value = window.scrollY < 40 && !isBannerDismissed.value
-}, 100)
+  isScrolled.value = window.scrollY > 10;
+  showBanner.value = window.scrollY < 40 && !isBannerDismissed.value;
+}, 100);
 
 // Constants
 const slideDelay = 6000;
@@ -862,31 +909,35 @@ let autoPlayInterval = null;
 let progressInterval = null;
 
 // Watch route changes to close menus
-watch(() => route.path, () => {
-  closeAllMenus()
-})
+watch(
+  () => route.path,
+  () => {
+    closeAllMenus();
+  }
+);
 
 // Lifecycle
 onMounted(() => {
   try {
-    currencyStore.fetchRates()
-    showBanner.value = !isBannerDismissed.value
-    handleScroll()
-    window.addEventListener('scroll', handleScroll)
-    document.addEventListener('keydown', handleKeyDown);
-    loadCategories()
+    currencyStore.fetchRates();
+    showBanner.value = !isBannerDismissed.value;
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    document.addEventListener("keydown", handleKeyDown);
+    loadCategories();
+    loadTrendingSearches();
     startAutoPlay();
   } catch (error) {
-    console.error("Header initialization error:", error)
+    console.error("Header initialization error:", error);
   }
-})
+});
 
 onBeforeUnmount(() => {
-  window.removeEventListener('scroll', handleScroll)
-  document.removeEventListener('keydown', handleKeyDown);
-  clearTimeout(submenuTimer)
-  stopAutoPlay()
-})
+  window.removeEventListener("scroll", handleScroll);
+  document.removeEventListener("keydown", handleKeyDown);
+  clearTimeout(submenuTimer);
+  stopAutoPlay();
+});
 </script>
 
 <style scoped>
@@ -903,7 +954,7 @@ onBeforeUnmount(() => {
 
 /* Header */
 .top-header {
-  background-color: #f8f8f8;
+  background-color: #0066bf;
   padding: 10px 40px;
   display: flex;
   justify-content: space-between;
@@ -920,7 +971,7 @@ onBeforeUnmount(() => {
 }
 
 .nav-link {
-  color: #333;
+  color: #fff;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -934,7 +985,6 @@ onBeforeUnmount(() => {
 }
 
 .nav-link.has-badge::after {
-  /* content: 'Nouveau'; */
   position: absolute;
   top: -8px;
   right: -25px;
@@ -958,7 +1008,7 @@ onBeforeUnmount(() => {
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 3px;
-  color: #000;
+  color: #fff;
 }
 
 .header-icons {
@@ -974,52 +1024,7 @@ onBeforeUnmount(() => {
 }
 
 .icon:hover {
-  color: #000;
-}
-
-/* Dropdown Menus */
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  min-width: 300px;
-  z-index: 1000;
-}
-
-.categories-dropdown .dropdown-content {
-  padding: 20px;
-}
-
-.category-group {
-  margin-bottom: 15px;
-}
-
-.category-title {
-  display: block;
-  font-weight: 600;
-  color: #000;
-  margin-bottom: 8px;
-  text-decoration: none;
-}
-
-.category-children {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.category-child {
-  color: #666;
-  text-decoration: none;
-  font-size: 14px;
-  transition: color 0.3s;
-}
-
-.category-child:hover {
-  color: #000;
+  color: #bebebe;
 }
 
 /* Search Overlay */
@@ -1029,7 +1034,7 @@ onBeforeUnmount(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 2000;
   display: flex;
   justify-content: center;
@@ -1044,6 +1049,7 @@ onBeforeUnmount(() => {
   height: fit-content;
   max-height: 80vh;
   overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 .search-input-wrapper {
@@ -1052,6 +1058,7 @@ onBeforeUnmount(() => {
   gap: 12px;
   padding: 20px;
   border-bottom: 1px solid #e5e5e5;
+  position: relative;
 }
 
 .search-input {
@@ -1059,6 +1066,7 @@ onBeforeUnmount(() => {
   border: none;
   outline: none;
   font-size: 16px;
+  background: transparent;
 }
 
 .search-content {
@@ -1076,7 +1084,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
   font-weight: 600;
   color: #666;
-  margin-bottom: 12px;
+  margin-bottom: 12px
 }
 
 .quick-categories {
@@ -1206,7 +1214,7 @@ onBeforeUnmount(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 2000;
 }
 
@@ -1341,7 +1349,7 @@ div .slider-container {
   overflow: hidden;
   background: #000;
   background-color: #0066bf;
-  opacity: 0.50;
+  opacity: 0.5;
 }
 
 .rev-slide {
@@ -1376,7 +1384,11 @@ div .slider-container {
   position: absolute;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
 }
 
 /* Particles */
@@ -1392,13 +1404,14 @@ div .slider-container {
   position: absolute;
   width: 4px;
   height: 4px;
-  background: rgba(255,255,255,0.5);
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 50%;
   animation: float 15s infinite;
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) translateX(0);
     opacity: 0;
   }
@@ -1484,7 +1497,7 @@ div .slider-container {
 }
 
 .btn-primary::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -1534,14 +1547,14 @@ div .slider-container {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.4);
+  background: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   transition: all 0.4s;
   border: none;
 }
 
 .nav-bullet:hover {
-  background: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.7);
   transform: scale(1.2);
 }
 
@@ -1637,7 +1650,8 @@ div .slider-container {
     gap: 15px;
   }
 
-  .btn-primary, .btn-secondary {
+  .btn-primary,
+  .btn-secondary {
     padding: 15px 35px;
     width: 100%;
   }

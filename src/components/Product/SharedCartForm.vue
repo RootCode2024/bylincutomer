@@ -43,7 +43,7 @@
         placeholder="Pour contacter le destinataire"
       >
       <p class="text-xs text-gray-500 mt-1">
-        Ex: +229 01 00 00 00
+        Ex: 229 52 01 04 42
       </p>
     </div>
 

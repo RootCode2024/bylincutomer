@@ -11,23 +11,14 @@
       <!-- Badges -->
       <div class="absolute top-2 left-2 flex flex-col gap-2">
         <!-- Badge Promo -->
-        <transition name="fade">
+        <transition name="fade-scale">
           <div
             v-if="product.is_trending"
-            class="backdrop-blur-sm bg-rose-500/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-md flex items-center gap-1 animate-fade-in"
+            class="backdrop-blur-sm bg-gradient-to-r from-rose-500 to-pink-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 animate-pulse-subtle group hover:scale-105 transition-transform duration-200"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-3.5 h-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M12 8c-.825 0-1.5.675-1.5 1.5S11.175 11 12 11s1.5-.675 1.5-1.5S12.825 8 12 8zm0 0V6m0 8v2m-6-2v2m12-2v2m-9-4H7m10 0h-2" />
-            </svg>
-            Promo
+            <!-- Icône Flame pour "Tendance" -->
+            <Flame class="w-3.5 h-3.5 group-hover:scale-110 transition-transform duration-200" />
+            Tendance
           </div>
         </transition>
 
@@ -58,16 +49,16 @@
     <div class="p-4">
       <!-- Titre et prix -->
       <router-link :to="`/product/${product.slug}`" class="block mb-2">
-        <h2 class="text-gray-800 font-medium text-xl truncate">{{ product.name }}</h2>
-        <h3 class="text-gray-500 font-thin truncate my-3">{{ product?.category.name }}</h3>
-        <p class="text-indigo-800 font-bold text-xl">{{ formattedPrice }}</p>
+        <h2 class="text-gray-800 font-medium text-sm truncate">{{ product.name }}</h2>
+        <p class="font-thin text-sm my-3 text-white"><span class="bg-indigo-800 border px-1 rounded">{{ product?.category.name }}</span></p>
+        <p class="text-indigo-700 font-bold text-xl">{{ formattedPrice }}</p>
       </router-link>
 
       <!-- Actions -->
       <div class="flex justify-between items-center mt-2">
         <!-- Bouton ajout panier -->
         <button
-          @click="openVariantModal"
+          @click="openVariantModal(product)"
           :disabled="isAddingToCart"
           class="p-2 rounded-full bg-gray-100 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Ajouter au panier"
@@ -97,6 +88,7 @@ import { useCartStore } from '@/stores/cart'
 import { PlusIcon } from 'lucide-vue-next'
 import FavoriteButton from '@/components/ui/FavoriteButton.vue'
 import ProductVariantModal from '@/components/Product/ProductVariantModal.vue'
+import { Flame } from 'lucide-vue-next'
 import { max } from 'lodash'
 
 const props = defineProps({
@@ -109,7 +101,6 @@ const props = defineProps({
 const currencyStore = useCurrencyStore()
 const cartStore = useCartStore()
 const isAddingToCart = ref(false)
-
 const showVariantModal = ref(false)
 
 const openVariantModal = () => {

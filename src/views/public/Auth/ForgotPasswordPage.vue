@@ -1,221 +1,164 @@
 <template>
-  <div class="min-h-screen flex flex-col md:flex-row bg-gray-50">
-    <!-- Section illustration -->
-    <div class="hidden md:flex flex-1 bg-gradient-to-br from-indigo-600 to-purple-600 relative overflow-hidden">
-      <div class="absolute inset-0 flex items-center justify-center p-12">
+  <transition 
+    name="scale-fade"
+    appear
+  >
+    <div class="w-full h-[100vh] flex bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <!-- Left Side - Fashion Image -->
+      <div class="hidden md:flex md:w-1/2 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-indigo-700/20 z-10"></div>
         <img 
-          src="@/assets/images/otp.svg" 
-          alt="OTP illustration" 
-          class="w-full max-w-md object-contain filter drop-shadow-xl"
+          src="https://images.unsplash.com/photo-1716004357049-8671b6cec216?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDV8fHxlbnwwfHx8fHw%3D&auto=format&fit=crop&q=60&w=600" 
+          alt="Fashion" 
+          class="w-full h-full object-cover object-top transform hover:scale-105 transition-transform duration-500"
+        />
+      </div>
+
+      <!-- Right Side - Auth Form -->
+      <div class="w-full md:w-1/2 flex flex-col relative">
+        <!-- Back Button -->
+        <button 
+          @click="handleBack" 
+          class="absolute top-8 left-8 text-indigo-700 hover:text-indigo-800 transition-colors duration-200 p-2 hover:bg-indigo-50 rounded-lg z-10"
         >
-      </div>
-    </div>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </button>
 
-    <!-- Section formulaire -->
-    <div class="flex-1 flex items-center justify-center p-6 sm:p-12">
-      <div class="w-full max-w-md space-y-8">
-        <div class="text-center">
-          <router-link to="/" class="inline-block mb-6">
-            <img src="@/assets/images/logo-blue.png" alt="Logo" class="h-10 mx-auto">
-          </router-link>
-          <h1 class="text-3xl font-bold text-gray-900">
-            {{ step === 1 ? 'Réinitialisation de mot de passe' : 'Vérification OTP' }}
-          </h1>
-          <p class="mt-2 text-gray-600">
-            {{ step === 1 
-              ? 'Entrez votre email pour recevoir un code de vérification' 
-              : `Entrez le code envoyé à ${maskedEmail}` }}
-          </p>
-        </div>
+        <!-- Content Container -->
+        <div class="flex-1 flex items-center justify-center p-8 md:p-12">
+          <div class="max-w-md w-full">
+            <div class="text-center mb-8">
+              <transition name="bounce" appear>
+                <div class="inline-flex items-center justify-center mb-4">
+                  <img src="/images/logo-white.png" alt="bylin logo" class="w-48 h-48 object-contain"/>
+                </div>
+              </transition>
+              <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                Mot de passe oublié?
+              </h1>
+              <p class="text-gray-600">Entrez votre email pour réinitialiser votre mot de passe.</p>
+            </div>
 
-        <!-- Étape 1 : Demande d'email -->
-        <form v-if="step === 1" @submit.prevent="sendOtp" class="mt-8 space-y-6">
-          <div class="space-y-4">
-            <div class="relative">
-              <input
-                type="email"
-                v-model="email"
-                required
-                class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-                placeholder="Adresse email"
-                :class="{ 'border-red-500': errors.email }"
-              >
-              <div v-if="errors.email" class="mt-1 text-xs text-red-500">
-                {{ errors.email }}
+            <form @submit.prevent="handleSubmit" class="space-y-4">
+              <div class="relative">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <input
+                  v-model="email"
+                  type="email"
+                  placeholder="Adresse mail"
+                  autofocus
+                  class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-700 focus:border-indigo-700 outline-none transition-all duration-200"
+                  :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': emailError }"
+                />
               </div>
-            </div>
-          </div>
+              <transition name="slide-down">
+                <p v-if="emailError" class="text-red-500 text-sm flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                  {{ emailError }}
+                </p>
+              </transition>
 
-          <button 
-            type="submit" 
-            :disabled="loading || !email"
-            class="w-full flex justify-center py-3.5 px-4 rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 disabled:opacity-70"
-          >
-            <span v-if="!loading">Envoyer le code</span>
-            <svg v-else class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">...</svg>
-          </button>
-        </form>
+              <transition name="slide-down">
+                <p v-if="error" class="text-red-500 text-sm flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                  {{ error }}
+                </p>
+              </transition>
 
-        <!-- Étape 2 : Validation OTP -->
-        <form v-else @submit.prevent="verifyOtp" class="mt-8 space-y-6">
-          <div class="space-y-4">
-            <!-- Champ OTP -->
-            <div class="flex justify-center space-x-3">
-              <input
-                v-for="(digit, index) in otpDigits"
-                :key="index"
-                v-model="otpDigits[index]"
-                type="text"
-                maxlength="1"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                class="w-12 h-12 text-2xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                @input="handleOtpInput(index, $event)"
-                @keydown.delete="handleOtpDelete(index, $event)"
-                ref="otpInputs"
-              >
-            </div>
+              <transition name="slide-down">
+                <p v-if="message" class="text-green-600 text-sm flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  {{ message }}
+                </p>
+              </transition>
 
-            <!-- Compteur de réenvoi -->
-            <div class="text-center text-sm text-gray-500 mt-4">
-              <span v-if="resendCooldown > 0">
-                Vous pouvez demander un nouveau code dans {{ resendCooldown }}s
-              </span>
               <button
-                v-else
-                type="button"
-                @click="resendOtp"
-                class="text-indigo-600 hover:text-indigo-500 font-medium"
+                type="submit"
+                :disabled="!email || isLoading"
+                class="w-full disabled:cursor-not-allowed disabled:opacity-50 bg-gradient-to-r from-indigo-700 to-indigo-800 hover:from-indigo-800 hover:to-indigo-900 text-white font-medium py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
               >
-                Renvoyer le code
+                <span v-if="isLoading">
+                  <svg class="animate-spin h-5 w-5 mr-3 inline-block text-white" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Envoi en cours...
+                </span>
+                <span v-else>Envoyer le lien de réinitialisation</span>
               </button>
+            </form>
+
+            <div class="text-center mt-6">
+              <p class="text-gray-600 text-sm">
+                <router-link to="/login" class="text-indigo-700 hover:text-indigo-800 hover:underline font-medium transition-colors">
+                  Retour à la connexion
+                </router-link>
+              </p>
             </div>
           </div>
-
-          <button 
-            type="submit" 
-            :disabled="loading || otpDigits.some(d => !d)"
-            class="w-full flex justify-center py-3.5 px-4 rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 disabled:opacity-70"
-          >
-            <span v-if="!loading">Vérifier le code</span>
-            <svg v-else class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">...</svg>
-          </button>
-        </form>
-
-        <div class="text-center text-sm">
-          <router-link 
-            to="/login" 
-            class="font-medium text-indigo-600 hover:text-indigo-500 hover:underline"
-          >
-            ← Retour à la connexion
-          </router-link>
         </div>
       </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
-const step = ref(1)
+const authStore = useAuthStore()
+
 const email = ref('')
-const otpDigits = ref(['', '', '', '', '', ''])
-const otpInputs = ref([])
-const loading = ref(false)
-const errors = ref({})
-const resendCooldown = ref(0)
-let cooldownInterval = null
+const error = ref('')
+const message = ref('')
+const emailError = ref('')
+const isLoading = ref(false)
 
-const maskedEmail = computed(() => {
-  if (!email.value) return ''
-  const [name, domain] = email.value.split('@')
-  return `${name[0]}${'*'.repeat(name.length - 2)}${name.slice(-1)}@${domain}`
-})
+const handleSubmit = async () => {
+  error.value = ''
+  emailError.value = ''
+  message.value = ''
 
-// Gestion de la saisie de l'OTP
-const handleOtpInput = (index, event) => {
-  const value = event.target.value
-  if (/^[0-9]$/.test(value)) {
-    otpDigits.value[index] = value
-    if (index < 5) {
-      otpInputs.value[index + 1].focus()
-    }
-  } else {
-    otpDigits.value[index] = ''
-  }
-}
-
-const handleOtpDelete = (index, event) => {
-  if (event.key === 'Backspace' && !otpDigits.value[index] && index > 0) {
-    otpInputs.value[index - 1].focus()
-  }
-}
-
-// Envoi de l'OTP
-const sendOtp = async () => {
-  errors.value = {}
-  if (!email.value) {
-    errors.value.email = "L'email est requis"
+  if (!email.value || !email.value.includes('@')) {
+    emailError.value = 'Veuillez entrer une adresse mail valide.'
     return
   }
 
-  loading.value = true
   try {
-    // Simulation d'appel API
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    step.value = 2
-    startCooldown()
-    // En prod: focus sur le premier champ OTP
-    setTimeout(() => otpInputs.value[0]?.focus(), 100)
-  } catch (error) {
-    errors.value.email = error.message || "Erreur lors de l'envoi du code"
+    isLoading.value = true
+    const response = await authStore.forgotPassword(email.value)
+
+    console.log('Password reset link sent:', response)
+
+    message.value = response.data?.message || 'Un lien de réinitialisation a été envoyé à votre adresse email.'
+    
+    // Redirection après succès
+    setTimeout(() => {
+      router.push('/login')
+    }, 2000)
+    
+  } catch (e) {
+    error.value = e.response?.data?.message || 'Erreur lors de l\'envoi du lien. Veuillez réessayer.'
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 }
 
-// Vérification de l'OTP
-const verifyOtp = async () => {
-  const otpCode = otpDigits.value.join('')
-  if (otpCode.length !== 6) return
-
-  loading.value = true
-  try {
-    // Simulation de vérification
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    router.push({ 
-      name: 'reset-password',
-      query: { email: email.value, token: otpCode }
-    })
-  } catch (error) {
-    errors.value.otp = "Code invalide. Veuillez réessayer."
-    otpDigits.value = ['', '', '', '', '', '']
-    otpInputs.value[0].focus()
-  } finally {
-    loading.value = false
-  }
+const handleBack = () => {
+  router.back()
 }
-
-// Gestion du réenvoi
-const startCooldown = () => {
-  resendCooldown.value = 30
-  cooldownInterval = setInterval(() => {
-    resendCooldown.value -= 1
-    if (resendCooldown.value <= 0) {
-      clearInterval(cooldownInterval)
-    }
-  }, 1000)
-}
-
-const resendOtp = async () => {
-  await sendOtp()
-  startCooldown()
-}
-
-onUnmounted(() => {
-  if (cooldownInterval) clearInterval(cooldownInterval)
-})
 </script>

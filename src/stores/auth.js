@@ -1,611 +1,315 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-import { useApiStore } from '@/stores/api'
-import { useCartStore } from '@/stores/cart'
-import { useUserStore } from '@/stores/user'
-import { API_ROUTES } from '@/utils/apiRoute'
 import { ref, computed } from 'vue'
+import api from '@/api/axiosConfig'
+import { useCartStore } from './cart'
+import { useWishlistStore } from './wishlist'
+import { API_ROUTES } from '@/utils/apiRoute'
+import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
-  const apiStore = useApiStore()
-  const userStore = useUserStore()
-
-  const apiUrl = apiStore.apiUrl
-
-  // State
-  const initialized = ref(false)
-  const token = ref(localStorage.getItem('auth_token') || null)
-  const user = ref(JSON.parse(localStorage.getItem('auth_user')) || null)
-  const sharedCartCount = ref(0)
-  const roles = ref(JSON.parse(localStorage.getItem('roles')) || [])
-  const permissions = ref(JSON.parse(localStorage.getItem('permissions')) || [])
-  const returnUrl = ref(null)
-  const error = ref(null)
+  // ----- STATE -----
+  const user = ref(null)
+  const roles = ref([])
+  const permissions = ref([])
   const loading = ref(false)
+  const error = ref(null)
+  const initialized = ref(false)
 
-  // Getters
-  const isAuthenticated = computed(() => !!token.value)
-  const userName = computed(() => { return user.value?.name || 'Utilisateur' })
-  const userEmail = computed(() => { return user.value?.email || 'example@email.com' })
-  const isEmailVerified = computed(() => { return user.value?.email_verified_at })
+  // ----- GETTERS -----
+  const isAuthenticated = computed(() => !!user.value)
+  const userName = computed(() => user.value?.name || 'Utilisateur')
+  const userEmail = computed(() => user.value?.email || '')
+  const isEmailVerified = computed(() => !!user.value?.email_verified_at)
 
+  // ----- ACTIONS -----
 
-  /**
-   * Enhanced login with token refresh handling
-   */
-  async function login(credentials) {
-    return withLoading(async () => {
-      try {
-        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.login}`, credentials);
-        
-        if (!response) {
-          throw new Error('Réponse d\'authentification invalide');
-        }
-
-        // Stockez les données d'authentification
-        setAuthData(
-          response.data.token,
-          response.data.user,
-          response.data.roles,
-          response.data.permissions
-        );
-
-        // Attendre que le token soit bien enregistré
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Charger les données utilisateur
-        await handleCartSync();
-        
-        return response;
-      } catch (error) {
-        console.error('Login error:', error);
-        throw error;
-      }
-    });
-  }
-
-  /**
-   * Set complete auth data
-   */
-  function setAuthData(authToken, authUser, rolesData = null, permissionsData = null) {
-    if (!authToken) {
-      throw new Error('Invalid token format');
+  // Initialisation store au refresh de page
+  async function initialize() {
+    if (initialized.value) {
+      console.log('🔐 Store already initialized')
+      return
     }
-
-    if (!authUser || typeof authUser !== 'object' || !authUser.id) {
-      throw new Error('User data must be a valid user object');
-    }
-
-    // 1. Mise à jour du state
-    token.value = authToken;
-    user.value = authUser;
-
-    // 2. Persistance locale
+    
     try {
-      localStorage.setItem('auth_token', authToken);
-      localStorage.setItem('auth_user', JSON.stringify(authUser));
-      localStorage.setItem('roles', JSON.stringify(rolesData));
-      localStorage.setItem('permissions', JSON.stringify(permissionsData));
-    } catch (e) {
-      console.error('LocalStorage error:', e);
-    }
+      console.log('🔄 Initializing auth store...')
+      initialized.value = true
 
-    // 3. Configuration Axios
-    setAuthToken(authToken);
-  }
-
-  function setAuthToken(tokenValue) {
-    try {
-      if (tokenValue) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${tokenValue}`;
-      } else {
-        delete axios.defaults.headers.common['Authorization'];
-      }
+      // Obtenir le CSRF token d'abord
+      await getCsrfToken()
+      
+      // Essayer de récupérer l'utilisateur
+      await fetchUser()
+      
+      console.log('✅ Auth initialization complete')
     } catch (error) {
-      console.error('Failed to set auth header:', error);
+      console.log('🔐 Auth initialization complete (user may not be authenticated)')
     }
   }
 
-  /**
-   * Complete auth state cleanup
-   */
+  // Obtenir le CSRF token
+  async function getCsrfToken() {
+    try {
+      const csrfUrl = '/sanctum/csrf-cookie'
+      console.log('🔄 Getting CSRF token...')
+      
+      const response = await api.get(csrfUrl)
+      console.log('✅ CSRF token obtained', response.status)
+      
+      // Vérifier que le token est bien dans les cookies
+      const hasToken = document.cookie.includes('XSRF-TOKEN')
+      console.log('📋 CSRF token in cookies:', hasToken)
+      
+      return hasToken
+    } catch (error) {
+      console.error('❌ Failed to get CSRF token:', error)
+      throw error
+    }
+  }
+
+  // Dans votre composant Login ou dans la console
+  async function debugCsrf() {
+    console.log('🔍 Debug CSRF Token:')
+    console.log('Cookies:', document.cookie)
+    
+    // Vérifier le token CSRF
+    const csrfToken = decodeURIComponent(document.cookie
+      .split('; ')
+      .find(row => row.startsWith('XSRF-TOKEN='))
+      ?.split('=')[1] || '')
+    
+    console.log('CSRF Token present:', csrfToken.length > 0)
+    console.log('CSRF Token length:', csrfToken.length)
+    console.log('CSRF Token (first 50 chars):', csrfToken.substring(0, 50) + '...')
+    
+    // Tester une requête simple
+    try {
+      const test = await fetch('http://localhost:8000/api/sanctum/csrf-cookie', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      console.log('CSRF endpoint status:', test.status)
+    } catch (e) {
+      console.error('CSRF test failed:', e)
+    }
+  }
+
+  // Login
+  async function login(credentials) {
+    loading.value = true
+    error.value = null
+    const cartStore = useCartStore()
+    try {
+      console.log('🔐 Attempting login...')
+      
+      // S'assurer d'avoir un CSRF token frais
+      await getCsrfToken()
+
+      const response = await api.post(API_ROUTES.auth.login, credentials)
+      
+      if (response) {
+        user.value = response.user
+        roles.value = response.roles || []
+        permissions.value = response.permissions || []
+        
+        console.log('✅ Login successful')
+        
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        // Synchroniser le panier
+        await cartStore.syncCartWithServer(false)
+      
+        return true
+      }
+    } catch (err) {
+      error.value = handleApiError(err)
+      console.error('❌ Login failed:', error.value)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function googleLogin() {
+    loading.value = true
+    error.value = null
+    try {
+      window.location.href = API_ROUTES.auth.googleRedirect
+    } catch (e) {
+      error.value = 'Une erreur est survenue. Veuillez réessayer.'
+      loading.value = false
+    }
+  }
+
+  // Logout
+  async function logout() {
+    loading.value = true
+    error.value = null
+    const cartStore = useCartStore()
+    const wishlistStore = useWishlistStore()
+    try {
+      // Synchroniser le panier avant logout
+      if (cartStore.items.length > 0) {
+        await cartStore.syncCartWithServer(false)
+      }
+      if (wishlistStore.items.length > 0) {
+        await wishlistStore.syncWithServer()
+      }
+
+
+      wishlistStore.items = []
+
+      await api.post(API_ROUTES.auth.logout)
+    } catch (err) {
+      console.warn('Logout error:', err)
+    } finally {
+      cleanupAuthState()
+      loading.value = false
+      window.location.href = '/login'
+    }
+  }
+
+  // Charger l'utilisateur actuel
+  async function fetchUser() {
+    try {
+      console.log('👤 Fetching user...')
+      // const response = await api.get(API_ROUTES.auth.me)
+      const response = await axios.get('http://localhost:8000/api/customer/auth/me', { withCredentials: true })
+
+      console.log(response)
+      
+      if (response.data) {
+        user.value = response.data.user
+        roles.value = response.data.roles || []
+        permissions.value = response.data.permissions || []
+        console.log('✅ User fetched successfully')
+      }
+    } catch (err) {
+      console.log(err)
+      // 401 est normal si l'utilisateur n'est pas connecté
+      if (err.response?.status !== 401) {
+        console.warn('Fetch user failed:', err.response?.status, err.message)
+      }
+      user.value = null
+      roles.value = []
+      permissions.value = []
+    }
+  }
+
+  // Mise à jour du profil
+  async function updateProfile(userData) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.put(API_ROUTES.auth.updateProfile, userData)
+      user.value = { ...user.value, ...response.data }
+      return response.data
+    } catch (err) {
+      error.value = handleApiError(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // --- OTP, email verification, password reset ---
+  async function verifyOtp(data) {
+    try { 
+      return await api.post(API_ROUTES.auth.verifyOtp, data) 
+    } catch(err) { 
+      throw err 
+    }
+  }
+
+  async function resendOtp(email) { 
+    return api.post(API_ROUTES.auth.resendOtp, { email }) 
+  }
+
+  async function forgotPassword(email) { 
+    return api.post(API_ROUTES.auth.forgotPassword, { email }) 
+  }
+
+  async function resetPassword(data) { 
+    return api.post(API_ROUTES.auth.resetPassword, data) 
+  }
+
+  async function verifyEmail(id, hash, signature, expires) {
+    return api.get(API_ROUTES.auth.verifyEmail(id, hash), { params: { signature, expires } })
+  }
+
+  async function resendVerificationEmail() { 
+    return api.post(API_ROUTES.auth.resendVerification) 
+  }
+
+  async function changePassword(data) { 
+    return api.put(API_ROUTES.auth.changePassword, data) 
+  }
+
+  // Synchronisation du panier
+  async function handleCartSync() {
+    const cartStore = useCartStore()
+    try {
+      if (!user.value) {
+        console.log('User not authenticated, skipping cart sync')
+        return
+      }
+
+      const response = await api.get(API_ROUTES.cart.check)
+      
+      if (response.data?.has_cart) {
+        if (cartStore.items.length > 0) {
+          await api.delete('/cart')
+          await cartStore.syncCartWithServer(false)
+        } else {
+          await cartStore.loadCartFromServer()
+        }
+      } else if (cartStore.items.length > 0) {
+        await cartStore.syncCartWithServer(false)
+      }
+      
+      console.log('✅ Cart sync completed')
+    } catch (err) {
+      if (err.response?.status === 401) {
+        console.log('🔐 Cart sync skipped - user not authenticated')
+      } else {
+        console.warn('Cart sync error:', err.message)
+      }
+    }
+  }
+
+  // Nettoyage du store
   function cleanupAuthState() {
     user.value = null
-    token.value = null
     roles.value = []
     permissions.value = []
     error.value = null
-    loading.value = false
     initialized.value = false
-
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
-    localStorage.removeItem('roles')
-    localStorage.removeItem('permissions')
-
-    delete axios.defaults.headers.common['Authorization']
   }
 
-  /**
-   * Fetch current user data WITH 401 HANDLING
-   */
-  async function fetchUser() {
-    try {
-      // Vérifier d'abord si le token existe
-      if (!token.value) {
-        throw new Error('No authentication token available');
-      }
-
-      const response = await axios.get(`${apiUrl}${API_ROUTES.auth.me}`, {
-        headers: { Authorization: `Bearer ${token.value}` }
-      });
-      
-      if (!response || typeof response !== 'object') {
-        throw new Error('Invalid API response structure');
-      }
-
-      return response;
-
-    } catch (error) {
-      console.error('Failed to fetch user data:', error);
-      
-      // CORRECTION : Gérer l'erreur 401 en déconnectant
-      if (error.response?.status === 401 || error.code === 'ERR_BAD_REQUEST') {
-        console.warn('Authentication invalid during fetchUser, logging out...');
-        await logout(true); // Déconnexion silencieuse
-      }
-      
-      throw error;
+  // Gestion erreurs API
+  function handleApiError(err) {
+    if (!err.response) return err.message || 'Erreur réseau'
+    const { status, data } = err.response
+    switch(status) {
+      case 400: return data.message || 'Requête invalide'
+      case 401: return data.message || 'Non authentifié'
+      case 403: return 'Accès refusé'
+      case 404: return 'Ressource introuvable'
+      case 422: return data.errors ? Object.values(data.errors).flat().join(', ') : 'Validation échouée'
+      case 429: return 'Trop de tentatives'
+      case 500: return 'Erreur serveur'
+      default: return data.message || `Erreur inconnue (${status})`
     }
   }
-
-  /**
-   * Enhanced logout with better error handling
-   */
-  async function logout(silent = false) {
-    try {
-      const cartStore = useCartStore();
-      
-      // Synchroniser le panier avant déconnexion
-      if (cartStore.items.length > 0) {
-        try {
-          await cartStore.syncCartWithServer(false);
-          console.log('Cart synchronized with server before logout...');
-        } catch (cartError) {
-          console.warn('Cart sync error during logout:', cartError);
-        }
-      }
-
-      // Appel API de déconnexion si token existe
-      if (token.value && !silent) {
-        try {
-          await axios.post(`${apiUrl}${API_ROUTES.auth.logout}`, null, {
-            headers: { Authorization: `Bearer ${token.value}` },
-            timeout: 5000
-          });
-        } catch (error) {
-          console.warn('Logout API call failed, but cleaning local state:', error);
-        }
-      }
-    } catch (error) {
-      console.warn('Logout process error:', error);
-    } finally {
-      // TOUJOURS nettoyer le state local
-      cleanupAuthState();
-      
-      // Rediriger vers la page de login si ce n'est pas une déconnexion silencieuse
-      if (!silent && typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
-      
-      console.log('User logged out successfully');
-    }
-  }
-
-  /**
-   * Setup global axios interceptor for auth errors
-   */
-  function setupAuthInterceptor() {
-    // CORRECTION : Éviter les boucles en utilisant une variable de contrôle
-    let logoutInProgress = false;
-
-    axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        if (error.response?.status === 401 && !logoutInProgress) {
-          console.warn('Global interceptor: Authentication failed, logging out...');
-          logoutInProgress = true;
-          await logout(true);
-          logoutInProgress = false;
-        }
-        return Promise.reject(error);
-      }
-    );
-  }
-
-  // CORRECTION : Initialisation améliorée
-  async function initializeStore() {
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('auth_user');
-    
-    if (storedToken && storedUser) {
-      try {
-        // Restaurer les données depuis le localStorage
-        token.value = storedToken;
-        user.value = JSON.parse(storedUser);
-        roles.value = JSON.parse(localStorage.getItem('roles') || '[]');
-        permissions.value = JSON.parse(localStorage.getItem('permissions') || '[]');
-
-        // Configurer Axios avec le token
-        setAuthToken(storedToken);
-
-        // Configurer l'intercepteur global
-        setupAuthInterceptor();
-
-        // CORRECTION : Tenter fetchUser avec gestion d'erreur
-        try {
-          await fetchUser();
-        } catch (error) {
-          // Si fetchUser échoue avec 401, logout sera appelé automatiquement
-          console.warn('Initial user fetch failed:', error.message);
-        }
-
-      } catch (error) {
-        console.error('Store initialization failed:', error);
-        cleanupAuthState();
-      }
-    }
-    initialized.value = true;
-  }
-
-    /**
-     * Register new user
-    */
-    async function register(userData) {
-      loading.value = true
-      error.value = null
-
-      try {
-        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.register}`, userData)
-        console.log(response)
-        if (!response?.data.otp_sent || !response?.data.user) {
-          throw new Error('Invalid server response')
-        }
-
-        return response
-      } catch (error) {
-        error.value = handleApiError(error)
-        console.error('Registration error:', error)
-        throw error
-      } finally {
-        loading.value = false
-      }
-    }
-
-    /**
-     * 
-     * @param {*} otpData 
-     * @returns 
-     */
-    async function verifyOtp(otpData) {
-      loading.value = true
-      error.value = null
-      try {
-        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.verifyOtp}`, otpData)
-        console.log(response)
-        if (response.status === 'error') {
-          throw new Error('Invalid server response')
-        }
-        return response
-      } catch (error) {
-        error.value = handleApiError(error)
-        console.error('OTP Verification error:', error)
-        throw error
-      } finally { 
-        loading.value = false
-      }
-    }
-
-    /**
-     * Resend OTP to user
-     */
-    async function resendOtp(email) {
-      loading.value = true
-      error.value = null
-      try {
-        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.resendOtp}`, { email })
-        return response.data
-      } catch (err) {
-        error.value = handleApiError(err)
-        throw err
-      } finally {
-        loading.value = false
-      }
-    }
-
-    /**
-     * Handle password reset request
-    */
-    async function forgotPassword(email) {
-      return withLoading(async function () {
-        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.forgotPassword}`, { email })
-        return response.data
-      })
-    }
-
-    /**
-     * Reset password with token
-    */
-    async function resetPassword(data) {
-      return withLoading(async function () {
-        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.resetPassword}`, data)
-        return response.data
-      })
-    }
-
-    /**
-     * Verify email address
-    */
-    async function verifyEmail(id, hash, signature, expires) {
-      return withLoading(async function () {
-        const response = await axios.get(`${apiUrl}${API_ROUTES.auth.verifyEmail(id, hash)}`, {
-          params: { signature, expires }
-        })
-
-        if (user.value) {
-          user.value.email_verified_at = new Date().toISOString()
-        }
-
-        return response.data
-      })
-    }
-
-    /**
-     * Resend verification email
-    */
-    async function resendVerificationEmail() {
-      return withLoading(async function () {
-        const response = await axios.post(`${apiUrl}${API_ROUTES.auth.resendVerification}`)
-        return response.data
-      })
-    }
-
-    /**
-     * Update user profile
-    */
-    async function updateProfile(userData) {
-      return withLoading(async function () {
-        const response = await axios.put(`${apiUrl}${API_ROUTES.auth.updateProfile}`, userData)
-        user.value = { ...user.value, ...response.data }
-        return response.data
-      })
-    }
-
-    /**
-     * Change user password
-    */
-    async function changePassword(passwordData) {
-      return withLoading(async function () {
-        const response = await axios.put(`${apiUrl}${API_ROUTES.auth.changePassword}`, passwordData)
-        return response.data
-      })
-    }
-
-    /**
-     * Helper to wrap actions with loading/error handling
-    */
-    async function withLoading(action) {
-      loading.value = true
-      error.value = null
-
-      try {
-        return await action()
-      } catch (error) {
-        error.value = handleApiError(error)
-        throw error
-      } finally {
-        loading.value = false
-      }
-    }
-
-    /**
-     * Set return URL
-    */
-    function setReturnUrl(url) {
-      returnUrl.value = url
-    }
-
-    /**
-     * Handle cart synchronization after login
-    */
-    async function handleCartSync() {
-      const cartStore = useCartStore()
-
-      try {
-        const response = await axios.get(`${apiUrl}/cart/check`)
-        // const cartFromServer = response
-
-        console.log('Le checkage de cart : ', response)
-
-        if (response.data.data.has_cart) {
-          if (cartStore.items.length > 0) {
-            console.log('Cart already exists en local, syncing...')
-            await axios.delete(`${apiUrl}/cart`)
-            console.log('Cart server deleted...')
-            await cartStore.syncCartWithServer(false)
-            console.log('nouvelle Cart local syncroniser avec le server...')
-          } else {
-            console.log('Cart is empty, loading from server...')
-            await cartStore.loadCartFromServer()
-          }
-        } else if (cartStore.items.length > 0) {
-          await cartStore.syncCartWithServer(false)
-        }
-      } catch (error) {
-        if (error.response?.status !== 404) {
-          console.warn('Cart sync error:', error)
-        }
-      }
-    }
-
-    /**
-     * Handle API errors consistently
-    */
-    function handleApiError(error) {
-      if (!error.response) {
-        return error.request 
-          ? 'Network error. Please check your internet connection'
-          : error.message || 'An unexpected error occurred'
-      }
-
-      const { status, data } = error.response
-
-      switch (status) {
-        case 400: return data.message || 'Bad request'
-        case 401: return 'Invalid credentials'
-        case 403: return 'Unauthorized access'
-        case 404: return 'Resource not found'
-        case 422: 
-          return data.errors 
-            ? Object.values(data.errors).flat().join(', ')
-            : data.message || 'Validation failed'
-        case 429: return 'Too many attempts. Please try again later'
-        case 500: return 'Server error. Please try again later'
-        default: return data.message || `An error occurred (${status})`
-      }
-    }
-
-    /**
-     * Clear current error
-    */
-    function clearError() {
-      error.value = null
-    }
-
-  // Initialisation
-  if (token.value) {
-    // On charge d'abord les données en cache
-    user.value = JSON.parse(localStorage.getItem('auth_user')) || null;
-    roles.value = JSON.parse(localStorage.getItem('roles')) || [];
-    permissions.value = JSON.parse(localStorage.getItem('permissions')) || [];
-
-    // Puis on tente une MAJ silencieuse (sans bloquer l'UI)
-    fetchUser(); // En arrière-plan
-  }
-
-  // 3. Modifier la fonction verifyToken pour être moins stricte
-  async function verifyToken() {
-    if (!token.value) return false;
-
-    try {
-      const response = await axios.get(`${apiUrl}${API_ROUTES.auth.verifyToken}`, {
-        headers: { Authorization: `Bearer ${token.value}` },
-        timeout: 10000 // 10 secondes
-      });
-      
-      return false;
-    } catch (error) {
-      // Ne pas logguer comme erreur, juste comme warning
-      console.warn('Token verification failed:', error.message);
-      return false;
-    }
-  }
-
-  // 4. Simplifier initializeAuth (optionnel, pour usage manuel)
-  async function initializeAuth() {
-    if (initialized.value) {
-      return true
-    }
-    
-    const storedToken = localStorage.getItem('auth_token')
-    const storedUser = localStorage.getItem('auth_user')
-    
-    if (!storedToken || !storedUser) {
-      initialized.value = true
-      return true
-    }
-
-    try {
-      // 1. Restaurer les données immédiatement
-      token.value = storedToken
-      user.value = JSON.parse(storedUser)
-      roles.value = JSON.parse(localStorage.getItem('roles') || '[]')
-      permissions.value = JSON.parse(localStorage.getItem('permissions') || '[]')
-
-      // 2. Configurer Axios
-      setAuthToken(storedToken)
-      
-    } catch (error) {
-      console.error('Failed to restore auth data:', error)
-      cleanupAuthState()
-      return false
-    }
-    
-    initialized.value = true
-    return true
-  }
-
-  async function handleGoogleLogin(responseData) {
-    // Stockez le token
-    token.value = responseData.token;
-    localStorage.setItem('auth_token', responseData.token);
-    
-    // Configurez Axios
-    axios.defaults.headers.common['Authorization'] = `Bearer ${responseData.token}`;
-    
-    // Stockez les données utilisateur
-    user.value = responseData.user;
-    roles.value = responseData.roles;
-    permissions.value = responseData.permissions;
-    
-    // Stockez le refresh token
-    if (responseData.token) {
-      localStorage.setItem('auth_token', responseData.token);
-    }
-  }
-
-  // Initialisation automatique du store
-  initializeStore();
 
   return {
-    // State
-    initialized,
-    user,
-    sharedCartCount,
-    token,
-    roles,
-    permissions,
-    returnUrl,
-    loading,
-    error,
-
-    // Getters
-    isAuthenticated,
-    userName,
-    userEmail,
-    isEmailVerified,
-
-    // Actions
-    handleGoogleLogin,
-    initializeAuth,
-    setReturnUrl,
-    setAuthToken,
-    handleCartSync,
-    handleApiError,
-    clearError,
-    login,
-    register,
-    logout,
-    fetchUser,
-    verifyToken,
-    forgotPassword,
-    resetPassword,
-    updateProfile,
-    changePassword,
-    verifyEmail,
-    resendVerificationEmail,
-    initializeStore,
-    verifyOtp,
-    resendOtp
-  };
+    // state
+    user, roles, permissions, loading, error, initialized,
+    // getters
+    isAuthenticated, userName, userEmail, isEmailVerified,
+    // actions
+    initialize, login, googleLogin, logout, fetchUser, updateProfile,
+    verifyOtp, resendOtp, forgotPassword, resetPassword,
+    verifyEmail, resendVerificationEmail, changePassword, debugCsrf,
+    handleCartSync, cleanupAuthState
+  }
 })

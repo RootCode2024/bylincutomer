@@ -14,8 +14,9 @@
           <button @click="cancel" class="cancel-btn">
             Annuler
           </button>
-          <button @click="confirm" class="confirm-btn">
-            Confirmer
+          <button @click="confirm" class="confirm-btn disabled:opacity-50 disabled:cursor-not-allowed" :disabled="isLoading">
+            <span v-if="isLoading">Suppression...</span>
+            <span v-else>Confirmer</span>
           </button>
         </div>
       </div>
@@ -34,6 +35,10 @@ export default {
     message: {
       type: String,
       required: true
+    },
+    isLoading: {
+      type: Boolean,
+      default: false
     }
   },
   methods: {
@@ -65,9 +70,9 @@ export default {
   background: white;
   border-radius: 8px;
   width: 90%;
-  max-width: 400px;
+  max-width: 700px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .modal-header {
@@ -130,7 +135,7 @@ export default {
 /* Animation */
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.9s ease;
 }
 
 .modal-fade-enter-from,

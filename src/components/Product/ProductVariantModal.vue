@@ -16,7 +16,7 @@
         <!-- Image du produit -->
         <div class="flex items-center space-x-4 mb-6">
           <img 
-            :src="product.main_image_url" 
+            :src="product.main_image_url || 'https://placehold.co/80?text=bylin'" 
             :alt="product.name"
             class="w-16 h-16 object-cover rounded-lg"
           />
@@ -117,7 +117,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { XIcon, PlusIcon, MinusIcon } from 'lucide-vue-next'
 import { useCurrencyStore } from '@/stores/currency'
 import { useCartStore } from '@/stores/cart'
@@ -125,7 +125,8 @@ import { useCartStore } from '@/stores/cart'
 const props = defineProps({
   product: {
     type: Object,
-    required: true
+    required: false,
+    default: null,
   },
   isOpen: {
     type: Boolean,
@@ -159,6 +160,7 @@ const formattedPrice = computed(() => {
 
 // Extraire les couleurs disponibles
 const availableColors = computed(() => {
+  // console.l
   const colors = new Map()
   props.product.variants?.forEach(variant => {
     if (variant.color && !colors.has(variant.color.id)) {

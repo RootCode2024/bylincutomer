@@ -1,408 +1,512 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-import { useApiStore } from './api'
+import { ref, computed } from 'vue'
+import api from '@/api/axiosConfig'
+import { API_ROUTES } from '@/utils/apiRoute'
 import { useAuthStore } from './auth'
 
-export const useUserStore = defineStore('user', {
-  state: () => ({
-    profile: null,
-    loading: false,
-    error: null,
-    successMessage: null,
-    addresses: [],
-    apiUrl: useApiStore().apiUrl,
-    authStore: useAuthStore()
-  }),
+export const useUserStore = defineStore('user', () => {
+  const authStore = useAuthStore()
 
-  actions: {
-    async fetchProfile() {
-      this.loading = true;
-      this.error = null;
+  // --- STATE ---
+  const user = ref(null)
+  const addresses = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+  const successMessage = ref(null)
+
+  // --- GETTERS ---
+  const isLoading = computed(() => loading.value)
+  const hasError = computed(() => !!error.value)
+
+  // --- ACTIONS ---
+
+  // 🧍‍♂️ Charger le profil utilisateur
+  async function fetchProfile() {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await api.get(API_ROUTES.customers.dashboard)
+      console.log(response)
       
-      try {
-        // Rafraîchir le token si nécessaire
-        const authStore = useAuthStore();
-        if (authStore.isTokenExpired) {
-          await authStore.refreshToken();
-        }
+      if (response.success) return response
+    } catch (err) {
+      handleError(err, "Impossible de charger le profil")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
-        const response = await axios.get(`${this.apiUrl}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}` // Utilisez le token du store
-          }
-        });
+  // 📍 Récupérer les adresses
+  async function fetchAddresses() {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.get(API_ROUTES.customers.addresses)
+      console.log('ggggggggg::::::::', response)
 
-        if (!response.data?.data) {
-          throw new Error('Invalid profile data received');
-        }
+      if (response.success) {
+        addresses.value = response.addresses
+        return response
+      }
+    } catch (err) {
+      handleError(err, "Impossible de charger les adresses")
+    } finally {
+      loading.value = false
+    }
+  }
 
-        this.profile = {
-          ...response.data.data
-        };
+  // ✏️ Mettre à jour le profil
+  async function updateProfile(updatedFields) {
+    loading.value = true
+    error.value = null
+    successMessage.value = null
+
+    try {
+      const payload = cleanPayload(updatedFields)
+      
+      console.log('🔄 Mise à jour profil - Champs:', Object.keys(payload))
+
+      let response
+
+      // Gestion séparée pour la date de naissance
+      if (payload.birth_date !== undefined) {
+        console.log('🎯 Mise à jour date de naissance')
         
-      } catch (error) {
-        this.handleError(error, 'Failed to load profile');
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async fetchAddresses() {
-      this.loading = true
-      this.error = null
-      try {
-        const response = await axios.get(`${this.apiUrl}/profile/addresses`, {
-          headers: {
-            Authorization: `Bearer ${this.authStore.token}`
-          }
-        })
-
-        console.log('La reponse depjuis ici : ', response)
-        this.addresses = response.data
-        return response.data
-      } catch (error) {
-        this.handleError(error, 'Impossible de charger les adresses')
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async updateProfile(updatedFields) {
-      this.loading = true;
-      this.error = null;
-
-      try {
-        // Safely prepare payload with fallbacks
-        const payload = {
-          email: updatedFields.email ?? this.authStore.user?.email ?? '',
-          first_name: updatedFields.first_name ?? this.authStore.user?.profile?.first_name ?? '',
-          last_name: updatedFields.last_name ?? this.authStore.user?.profile?.last_name ?? '',
-          phone: updatedFields.phone ?? this.authStore.user?.profile?.phone ?? null,
-          birth_date: updatedFields.birth_date ?? this.authStore.user?.profile?.birth_date ?? null,
-          gender: updatedFields.gender ?? this.authStore.user?.profile?.gender ?? null,
-          bio: updatedFields.bio ?? this.authStore.user?.profile?.bio ?? null
-        };
-
-        // Remove undefined fields
-        Object.keys(payload).forEach(key => {
-          if (payload[key] === undefined || payload[key] === null) {
-            delete payload[key];
-          }
-        });
-
-        const response = await axios.put(`${this.apiUrl}/profile`, payload, {
-          headers: {
-            Authorization: `Bearer ${this.authStore.token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        const updatedUser = response.data.user || {};
-
-        // Safely update profile state
-        if (updatedUser.profile) {
-          this.authStore.user.profile = {
-            ...this.authStore.user.profile,
-            ...updatedUser.profile
-          };
-        }
-
-        // Mise à jour des autres champs utilisateur (ex: email)
-        this.authStore.user = {
-          ...this.authStore.user,
-          ...updatedUser,
-          profile: this.authStore.user.profile // on garde le profil déjà mis à jour
-        };
-
-        this.profile = this.authStore.user.profile;
-
-        this.successMessage = 'Profile updated successfully';
-        return response.data;
+        // Préparer la date pour l'API
+        const birthDatePayload = prepareBirthDate(payload.birth_date)
         
-      } catch (error) {
-        this.handleProfileError(error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    handleProfileError(error) {
-      if (error.response?.status === 422) {
-        const errors = error.response.data.errors;
-        this.error = Object.entries(errors)
-          .map(([field, messages]) => {
-            const fieldName = this.getFieldLabel(field);
-            return `${fieldName}: ${messages.join(', ')}`;
-          })
-          .join('; ');
+        response = await api.put(API_ROUTES.auth.updateBirthDate, birthDatePayload)
+        
+        // Mettre à jour localement
+        if (response?.success) {
+          authStore.user.birth_date = response.birth_date
+          authStore.user.birth_date_updated_at = response.last_updated
+        }
       } else {
-        this.error = error.response?.data?.message || 
-                  error.message || 
-                  'Failed to update profile';
+        console.log('👤 Mise à jour profil général')
+        response = await api.put(API_ROUTES.auth.updateProfile, payload)
+        
+        // Mettre à jour le store avec la réponse
+        if (response?.user) {
+          authStore.user = { ...authStore.user, ...response.user }
+        } else if (response?.data) {
+          authStore.user = { ...authStore.user, ...response }
+        }
       }
-    },
 
-    getFieldLabel(field) {
-      const labels = {
-        'first_name': 'First name',
-        'last_name': 'Last name',
-        'email': 'Email',
-        'phone': 'Phone',
-        'birth_date': 'Birth date',
-        'gender': 'Gender',
-        'bio': 'Bio'
-      };
-      return labels[field] || field;
-    },
-
-    prepareProfilePayload(fields) {
-      const payload = {}
+      user.value = { ...authStore.user }
+      successMessage.value = response?.message || 'Profil mis à jour avec succès ✅'
       
-      // Champs obligatoires
-      if ('first_name' in fields) payload.first_name = fields.first_name?.trim() || ''
-      if ('last_name' in fields) payload.last_name = fields.last_name?.trim() || ''
-      if ('email' in fields) payload.email = fields.email?.trim() || ''
+      return response
       
-      // Champs optionnels
-      if ('phone' in fields) payload.phone = fields.phone?.trim()
-      if ('birth_date' in fields) payload.birth_date = fields.birth_date
-      if ('gender' in fields) payload.gender = fields.gender
-      if ('bio' in fields) payload.bio = fields.bio?.trim()
+    } catch (err) {
+      console.error('💥 Erreur mise à jour profil:', err)
       
-      return payload
-    },
-
-    formatValidationMessage(error) {
-      const messages = {
-        'validation.required': 'Ce champ est obligatoire',
-        'validation.email': 'Email invalide',
-        'validation.date_format': 'Format de date invalide (YYYY-MM-DD)',
-        'validation.unique': 'Cette valeur est déjà utilisée'
+      // Log détaillé pour debug
+      if (err.response) {
+        console.error('📋 Détails erreur:', {
+          status: err.response.status,
+          data: err.response,
+          endpoint: err.config?.url
+        })
       }
       
-      return messages[error] || error
-    },
-    
-    async updateProfileField(field, value) {
-      return this.updateProfile({ [field]: value })
-    },
+      handleProfileError(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
-    async newAddress(data) {
-      this.loading = true
-      this.error = null
-      try {
-      const response = await axios.post(`${this.apiUrl}/profile/addresses`, data, {
+  // 📧 Mettre à jour l'email
+
+  // 📧 Vérifier la disponibilité d'un email
+  async function emailAvailable(email) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.post(API_ROUTES.customers.emailAvailable, { email })
+      return response
+    } catch (err) {
+      handleError(err, "Impossible de vérifier l'email")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 🔐 Mettre à jour l'email (première étape)
+  async function updateEmail(email, password) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.put(API_ROUTES.auth.updateEmail, {
+        email,
+        password,
+        send_verification: true // Demander l'envoi d'un code de vérification
+      })
+      
+      return {
+        requires_verification: true,
+        message: response?.message || 'Code de vérification envoyé'
+      }
+    } catch (err) {
+      handleError(err, "Erreur lors de la mise à jour de l'email")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // ✅ Vérifier le code de confirmation
+  async function verifyEmailCode(email, code) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.post(API_ROUTES.auth.verifyEmailUpdate, {
+        email,
+        verification_code: code
+      })
+      
+      return {
+        verified: true,
+        user: response.user,
+        message: response.message
+      }
+    } catch (err) {
+      handleError(err, "Erreur lors de la vérification du code")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 🔄 Renvoyer le code de vérification
+  async function resendEmailVerification(email) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.post(API_ROUTES.auth.resendEmailVerification, {
+        email
+      })
+      
+      return {
+        sent: true,
+        message: response.message
+      }
+    } catch (err) {
+      handleError(err, "Erreur lors de l'envoi du code")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 📞 Mettre à jour le téléphone
+  async function updatePhone(phone, password) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.put(API_ROUTES.auth.updatePhone, {
+        phone,
+        password
+      })
+      return response
+    } catch (err) {
+      handleError(err, "Erreur lors de la mise à jour du téléphone")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 🖼️ Mettre à jour l'avatar - CORRIGÉ
+  async function updateAvatar(formData) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.post(API_ROUTES.auth.updateAvatar, formData, {
         headers: {
-        Authorization: `Bearer ${this.authStore.token}`,
-        'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }
       })
-      const newAddr = response.data
-      this.addresses.push(newAddr)
-      this.successMessage = 'Adresse ajoutée avec succès'
-      return newAddr.id
-      } catch (error) {
-      this.handleError(error, 'Erreur lors de l\'ajout de l\'adresse')
-      throw error
-      } finally {
-      this.loading = false
-      }
-    },
-
-    async updateAddress(newAddress = false, data) {
-      console.log('yooooooo')
-      this.loading = true
-      this.error = null
       
-      const payload = {
-        type: data.type,
-        address_line: data.address_line,
-        city: data.city,
-        state: data.state,
-        country_id: data.country_id,
-        is_default: data.is_default
+      console.log('✅ Avatar mis à jour:', response)
+      
+      // Mettre à jour l'utilisateur dans le store auth
+      if (response?.user) {
+        authStore.user = { ...authStore.user, ...response.user }
       }
+      
+      return response
+    } catch (err) {
+      console.error('❌ Erreur mise à jour avatar:', err)
+      handleError(err, "Erreur lors de la mise à jour de l'avatar")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
-      try {
-        let response
-        if (newAddress) {
-          response = await axios.post(`${this.apiUrl}/profile/address`, payload, {
-            headers: {
-              Authorization: `Bearer ${this.authStore.token}`,
-              'Content-Type': 'application/json'
-            }
-          })
-          this.addresses.push(response.data)
-        } else {
-          response = await axios.put(`${this.apiUrl}/profile/address/${data.id}`, payload, {
-            headers: {
-              Authorization: `Bearer ${this.authStore.token}`,
-              'Content-Type': 'application/json'
-            }
-          })
-          this.addresses = this.addresses.map(addr => 
-            addr.id === data.id ? response.data : addr
+  // 🧩 Ajouter une nouvelle adresse
+  async function newAddress(data) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.post(API_ROUTES.customers.addresses.base, data)
+      
+      if (response.success) {
+        addresses.value.push(response)
+        // Mettre à jour également dans authStore
+        if (authStore.user?.addresses) {
+          authStore.user.addresses.push(response)
+        }
+      }
+      
+      return response
+    } catch (err) {
+      handleError(err, "Erreur lors de l'ajout de l'adresse")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // ✏️ Modifier une adresse existante
+  async function updateAddress(id, data) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.put(`${API_ROUTES.customers.addresses.base}/${id}`, data)
+      
+      if (response.success) {
+        // Mettre à jour dans les addresses du store
+        addresses.value = addresses.value.map(addr =>
+          addr.id === id ? response : addr
+        )
+        
+        // Mettre à jour également dans authStore
+        if (authStore.user?.addresses) {
+          authStore.user.addresses = authStore.user.addresses.map(addr =>
+            addr.id === id ? response : addr
           )
         }
-        
-        this.successMessage = newAddress 
-          ? 'Adresse ajoutée avec succès' 
-          : 'Adresse mise à jour avec succès'
-          
-        return response.data
-      } catch (error) {
-        this.handleError(error, 'Erreur lors de la mise à jour de l\'adresse')
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async updateAddressDefault(addressId) {
-      this.loading = true
-      this.error = null
-      
-      try {
-        await axios.put(
-          `${this.apiUrl}/profile/address/${addressId}/default`,
-          { is_default: true },
-          {
-            headers: {
-              Authorization: `Bearer ${this.authStore.token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-
-        this.addresses = this.addresses.map(addr => ({
-          ...addr,
-          is_default: addr.id === addressId
-        }))
-        
-        this.successMessage = 'Adresse par défaut mise à jour'
-      } catch (error) {
-        this.handleError(error, 'Erreur lors de la mise à jour de l\'adresse par défaut')
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async updateEmailAndPhone({ email, phone }) {
-      this.loading = true
-      this.error = null
-      try {
-        const response = await axios.put(
-          `${this.apiUrl}/profile/contact`, 
-          { email, phone },
-          {
-            headers: {
-              Authorization: `Bearer ${this.authStore.token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-        this.profile = { ...this.profile, ...response.data }
-        this.successMessage = 'Email et téléphone mis à jour'
-      } catch (error) {
-        this.handleError(error, 'Erreur de mise à jour des informations de contact')
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async updateAvatar(formData) {
-      this.loading = true
-      this.error = null
-      try {
-        const response = await axios.post(
-          `${this.apiUrl}/profile/avatar`, 
-          formData, 
-          {
-            headers: { 
-              'Content-Type': 'multipart/form-data',
-              Authorization: `Bearer ${this.authStore.token}`
-            }
-          }
-        )
-        this.profile.avatar_url = response.data.avatar_url
-        this.successMessage = 'Avatar mis à jour avec succès'
-      } catch (error) {
-        this.handleError(error, 'Erreur lors du téléchargement de l\'avatar')
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async updatePassword({ current_password, new_password, new_password_confirmation }) {
-      this.loading = true
-      this.error = null
-      this.successMessage = null
-
-      try {
-        const response = await axios.put(
-          `${this.apiUrl}/profile/password`,
-          { current_password, new_password, new_password_confirmation },
-          {
-            headers: {
-              Authorization: `Bearer ${this.authStore.token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-
-        this.successMessage = response.data.message || 'Mot de passe mis à jour avec succès'
-      } catch (error) {
-        this.handleError(error, 'Erreur lors de la mise à jour du mot de passe')
-      } finally {
-        this.loading = false
-      }
-    },
-
-    clearMessages() {
-      this.successMessage = null
-      this.error = null
-    },
-
-    // Méthodes utilitaires
-    validateProfileFields(fields) {
-      if ('first_name' in fields && !fields.first_name?.trim()) {
-        throw new Error('Le prénom est obligatoire')
       }
       
-      if ('last_name' in fields && !fields.last_name?.trim()) {
-        throw new Error('Le nom est obligatoire')
-      }
-      
-      if ('email' in fields && fields.email && !/^\S+@\S+\.\S+$/.test(fields.email)) {
-        throw new Error('Email invalide')
-      }
-
-      if ('birth_date' in fields && fields.birth_date && !/^\d{4}-\d{2}-\d{2}$/.test(fields.birth_date)) {
-        throw new Error('Format de date invalide (YYYY-MM-DD attendu)')
-      }
-    },
-
-    handleError(error, defaultMessage) {
-      this.error = error.response?.data?.message || 
-                  error.message || 
-                  defaultMessage
-      console.error('Erreur:', error)
-    },
-
-    //delete account
-    async deleteAccount() {
-      try {
-        const response = await axios.delete(`${this.apiUrl}/profile`, {
-          headers: {
-            Authorization: `Bearer ${this.authStore.token}`
-          }
-        })
-        this.authStore.logout()
-      } catch (error) {
-        console.error('Erreur lors de la suppression du compte:', error)
-      }
+      return response
+    } catch (err) {
+      handleError(err, "Erreur lors de la mise à jour de l'adresse")
+      throw err
+    } finally {
+      loading.value = false
     }
+  }
+
+  // 🗑️ Supprimer une adresse
+  async function deleteAddress(id) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.delete(API_ROUTES.customers.addresses(id))
+      
+      if (response.success) {
+        addresses.value = addresses.value.filter(a => a.id !== id)
+        
+        // Mettre à jour également dans authStore
+        if (authStore.user?.addresses) {
+          authStore.user.addresses = authStore.user.addresses.filter(a => a.id !== id)
+        }
+      }
+      
+      return response
+    } catch (err) {
+      handleError(err, "Erreur lors de la suppression de l'adresse")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 🔄 Définir une adresse comme défaut
+  async function setAddressAsDefault(addressId) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.patch(API_ROUTES.customers.addresses.setDefault(addressId))
+
+      if (response.success) {
+        // Mettre à jour les addresses dans authStore
+        await authStore.fetchUser()
+      }
+      
+      return response
+    } catch (err) {
+      handleError(err, "Impossible de définir l'adresse par défaut")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 🔐 Mettre à jour le mot de passe
+  async function updatePassword(passwordData) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.put(API_ROUTES.auth.updatePassword, passwordData)
+      return response
+    } catch (err) {
+      handleError(err, "Erreur lors de la mise à jour du mot de passe")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 🗑️ Supprimer le compte
+  async function deleteAccount() {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.delete(API_ROUTES.auth.deleteAccount)
+      return response
+    } catch (err) {
+      handleError(err, "Erreur lors de la suppression du compte")
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 🧾 Historique d'activités
+  async function fetchActivityLog(params = null) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.get(API_ROUTES.customers.activities.base, { params })
+      return response
+    } catch (err) {
+      handleError(err, "Impossible de charger l'historique")
+      return []
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 🧹 Helpers
+
+  function prepareBirthDate(birthDate) {
+    let formattedDate = birthDate
+    
+    if (birthDate instanceof Date) {
+      formattedDate = birthDate.toISOString().split('T')[0]
+    } else if (typeof birthDate === 'string') {
+      // Nettoyer la string
+      formattedDate = birthDate.trim()
+      
+      // Si le format est DD/MM/YYYY, le convertir en YYYY-MM-DD
+      if (formattedDate.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        const [day, month, year] = formattedDate.split('/')
+        formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+      }
+      
+      // Valider que c'est une date valide
+      const dateObj = new Date(formattedDate)
+      if (isNaN(dateObj.getTime())) {
+        throw new Error('Date de naissance invalide')
+      }
+      
+      // S'assurer du format final
+      formattedDate = dateObj.toISOString().split('T')[0]
+    }
+    
+    console.log('📅 Date formatée pour API:', formattedDate)
+    return { birth_date: formattedDate }
+  }
+
+  function cleanPayload(fields) {
+    const payload = {}
+    Object.entries(fields).forEach(([k, v]) => {
+      // Ne pas inclure les champs vides
+      if (v !== undefined && v !== null && v !== '') {
+        // Pour les strings, supprimer les espaces inutiles
+        if (typeof v === 'string') {
+          payload[k] = v.trim()
+        } else {
+          payload[k] = v
+        }
+      }
+    })
+    return payload
+  }
+
+  // Gestion d'erreur
+  function handleProfileError(err) {
+    if (err.response?.data?.errors) {
+      const errors = err.response.errors
+      Object.values(errors).forEach(errorMessages => {
+        errorMessages.forEach(message => {
+          // Afficher chaque message d'erreur
+          showNotification(message, 'error')
+        })
+      })
+    } else if (err.response?.data?.message) {
+      showNotification(err.response.message, 'error')
+    } else if (err.code === 'NETWORK_ERROR') {
+      showNotification('Erreur de connexion. Vérifiez votre internet.', 'error')
+    } else {
+      showNotification('Erreur lors de la mise à jour du profil', 'error')
+    }
+  }
+
+  function handleError(err, defaultMsg) {
+    error.value = err.response?.data?.message || err.message || defaultMsg
+    console.error('Erreur:', error.value)
+  }
+
+  function showNotification(message, type = 'success') {
+    // Utiliser votre système de notification préféré
+    console.log(`${type.toUpperCase()}:`, message)
+    // Exemple avec vue-toast-notification:
+    // $toast.open({ message, type })
+  }
+
+  function clearMessages() {
+    successMessage.value = null
+    error.value = null
+  }
+
+  return {
+    // state
+    user,
+    addresses,
+    loading,
+    error,
+    successMessage,
+
+    // getters
+    isLoading,
+    hasError,
+
+    // actions
+    fetchProfile,
+    fetchAddresses,
+    updateProfile,
+    newAddress,
+    updateAddress,
+    deleteAddress,
+    updatePassword,
+    deleteAccount,
+    fetchActivityLog,
+    emailAvailable,
+    setAddressAsDefault,
+    updatePhone,
+    updateEmail,
+    verifyEmailCode,
+    resendEmailVerification,
+    updateAvatar,
+    clearMessages,
   }
 })

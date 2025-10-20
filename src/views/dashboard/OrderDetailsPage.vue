@@ -98,9 +98,9 @@
                   <span class="font-medium">Numéro de facturation:</span> {{ parsedMetadata.phone }}
                 </li>
                 <li v-if="parsedMetadata.initiation_response?.payment_url && payment.status === 'pending'">
-                  <span class="font-medium">URL de paiement:</span> 
+                  <span class="font-medium mr-2">URL de paiement:</span> 
                   <a :href="parsedMetadata.initiation_response.payment_url" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
-                    Lien de paiement
+                    Poursuivre la transaction
                   </a>
                 </li>
               </template>
@@ -212,7 +212,8 @@
             <button 
               @click="downloadInvoice"
               :disabled="!order?.invoice_path"
-              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              v-if="order?.invoice_path"
+              class="inline-flex items-center disabled:cursor-not-allowed px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               <Download class="w-4 h-4 mr-2" />
               Télécharger la facture
@@ -269,7 +270,7 @@ import {
   Download,
   MessageCircle 
 } from 'lucide-vue-next'
-import { useOrdersStore } from '@/stores/order'
+import { useOrderStore } from '@/stores/order'
 import { useCurrencyStore } from '@/stores/currency'
 import { useAuthStore } from '@/stores/auth'
 import { useUIStore } from '@/stores/ui'
@@ -280,7 +281,7 @@ import api from '@/api/axiosConfig'
 
 const route = useRoute()
 const router = useRouter()
-const ordersStore = useOrdersStore()
+const orderStore = useOrderStore()
 const currencyStore = useCurrencyStore()
 const uiStore = useUIStore()
 const authStore = useAuthStore()
@@ -381,10 +382,10 @@ const loadOrderDetails = async () => {
       return
     }
     
-    const orderData = await ordersStore.fetchOrderById(orderNumber)
-    console.log('Détails de la commande chargés:', orderData)
-    order.value = orderData.order
-    payment.value = orderData.payment
+    const response = await orderStore.fetchOrderById(orderNumber)
+    console.log('Détails de la commande chargés:', response)
+    order.value = orderStore.currentOrder
+    payment.value = response.data.payment
     
     // Adapter la structure si nécessaire
     if (order.value && !Array.isArray(order.value.status)) {
@@ -539,7 +540,7 @@ const openReturnModal = (order) => {
 
 const confirmCancel = async (reason) => {
   try {
-    await ordersStore.cancelOrder(selectedOrder.value.id, reason)
+    await orderStore.cancelOrder(selectedOrder.value.id, reason)
     await loadOrderDetails() // Recharger les détails
     showCancelModal.value = false
   } catch (error) {
@@ -549,7 +550,7 @@ const confirmCancel = async (reason) => {
 
 const submitReturn = async (data) => {
   try {
-    await ordersStore.requestReturn(selectedOrder.value.id, data)
+    await orderStore.requestReturn(selectedOrder.value.id, data)
     await loadOrderDetails() // Recharger les détails
     showReturnModal.value = false
   } catch (error) {
@@ -558,66 +559,19 @@ const submitReturn = async (data) => {
 }
 
 const downloadInvoice = async () => {
-  try {
-    console.log('Téléchargement de la facture pour la commande:', order.value.id);
     
     if (!order.value.invoice_path) {
       alert('Aucune facture disponible pour cette commande.');
       return;
     }
 
-    const response = await api.get(`/orders/${order.value.id}/invoice/download`, {
-      responseType: 'blob',
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`,
-      },
-    });
+    const response = await orderStore.processDownloadInvoice(order.value);
 
-    console.log('Response reçue:', response);
-    console.log('Taille des données:', response.size, 'bytes');
-    console.log('Type des données:', typeof response.type);
-
-    // Vérifier que c'est bien un Blob
-    if (!(response instanceof Blob)) {
-      console.error('Les données ne sont pas un Blob:', response);
-      throw new Error('Format de réponse invalide');
-    }
-
-    // Créer l'URL directement depuis response.data (qui est déjà un Blob)
-    const url = window.URL.createObjectURL(response);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `facture-commande-${order.value.id}.pdf`;
-    
-    // Ajouter des styles pour s'assurer que le lien est visible (pour le debug)
-    link.style.display = 'none';
-    
-    document.body.appendChild(link);
-    
-    // Déclencher le téléchargement
-    link.click();
-    
-    // Nettoyer
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    
-    console.log('Téléchargement déclenché avec succès');
-    
-  } catch (error) {
-    console.error('Erreur détaillée:', error);
-    
-    if (error.response?.status === 404) {
-      alert('Facture non trouvée pour cette commande.');
-    } else if (error.response?.status === 403) {
-      alert('Vous n\'êtes pas autorisé à télécharger cette facture.');
-    } else {
-      alert('Erreur lors du téléchargement: ' + error.message);
-    }
-  }
+    if (response) alert('Facture Telecharge')
 };
 
 const contactSupport = () => {
-  router.push('/dashboard/support/order/' + order.value.order_number)
+  router.push('/dashboard/support/orders/' + order.value.order_number)
 }
 
 // Lifecycle

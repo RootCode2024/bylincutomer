@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { Heart as HeartOutline } from 'lucide-vue-next'
 import { Heart as HeartFilled } from 'lucide-vue-next'
 import { useWishlistStore } from '@/stores/wishlist'
@@ -44,14 +44,9 @@ const isFavorited = computed(() => {
 })
 
 function handleClick() {
-  console.log(props.product)
+  
   if (!props.product?.id) return
   wishlistStore.toggleFavorite(props.product)
   emit('toggle', !isFavorited.value)
 }
-
-onMounted(() => {
-  console.log('wishlistStore.items')
-  // console.log(wishlistStore.items)
-})
 </script>

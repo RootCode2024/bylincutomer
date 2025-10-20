@@ -1,111 +1,118 @@
-// stores/currency.js
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
-export const useCurrencyStore = defineStore('currency', {
-  state: () => ({
-    selectedCurrency: 'XOF',
-    rates: {
-      XOF: 1,
-      EUR: 1 / 655.957,
-      USD: 1 / 600,
-    },
-    symbols: {
-      XOF: 'F CFA',
-      EUR: '€',
-      USD: '$',
-    },
-    lastUpdated: null,
-    isLoading: false,
-    error: null
-  }),
+const LOCAL_STORAGE_KEY = 'currencyRates'
 
-  getters: {
-    symbol: (state) => state.symbols[state.selectedCurrency],
-    rate: (state) => state.rates[state.selectedCurrency],
-    isStale: (state) => {
-      if (!state.lastUpdated) return true
-      // Considérer les taux comme périmés après 24h
-      return Date.now() - state.lastUpdated > 24 * 60 * 60 * 1000
+export const useCurrencyStore = defineStore('currency', () => {
+  // ----- STATE -----
+  const selectedCurrency = ref('XOF')
+  const rates = ref({ XOF: 1, EUR: 1 / 655.957, USD: 1 / 600 })
+  const symbols = ref({ XOF: 'F CFA', EUR: '€', USD: '$' })
+  const lastUpdated = ref(null)
+  const isLoading = ref(false)
+  const error = ref(null)
+
+  // ----- GETTERS -----
+  const symbol = computed(() => symbols.value[selectedCurrency.value])
+  const rate = computed(() => rates.value[selectedCurrency.value])
+  const isStale = computed(() => {
+    if (!lastUpdated.value) return true
+    return Date.now() - lastUpdated.value > 24 * 60 * 60 * 1000
+  })
+
+  // ----- ACTIONS -----
+  function changeCurrency(newCurrency) {
+    if (rates.value[newCurrency]) selectedCurrency.value = newCurrency
+  }
+
+  function getRateFor(currency) {
+    return rates.value[currency] || 1
+  }
+
+  function formatCurrency(amountInCFA) {
+    const currency = selectedCurrency.value
+    const converted = amountInCFA * getRateFor(currency)
+
+    if (currency === 'XOF') {
+      return `${Math.round(converted).toLocaleString('fr-FR')} ${symbol.value}`
     }
-  },
 
-  actions: {
-    changeCurrency(newCurrency) {
-      this.selectedCurrency = newCurrency
-    },
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(converted)
+  }
 
-    async fetchRates() {
-      this.isLoading = true
-      this.error = null
-      
-      try {
-        // Récupérer les taux USD et EUR vers XOF
-        const [usdResponse, eurResponse] = await Promise.all([
-          fetch('https://api.exchangerate-api.com/v4/latest/USD'),
-          fetch('https://api.exchangerate-api.com/v4/latest/EUR')
-        ])
+  async function fetchRates() {
+    isLoading.value = true
+    error.value = null
 
-        if (!usdResponse.ok || !eurResponse.ok) {
-          throw new Error('Erreur lors de la récupération des taux de change')
+    try {
+      // Vérifier les taux stockés localement
+      const stored = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (stored) {
+        const data = JSON.parse(stored)
+        if (data.lastUpdated && Date.now() - data.lastUpdated < 24 * 60 * 60 * 1000) {
+          rates.value = data.rates
+          lastUpdated.value = data.lastUpdated
+          isLoading.value = false
+          return
         }
-
-        const usdData = await usdResponse.json()
-        const eurData = await eurResponse.json()
-
-        // Vérifier que les données XOF sont disponibles
-        if (!usdData.rates.XOF || !eurData.rates.XOF) {
-          throw new Error('Taux XOF non disponible')
-        }
-
-        // Mettre à jour les taux
-        // Note: ExchangeRate-API donne 1 USD = X XOF, donc pour avoir 1 XOF = Y USD on fait 1 / X
-        this.rates = {
-          XOF: 1,
-          USD: 1 / usdData.rates.XOF,
-          EUR: 1 / eurData.rates.XOF,
-        }
-
-        this.lastUpdated = Date.now()
-        
-        console.log('Taux mis à jour:', {
-          'USD vers XOF': usdData.rates.XOF,
-          'EUR vers XOF': eurData.rates.XOF,
-          '1 XOF en USD': this.rates.USD,
-          '1 XOF en EUR': this.rates.EUR
-        })
-
-      } catch (error) {
-        console.error('Erreur fetchRates:', error)
-        this.error = error.message
-        // Garder les anciens taux en cas d'erreur
-      } finally {
-        this.isLoading = false
-      }
-    },
-
-    async ensureFreshRates() {
-      // Ne rafraîchir que si les données sont périmées ou manquantes
-      if (this.isStale || !this.lastUpdated) {
-        await this.fetchRates()
-      }
-    },
-
-    formatCurrency(amountInCFA) {
-      const currency = this.selectedCurrency
-      const rate = this.rates[currency]
-
-      if (currency === 'XOF') {
-        return `${Math.round(amountInCFA).toLocaleString('fr-FR')} ${this.symbol}`
       }
 
-      const converted = amountInCFA * rate
+      // Récupérer les taux depuis l'API
+      const response = await fetch('https://api.exchangerate-api.com/v4/latest/XOF')
+      if (!response.ok) throw new Error('Impossible de récupérer les taux')
 
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(converted)
+      const data = await response.json()
+      rates.value = {
+        XOF: 1,
+        USD: 1 / data.rates.USD,
+        EUR: 1 / data.rates.EUR
+      }
+      lastUpdated.value = Date.now()
+
+      // Sauvegarde locale
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+        rates: rates.value,
+        lastUpdated: lastUpdated.value
+      }))
+
+      console.log('Taux mis à jour:', rates.value)
+    } catch (err) {
+      console.error('Erreur fetchRates:', err)
+      error.value = err.message
+    } finally {
+      isLoading.value = false
     }
+  }
+
+  async function ensureFreshRates() {
+    if (isStale.value || !lastUpdated.value) {
+      await fetchRates()
+    }
+  }
+
+  // ----- RETURN -----
+  return {
+    // state
+    selectedCurrency,
+    rates,
+    symbols,
+    lastUpdated,
+    isLoading,
+    error,
+    // getters
+    symbol,
+    rate,
+    isStale,
+    // actions
+    changeCurrency,
+    getRateFor,
+    formatCurrency,
+    fetchRates,
+    ensureFreshRates
   }
 })

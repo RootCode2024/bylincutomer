@@ -1,6 +1,21 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
+  <div class="py-6 px-4 sm:px-6 lg:px-8 w-full mx-auto">
+    <!-- Breadcrumb Navigation -->
+    <nav class="bg-gray-50 px-4 sm:px-6 lg:px-8 py-4 mb-2">
+      <div class="max-w-full mx-auto">
+        <ol class="flex items-center space-x-2 text-sm">
+          <li>
+            <RouterLink to="/dashboard" class="text-indigo-800 hover:text-indigo-700">Accueil</RouterLink>
+          </li>
+          <li>
+            <span class="text-gray-400">/</span>
+          </li>
+          <li class="text-gray-500 truncate max-w-xs">Mes commandes</li>
+        </ol>
+      </div>
+    </nav>
+
+    <div class="w-full mx-auto">
       <!-- Header -->
       <div class="mb-8">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -145,7 +160,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useOrdersStore } from '@/stores/order'
+import { useOrderStore } from '@/stores/order'
 import { RotateCcw, PackageOpen, CheckCircle, Truck, MapPin } from 'lucide-vue-next'
 import StatCard from '@/components/ui/StatCard.vue'
 import MultiSelect from '@/components/ui/MultiSelect.vue'
@@ -172,7 +187,7 @@ const showReturnModal = ref(false)
 const showTrackingModal = ref(false)
 const selectedOrder = ref(null)
 
-const ordersStore = useOrdersStore()
+const ordersStore = useOrderStore()
 
 // Ajout des états pour le suivi
 const trackingInfo = ref(null)
@@ -362,7 +377,7 @@ const loadOrders = async () => {
     const rawOrders = await ordersStore.fetchUserOrders();
     
     // Adapter la structure des commandes pour OrderCard
-    orders.value = rawOrders.map(order => ({
+    orders.value = rawOrders.data.map(order => ({
       ...order,
       // S'assurer que le statut est dans le format attendu
       status: Array.isArray(order.status) ? order.status : [

@@ -52,9 +52,9 @@
       <!-- Quick Actions -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <button @click="showSection('download')" 
-                class="p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-500 transition-colors text-left">
+                class="p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-indigo-700 transition-colors text-left">
           <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
           </div>
@@ -91,7 +91,7 @@
         <div v-if="activeSection === 'download'" class="space-y-6">
           <div class="flex items-center gap-3 mb-6">
             <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
             </div>
@@ -100,7 +100,7 @@
 
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div class="flex items-start gap-3">
-              <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="w-5 h-5 text-indigo-800 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
               </svg>
               <div>
@@ -115,7 +115,7 @@
           <div class="flex flex-col sm:flex-row gap-4">
             <button @click="downloadInvoice" 
                     :disabled="!order.invoice_path || downloading"
-                    class="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    class="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-800 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
               <svg v-if="!downloading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
@@ -124,14 +124,6 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
               {{ downloading ? 'Téléchargement...' : 'Télécharger la facture' }}
-            </button>
-
-            <button v-if="!order.invoice_path" @click="regenerateInvoice"
-                    class="flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-              </svg>
-              Générer la facture
             </button>
           </div>
 
@@ -209,7 +201,7 @@
             <div class="space-y-4">
               <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                 <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg class="w-5 h-5 text-indigo-800" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
                   </svg>
                 </div>
@@ -254,7 +246,7 @@
               <form @submit.prevent="submitSupportRequest" class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Sujet</label>
-                  <select v-model="supportForm.subject" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <select v-model="supportForm.subject" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-700 focus:border-indigo-700">
                     <option value="">Choisir un sujet</option>
                     <option value="delivery">Problème de livraison</option>
                     <option value="product">Produit manquant ou endommagé</option>
@@ -267,13 +259,13 @@
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
                   <textarea v-model="supportForm.message" rows="4" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-700 focus:border-indigo-700"
                             placeholder="Décrivez votre problème en détail..."></textarea>
                 </div>
 
                 <button type="submit" 
                         :disabled="!supportForm.subject || !supportForm.message"
-                        class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        class="w-full px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
                   Envoyer le message
                 </button>
               </form>
@@ -289,14 +281,14 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useOrdersStore } from '@/stores/order'
+import { useOrderStore } from '@/stores/order'
 import { useUIStore } from '@/stores/ui'
 import api from '@/api/axiosConfig'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-const orderStore = useOrdersStore()
+const orderStore = useOrderStore()
 const uiStore = useUIStore()
 
 const order = ref({})
@@ -391,45 +383,16 @@ const getCountryName = (countryCode) => {
 }
 
 const downloadInvoice = async () => {
-  try {
-    downloading.value = true
-    const response = await api.get(`/orders/${order.value.id}/invoice/download`, {
-      responseType: 'blob',
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`,
-      },
-    })
-
-    const blob = new Blob([response], { type: 'application/pdf' })
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `facture-commande-${order.value.id}.pdf`
     
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-    
-  } catch (error) {
-    console.error('Erreur téléchargement facture:', error)
-    alert('Erreur lors du téléchargement de la facture')
-  } finally {
-    downloading.value = false
-  }
-}
-
-const regenerateInvoice = async () => {
-  try {
-    const response = await api.post(`/orders/${order.value.id}/regenerate-invoice`)
-    if (response.data.success) {
-      alert('Facture regénérée avec succès!')
-      await loadOrderData()
+    if (!order.value.invoice_path) {
+      alert('Aucune facture disponible pour cette commande.');
+      return;
     }
-  } catch (error) {
-    alert('Erreur lors de la regénération de la facture')
-  }
-}
+
+    const response = await orderStore.processDownloadInvoice(order.value);
+
+    if (response) alert('Facture Telecharge')
+};
 
 const submitSupportRequest = async () => {
   try {
@@ -474,7 +437,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style scoped>
-/* Styles personnalisés si nécessaire */
-</style>

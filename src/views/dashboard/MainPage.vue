@@ -173,18 +173,11 @@
           <div v-else-if="suggestedProducts?.length" class="flex flex-col gap-4">
             <div v-for="product in suggestedProducts" :key="product.id" class="flex items-center gap-4">
               <img 
-                :src="product.image || product.main_image" 
+                :src="product.image || product.main_image || 'https://placehold.co/80?text=bylin'" 
                 :alt="product.name" 
                 class="w-16 h-16 rounded-lg object-cover"
                 @error="handleImageError"
-                v-if="product.image || product.main_image"
               >
-              <div
-                v-else
-                class="w-1/2 h-24 flex items-center justify-center text-center text-xs bg-gray-200 object-cover object-center"
-              >
-                No Image
-              </div>
               <div class="flex-1">
                 <h6 class="text-sm text-gray-900 font-medium">{{ product.name }}</h6>
                 <p class="text-xs text-gray-600">{{ currencyStore.formatCurrency(product.price) }}</p>
@@ -223,6 +216,7 @@
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useUserStore } from '@/stores/user'
 import { 
   ShoppingCart,
   Heart,
@@ -230,42 +224,19 @@ import {
   PackageCheck,
   ArrowRight
 } from 'lucide-vue-next'
-import axios from 'axios'
 import { useCartStore } from '@/stores/cart'
 import { useCurrencyStore } from '@/stores/currency'
-import api from '@/api/axiosConfig'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 const currencyStore = useCurrencyStore()
+const userStore = useUserStore()
 
 // Data
 const recentOrders = ref([])
 const loadingSuggestions = ref(false)
 const suggestedProducts = ref([])
-
-// Fallback suggestions if API doesn't provide any
-const defaultSuggestions = [
-  {
-    id: 1,
-    name: 'Casque Audio Premium',
-    price: 129.99,
-    image: 'https://placehold.co/80?text=bylin'
-  },
-  {
-    id: 2,
-    name: 'Montre Connectée',
-    price: 199.99,
-    image: 'https://placehold.co/80?text=bylin'
-  },
-  {
-    id: 3,
-    name: 'Haut-parleur Bluetooth',
-    price: 79.99,
-    image: 'https://placehold.co/80?text=bylin'
-  }
-]
 
 // Status mapping for orders
 const statusMapping = {
@@ -348,26 +319,6 @@ function handleImageError(event) {
   event.target.src = 'https://placehold.co/80?text=bylin'
 }
 
-async function loadMoreSuggestions() {
-  loadingSuggestions.value = true
-  try {
-    // Implement API call for more suggestions
-    const response = await api.get('suggested-products', {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`
-      }
-    })
-    
-    if (response.data?.products) {
-      suggestedProducts.value = [...suggestedProducts.value, ...response.data.products]
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des suggestions:', error)
-  } finally {
-    loadingSuggestions.value = false
-  }
-}
-
 // Load data from API
 const dashboardDetails = reactive({
   stats: {},
@@ -378,28 +329,22 @@ const dashboardDetails = reactive({
 
 async function fetchDashboardDetails() {
   try {
-    const response = await api.get('dashboard-customer-datas', {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`
-      }
-    })
+    const response = await userStore.fetchProfile()
     
-    console.log('Dashboard details:', response.data)
+    console.log('Dashboard details:', response)
     
     // Update reactive object properly
-    Object.assign(dashboardDetails, response.data)
+    Object.assign(dashboardDetails, response)
     
     // Set recent orders
-    recentOrders.value = response.data.recent_orders || []
+    recentOrders.value = response.recent_orders || []
     
     // Set suggested products or use defaults
-    suggestedProducts.value = response.data.suggested_products?.length 
-      ? response.data.suggested_products 
-      : defaultSuggestions
+    suggestedProducts.value = response.suggested_products?.length ? response.suggested_products : []
     
     // Update cart store if needed
-    if (response.data.stats?.total_orders !== undefined) {
-      cartStore.totalOrders = response.data.stats.total_orders
+    if (response.stats?.total_orders !== undefined) {
+      cartStore.totalOrders = response.stats.total_orders
     }
     
   } catch (error) {
@@ -419,10 +364,4 @@ watch(() => authStore.user, (newUser) => {
     fetchDashboardDetails()
   }
 }, { immediate: true })
-
-watch(() => authStore.token, (newToken) => {
-  if (newToken) {
-    fetchDashboardDetails()
-  }
-})
 </script>

@@ -3,7 +3,7 @@
     <!-- Bouton du panier -->
     <button 
       @click="openCart"
-      class="relative p-2 text-gray-600 hover:text-indigo-800 transition-colors focus:outline-none"
+      class="relative p-2 text-white hover:text-gray-200 transition-colors focus:outline-none"
       aria-label="Panier"
     >
       <ShoppingBag class="h-4 w-4 md:h-5 md:w-5" />

@@ -213,6 +213,6 @@ const formatDate = (dateString) => {
 }
 
 const goToOrderDetails = (order) => {
-  router.push(`/orders/${order.order_number}/invoice/download`)
+  router.push(`/dashboard/orders/${order.order_number}`)
 }
 </script>

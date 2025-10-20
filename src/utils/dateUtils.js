@@ -83,7 +83,7 @@ export function formatDuration(milliseconds) {
  * @param {string} [locale='en-US'] - The locale to use for formatting
  * @returns {string} Relative time string
  */
-export function formatRelativeTime(date, locale = 'en-US') {
+export function formatRelativeTime(date, locale = 'fr-FR') {
   if (!date) return 'N/A';
   
   try {

@@ -74,7 +74,7 @@
                 <div class="p-8 w-full">
                   <h3 class="text-2xl font-light mb-2 text-white">{{ collection.name }}</h3>
                   <p class="text-gray-300 mb-4 line-clamp-2">{{ collection.description }}</p>
-                  <button class="px-6 py-2 bg-white text-black rounded-lg hover:bg-gray-100 transition-all duration-300 font-medium">
+                  <button class="px-6 py-2 bg-indigo-800 text-white rounded-lg hover:bg-gray-7 transition-all duration-300 font-medium">
                     Découvrir
                   </button>
                 </div>
@@ -151,9 +151,9 @@
                 <h3 class="font-semibold text-black mb-2 line-clamp-1">{{ product.name }}</h3>
                 <p class="text-gray-600 text-sm mb-2 capitalize">{{ product.season }}</p>
                 <div class="flex justify-between items-center">
-                  <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold text-black">{{ currencyStore.formatCurrency(product.final_price) }}</span>
-                    <span v-if="product.discounted_percent > 0" class="text-sm text-gray-500 line-through">{{ currencyStore.formatCurrency(product.price) }}</span>
+                  <div class="">
+                    <p class="text-lg font-bold text-black">{{ currencyStore.formatCurrency(product.final_price) }}</p>
+                    <p v-if="product.discounted_percent > 0" class="text-sm text-gray-500 line-through">{{ currencyStore.formatCurrency(product.price) }}</p>
                   </div>
                   <router-link :to="`/product/${product.slug}`" class="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-300 text-sm">
                     voir
@@ -328,7 +328,7 @@
                       </span>
                     </div>
                     <p class="text-gray-700 text-lg italic mb-6 leading-relaxed">"{{ review.comment }}"</p>
-                    <p class="text-gray-400 text-sm text-right">{{ formatDate(review.created_at) }}</p>
+                    <p class="text-gray-400 text-sm text-right">{{ (review.created_at) }}</p>
                   </div>
                 </div>
               </div>
@@ -447,6 +447,7 @@
 import { ref, onMounted } from 'vue'
 import api from '@/api/axiosConfig'
 import { useCurrencyStore } from '@/stores/currency'
+import { useUIStore } from '@/stores/ui'
 import {
   Truck,
   Clock3,
@@ -459,6 +460,7 @@ const loading = ref(true)
 const homeData = ref({})
 
 const currencyStore = useCurrencyStore()
+const uiStore = useUIStore()
 
 // État du carousel d'avis
 const currentReviewSlide = ref(0)
@@ -481,7 +483,7 @@ const whyChooseUs = ref([
   {
     icon: "truck",
     title: "Livraison Rapide",
-    description: "Expédition sous 24h et livraison offerte dans Cotonou dès 50 000 Franc d'achat"
+    description: "Expédition sous 24h et livraison offerte dans Cotonou dès 60 000 Franc d'achat"
   },
   {
     icon: "quality",
@@ -526,12 +528,12 @@ onMounted(async () => {
   try {
     loading.value = true
     
-    const response = await api.get('/page/homepage')
+    const response = await uiStore.getHomePageDatas()
     
     console.log(response)
     
-    if (response.success) {
-      homeData.value = response.data
+    if (response) {
+      homeData.value = response
     } else {
       console.error('API returned error:', response.message)
       // Initialiser avec des données vides pour éviter les erreurs

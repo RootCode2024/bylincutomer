@@ -1,6 +1,6 @@
 <template>
   <div class="group relative bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-    <div class="flex flex-col sm:flex-row px-2">
+    <div class="flex flex-col sm:flex-row">
       <!-- Product Image -->
       <div class="relative w-full sm:w-48 h-48 sm:h-auto flex-shrink-0">
         <RouterLink 
@@ -8,17 +8,10 @@
           class="block h-full w-full"
         >
           <img
-            v-if="product.main_image_url"
-            :src="product.main_image_url"
+            :src="product.main_image_url || 'https://placehold.co/80?text=bylin'"
             :alt="product.slug"
             class="w-full h-full object-center object-cover"
           />
-          <div
-            v-else
-            class="w-full h-full flex items-center justify-center bg-gray-200"
-          >
-            No Image
-          </div>
         </RouterLink>
         
         <!-- Badges -->

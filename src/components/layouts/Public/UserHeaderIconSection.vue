@@ -4,11 +4,11 @@
     <div class="flex items-center space-x-2">
       <button 
         @click.stop="toggleAccountMenu"
-        class="flex items-center justify-center p-1 text-gray-600 hover:text-indigo-800 transition-colors group"
+        class="flex items-center justify-center p-1 text-white hover:text-gray-200 transition-colors group"
         aria-label="Mon compte"
         :aria-expanded="accountMenuOpen"
       >
-        <span class="text-sm font-medium mr-4 text-gray-700 truncate max-w-[120px]">
+        <span class="text-sm font-medium mr-4 text-white truncate max-w-[120px]">
           Bonjour, {{ authStore.userName }}
         </span>
         <div class="relative">
@@ -121,7 +121,7 @@ const closeAccountMenu = () => {
 };
 
 const handleLogout = () => {
-  authStore.logout();
+  authStore.logout(true);
   closeAccountMenu();
 };
 

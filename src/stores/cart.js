@@ -1,443 +1,307 @@
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useStorage } from '@vueuse/core'
-import axios from 'axios'
-import { useApiStore } from './api'
+import api from '@/api/axiosConfig'
 import { useAuthStore } from './auth'
-import { max } from 'lodash'
+import { API_ROUTES } from '@/utils/apiRoute'
 
-export const useCartStore = defineStore('cart', {
-  state: () => ({
-    items: useStorage('cart-items', []),
-    successMessage: null,
-    sharedCarts: [],
-    total: 0,
-    isPersisted: false,
-    errorMessage: null,
-    couponValue: 0,
-    currentCartId: null,
-    sharedCartToken: null,
-    totalOrders: null,
-    favorite: useStorage('favorite-items', []),
-    wishlistCount: null,
-    token: localStorage.getItem('auth_token') || null,
-    deliveryInfo: null,
-    // Ajout d'une propriété pour stocker manuellement le prix final si nécessaire
-    manualFinalPrice: null
-  }),
+export const useCartStore = defineStore('cart', () => {
+  // ----- STATE -----
+  const items = useStorage('cart-items', [])
+  const favorite = useStorage('favorite-items', [])
+  const total = ref(0)
+  const successMessage = ref(null)
+  const errorMessage = ref(null)
+  const isPersisted = ref(false)
+  const couponValue = useStorage('couponValue', null)
+  const currentCartId = ref(null)
+  const sharedCartToken = ref(null)
+  const sharedCarts = ref([])
+  const deliveryInfo = ref(null)
+  const manualFinalPrice = ref(null)
 
-  getters: {
-    totalQuantity: (state) => state.items.reduce((sum, item) => sum + item.quantity, 0),
-    totalPrice: (state) => state.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    finalPrice: (state) => {
-      // Si un prix manuel est défini, l'utiliser (pour les cas spéciaux)
-      if (state.manualFinalPrice !== null) {
-        return state.manualFinalPrice;
-      }
-      
-      // Sinon, calculer normalement
-      const total = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      return total - (state.couponValue || 0);
-    },
-    totalFavorite: (state) => state.favorite.length,
-    formattedTotalPrice: (state) => {
-      const total = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(total)
-    },
-    formattedFinalPrice: (state) => {
-      const final = state.finalPrice;
-      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(final)
-    },
-    formattedDeliveryCost: (state) => {
-      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
-        .format(state.deliveryInfo?.deliveryCost || 0);
+  const authStore = useAuthStore()
+
+  // ----- GETTERS -----
+  const totalQuantity = computed(() => items.value.reduce((sum, i) => sum + i.quantity, 0))
+  const totalPrice = computed(() => items.value.reduce((sum, i) => sum + i.price * i.quantity, 0))
+  const finalPrice = computed(() => manualFinalPrice.value ?? (totalPrice.value - (couponValue.value || 0)))
+  const totalFavorite = computed(() => favorite.value.length)
+
+  const formatXOF = (amount) =>
+    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount)
+
+  const formattedTotalPrice = computed(() => formatXOF(totalPrice.value))
+  const formattedFinalPrice = computed(() => formatXOF(finalPrice.value))
+  const formattedDeliveryCost = computed(() => formatXOF(deliveryInfo.value?.deliveryCost || 0))
+
+  // ----- ACTIONS -----
+  function addItem(product) {
+    // Validation des données requises
+    if (!product.product_id) {
+      console.error('❌ Product ID manquant:', product)
+      return
     }
-  },
 
-  actions: {
-    // Ajouter un produit au panier
-    addItem(product) {
+    const existing = items.value.find(i => 
+      i.product_id === product.product_id &&
+      i.selectedColor?.id === product.selectedColor?.id &&
+      i.selectedSize?.id === product.selectedSize?.id
+    )
+    
+    if (existing) {
+      existing.quantity += product.quantity || 1
+    } else {
+      // S'assurer que toutes les données requises sont présentes
+      const newItem = {
+        product_id: product.product_id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        quantity: product.quantity || 1,
+        selectedColor: product.selectedColor || null,
+        selectedSize: product.selectedSize || null,
+        variant_id: product.variant_id || null
+      }
+      
+      console.log('🆕 Ajout au panier:', newItem)
+      items.value.push(newItem)
+    }
+    isPersisted.value = false
+    manualFinalPrice.value = null
+  }
 
-      console.log('Ajout au panier:', product)
-      const existingItem = this.items.find(i => i.product_id === product.product_id)
+  function updateQuantity(product_id, quantity) {
+    const item = items.value.find(i => i.product_id === product_id)
+    if (item && quantity >= 1) {
+      item.quantity = quantity
+      isPersisted.value = false
+      manualFinalPrice.value = null
+    }
+  }
 
-      if (existingItem) {
-        existingItem.quantity += product.quantity || 1
+  function removeItem(product_id) {
+    const index = items.value.findIndex(i => i.product_id === product_id)
+    if (index !== -1) {
+      items.value.splice(index, 1)
+      isPersisted.value = false
+      manualFinalPrice.value = null
+    }
+  }
+
+  function clearCart() {
+    items.value = []
+    isPersisted.value = false
+    currentCartId.value = null
+    sharedCartToken.value = null
+    couponValue.value = 0
+    manualFinalPrice.value = null
+  }
+
+  function setManualFinalPrice(price) { manualFinalPrice.value = price }
+  function resetFinalPrice() { manualFinalPrice.value = null }
+
+  async function applyCoupon(code) {
+    try {
+      const response = await api.post(API_ROUTES.cart.coupon, { 
+        code, 
+        cart_total: totalPrice.value 
+      })
+
+      console.log('Reponce apre apply du coupon : ', response)
+      
+      if (response.success) {
+        couponValue.value = response.data.discount_value || response.discount
+        successMessage.value = response?.message
+        errorMessage.value = null
+        return response
       } else {
-        this.items.push({
-          product_id: product.id || product.product_id,
-          name: product.name,
-          selectedColor: product.selectedColor || null,
-          selectedSize: product.selectedSize || null,
-          available_stock: product.available_stock || 0,
-          price: product.price,
-          quantity: product.quantity || 1,
-          maxQuantity: product.maxQuantity || 99,
-          image: product.image || null
-        })
+        errorMessage.value = response.message
+        return { success: false, message: response.message }
       }
-      this.isPersisted = false
-      // Réinitialiser le prix manuel lorsqu'on modifie le panier
-      this.manualFinalPrice = null;
-    },
-
-    // Mettre à jour la quantité
-    updateQuantity(product_id, quantity) {
-      const item = this.items.find(i => i.product_id === product_id)
-      if (item && quantity >= 1 && quantity <= 99) {
-        item.quantity = quantity
-        this.isPersisted = false
-        // Réinitialiser le prix manuel lorsqu'on modifie le panier
-        this.manualFinalPrice = null;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Erreur lors de l\'application du coupon'
+      errorMessage.value = errorMsg
+      return { 
+        success: false, 
+        message: errorMsg 
       }
-    },
+    }
+  }
 
-    // Supprimer un produit
-    removeItem(product_id) {
-      const index = this.items.findIndex(i => i.product_id === product_id)
-      if (index !== -1) {
-        this.items.splice(index, 1)
-        this.isPersisted = false
-        // Réinitialiser le prix manuel lorsqu'on modifie le panier
-        this.manualFinalPrice = null;
+  function resetCoupon() {
+    couponValue.value = 0
+    successMessage.value = null
+    errorMessage.value = null
+  }
+
+  // ----- Delivery -----
+  function setDeliveryInfo(info) {
+    deliveryInfo.value = { ...info, setAt: new Date().toISOString() }
+    localStorage.setItem('deliveryInfo', JSON.stringify(deliveryInfo.value))
+  }
+
+  function loadDeliveryInfo() {
+    const saved = localStorage.getItem('deliveryInfo')
+    if (saved) {
+      try { deliveryInfo.value = JSON.parse(saved) } 
+      catch (e) { console.error('Erreur parsing livraison:', e) }
+    }
+  }
+
+  // ----- Cart -----
+
+  function cleanupInvalidItems() {
+    const initialLength = items.value.length
+    items.value = items.value.filter(item => {
+      const isValid = item.product_id && item.quantity > 0
+      if (!isValid) {
+        console.warn('🗑️ Suppression item invalide:', item)
       }
-    },
+      return isValid
+    })
+    
+    if (items.value.length !== initialLength) {
+      console.log(`🧹 Nettoyage: ${initialLength - items.value.length} items invalides supprimés`)
+    }
+  }
 
-    // Vider le panier
-    clearCart() {
-      this.items = []
-      this.isPersisted = false
-      this.currentCartId = null
-      this.sharedCartToken = null
-      this.couponValue = 0
-      this.manualFinalPrice = null;
-    },
-
-    // Définir manuellement le prix final (pour les cas spéciaux)
-    setManualFinalPrice(price) {
-      this.manualFinalPrice = price;
-    },
-
-    // Réinitialiser le prix manuel pour utiliser le calcul automatique
-    resetFinalPrice() {
-      this.manualFinalPrice = null;
-    },
-
-    // Appliquer une réduction avec coupon
-    async applyCoupon(code) {
-      try {
-        const apiStore = useApiStore();
-        const authStore = useAuthStore();
-        
-        const response = await axios.post(`${apiStore.apiUrl}/coupons/apply`, {
-          code: code,
-          cart_total: this.totalPrice
-        }, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`
+  async function syncCartWithServer(isShared = false) {
+    if (!authStore.isAuthenticated || items.value.length === 0) return false
+    
+    // Nettoyer les items invalides avant synchronisation
+    cleanupInvalidItems()
+    
+    if (items.value.length === 0) {
+      console.log('📦 Panier vide après nettoyage')
+      return false
+    }
+    
+    try {
+      // Préparer les données avec validation
+      const cartData = {
+        items: items.value.map(item => {
+          // Validation de chaque item
+          if (!item.product_id) {
+            console.error('❌ Item sans product_id:', item)
+            return null
           }
-        });
-
-        this.couponValue = response.data.discount_value;
-        this.successMessage = response.data.message;
-        return true;
-      } catch (error) {
-        this.errorMessage = error.response?.data?.message || 'Erreur lors de l\'application du coupon';
-        return false;
-      }
-    },
-
-    // Définir les informations de livraison
-    setDeliveryInfo(deliveryForm, deliveryOption, deliveryCost, city, district) {
-      // Stocker les informations de livraison dans le state
-      this.deliveryInfo = {
-        // Informations du formulaire
-        firstName: deliveryForm.firstName,
-        lastName: deliveryForm.lastName,
-        email: deliveryForm.email,
-        phone: deliveryForm.phone,
-        address: deliveryForm.address,
-        additionalAddress: deliveryForm.additionalAddress,
-        postalCode: deliveryForm.postalCode,
-        
-        // Options de livraison
-        deliveryOption: deliveryOption,
-        deliveryCost: deliveryCost,
-        
-        // Localisation
-        city: city,
-        district: district,
-        
-        // Horodatage
-        setAt: new Date().toISOString()
-      };
-      
-      // Persister les informations de livraison dans le localStorage
-      localStorage.setItem('deliveryInfo', JSON.stringify(this.deliveryInfo));
-      
-      // Optionnel: synchroniser avec le serveur si l'utilisateur est connecté
-      if (this.token) {
-        this.syncDeliveryInfoWithServer();
-      }
-    },
-
-    // Méthode pour synchroniser les informations de livraison avec le serveur
-    async syncDeliveryInfoWithServer() {
-      try {
-        const apiStore = useApiStore();
-        const authStore = useAuthStore();
-        
-        await axios.post(`${apiStore.apiUrl}/delivery-info`, {
-          delivery_info: this.deliveryInfo
-        }, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`
-          }
-        });
-        
-        console.log('Informations de livraison synchronisées avec succès');
-      } catch (error) {
-        console.error('Erreur de synchronisation des informations de livraison:', error);
-      }
-    },
-
-    // Méthode pour charger les informations de livraison depuis le localStorage
-    loadDeliveryInfo() {
-      const savedInfo = localStorage.getItem('deliveryInfo');
-      if (savedInfo) {
-        try {
-          this.deliveryInfo = JSON.parse(savedInfo);
-          return this.deliveryInfo;
-        } catch (e) {
-          console.error('Erreur lors du parsing des informations de livraison:', e);
-          return null;
-        }
-      }
-      return null;
-    },
-
-    // Méthode pour réinitialiser les informations de livraison
-    clearDeliveryInfo() {
-      this.deliveryInfo = null;
-      localStorage.removeItem('deliveryInfo');
-      
-      // Optionnel: supprimer aussi du serveur
-      if (this.token) {
-        this.deleteDeliveryInfoFromServer();
-      }
-    },
-
-    // Méthode pour supprimer les informations de livraison du serveur
-    async deleteDeliveryInfoFromServer() {
-      try {
-        const apiStore = useApiStore();
-        const authStore = useAuthStore();
-        
-        await axios.delete(`${apiStore.apiUrl}/delivery-info`, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`
-          }
-        });
-        
-        console.log('Informations de livraison supprimées du serveur');
-      } catch (error) {
-        console.error('Erreur lors de la suppression des informations de livraison:', error);
-      }
-    },
-
-    // Synchroniser avec le serveur
-    async syncCartWithServer(isShared) {
-      if (this.items.length === 0) return
-
-      console.log('Synchronisation du panier avec le serveur', this.items)
-
-      try {
-        const apiStore = useApiStore()
-        const authStore = useAuthStore()
-        const response = await axios.post(`${apiStore.apiUrl}/cart`, {
-          items: this.items.map(item => ({
+          
+          return {
             product_id: item.product_id,
             quantity: item.quantity,
             price: item.price,
             selectedColor: item.selectedColor || null,
             selectedSize: item.selectedSize || null
-          })),
-          is_shared: isShared
-        }, {
-          headers: {
-            Authorization: `Bearer ${authStore.token || ''}`
           }
-        })
+        }).filter(item => item !== null), // Filtrer les items invalides
+        is_shared: isShared
+      }
 
-        this.successMessage = 'Panier synchronisé avec succès'
-        this.isPersisted = true
-        this.errorMessage = null
-        this.currentCartId = response.data.data?.id || null
+      console.log('📤 Synchronisation du panier:', cartData)
+      
+      const response = await api.post(API_ROUTES.cart.base, cartData)
+      console.log('✅ Réponse synchronisation:', response)
+      
+      if (response.success) {
+        currentCartId.value = response?.cart?.id || null
+        isPersisted.value = true
+        successMessage.value = response.message || 'Panier synchronisé'
+        errorMessage.value = null
         return true
-      } catch (error) {
-        this.errorMessage = error.response?.data?.message || 'Erreur de synchronisation'
-        this.successMessage = null
-        console.error('Erreur API:', error)
-        return false
-      }
-    },
-
-    // Créer un panier partagé
-    async storeSharedCart(formData, finalPrice) {
-      console.log('Création panier partagé avec:', formData, 'et prix final:', finalPrice);
-      try {
-        const apiStore = useApiStore()
-        const authStore = useAuthStore()
-        
-        // Si un prix final spécifique est fourni, l'utiliser
-        const finalPriceToUse = finalPrice !== undefined ? finalPrice : this.finalPrice;
-        
-        const response = await axios.post(`${apiStore.apiUrl}/shared-carts`, {
-          cart_id: this.currentCartId,
-          title: formData.title,
-          description: formData.description,
-          address_id: formData.address_id,
-          phone: formData.phone,
-          expires_in: this.formatDateForMySQL(formData.closing_date),
-          final_price: finalPriceToUse
-        }, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`
-          }
-        })
-
-        console.log('Panier partagé créé:', response)
-
-        this.sharedCartToken = response.data.data.token
-        return response.data
-      } catch (error) {
-        console.error('Erreur API:', error)
-        throw error
-      }
-    },
-
-    formatDateForMySQL(date) {
-      if (!date) return null
-      const jsDate = typeof date === 'string' ? new Date(date) : date
-      return jsDate.toISOString().slice(0, 19).replace('T', ' ')
-    },
-
-    // Charger le panier depuis le serveur
-    async loadCartFromServer() {
-      const authStore = useAuthStore()
-      console.log('Chargement avec token:', authStore.token)
-      try {
-        const apiStore = useApiStore()
-        const response = await axios.get(`${apiStore.apiUrl}/cart/load`, {
-          headers: { Authorization: `Bearer ${authStore.token}` }
-        })
-        console.log('Chargement du panier:', response)
-        
-        // Remove the .cart property access since the API returns the cart directly
-        this.items = response.data?.cart.items.map(item => ({
-          product_id: item.product_id,
-          name: item.product?.name || 'Produit sans nom',
-          price: item.product?.price || 0,
-          quantity: item.quantity,
-          image: item.product?.images?.[0]?.url || null
-        }))
-        
-        this.isPersisted = true
-        return true
-      } catch (error) {
-        console.error('Erreur de chargement du panier:', error)
-        return false
-      }
-    },
-
-    // Récupérer un panier partagé
-    async fetchSharedCart(id) {
-      try {
-        const apiStore = useApiStore()
-        const authStore = useAuthStore()
-        
-        const response = await axios.get(`${apiStore.apiUrl}/shared-carts/${id}`, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-            'Content-Type': 'application/json'
-          }
-        })
-        return response.data
-      } catch (error) {
-        console.error('Erreur de chargement des paniers partagés:', error)
-        throw error
-      }
-    },
-
-    // Récupérer tous les paniers partagés
-async fetchSharedCarts() {
-  try {
-    const apiStore = useApiStore()
-    const authStore = useAuthStore()
-    
-    const response = await axios.get(`${apiStore.apiUrl}/shared-carts`, {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    console.log('Paniers partagés récupérés:', response.data)
-
-    const newData = response.data.data || []
-    const newTotal = response.data.total || 0
-
-    // Évitez les réassignations inutiles
-    if (JSON.stringify(this.sharedCarts) !== JSON.stringify(newData)) {
-      this.sharedCarts = newData
-    }
-    
-    if (this.total !== newTotal) {
-      this.total = newTotal
-    }
-    
-    return response
-  } catch (error) {
-    console.error('Failed to fetch shared carts:', error)
-    throw error
-  }
-},
-
-    // Supprimer le panier côté serveur
-    async deleteCartFromServer() {
-      try {
-        const apiStore = useApiStore()
-        await axios.delete(`${apiStore.apiUrl}/cart`)
-        this.clearCart()
-        return true
-      } catch (error) {
-        console.error('Erreur suppression panier serveur:', error)
-        return false
-      }
-    },
-
-    // Ajouter aux favoris
-    addToFavorite(item) {
-      if (!this.favorite.some(favoriteItem => favoriteItem.id === item.id)) {
-        this.favorite.push({
-          id: item.id,
-          product_id: item.id,
-          name: item.name,
-          price: item.price,
-          image: item.image || null
-        })
-      }
-    },
-
-    removeFromFavorite(id) {
-      this.favorite = this.favorite.filter(item => item.id !== id)
-    },
-
-    toggleFavorite(item) {
-      const exists = this.favorite.some(fav => fav.id === item.id)
-      if (exists) {
-        this.removeFromFavorite(item.id)
       } else {
-        this.addToFavorite(item)
+        throw new Error(response.message || 'Erreur de synchronisation')
       }
+    } catch (err) {
+      console.error('💥 Erreur détaillée synchronisation:', err.response)
+      errorMessage.value = err.response?.message || 'Erreur synchronisation panier'
+      return false
     }
+  }
+
+  async function loadCartFromServer() {
+    if (!authStore.isAuthenticated) return false
+    try {
+      const response = await api.get(API_ROUTES.cart.load)
+      items.value = response.data?.cart?.items || []
+      isPersisted.value = true
+      return true
+    } catch (err) {
+      console.error('Erreur chargement panier:', err)
+      return false
+    }
+  }
+
+  async function storeSharedCart(formData, finalPriceOverride) {
+    try {
+      // Synchroniser le panier
+      await syncCartWithServer(false)
+      
+      // Petit délai pour s'assurer que la synchro est bien traitée
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      console.log(formData, finalPriceOverride)
+      const finalPriceToUse = finalPriceOverride ?? finalPrice.value
+      
+      const response = await api.post(API_ROUTES.cart.shared.base, {
+        cart_id: currentCartId.value,
+        title: formData.title,
+        description: formData.description,
+        address_id: formData.address_id,
+        phone: formData.phone,
+        expires_in: formData.closing_date,
+        final_price: finalPriceToUse
+      })
+      console.log(response)
+      
+      sharedCartToken.value = response.data.token
+      return true
+      
+    } catch (err) {
+      console.error('Erreur création shared cart:', err)
+      throw err
+    }
+  }
+
+  async function fetchSharedCarts() {
+    if (!authStore.isAuthenticated) return
+    try {
+      const response = await api.get(API_ROUTES.cart.shared.base)
+      console.log('GGGGGG : ', response)
+      sharedCarts.value = response.data || []
+      return response.data
+    } catch (err) {
+      console.error('Erreur récupération shared carts:', err)
+      throw err
+    }
+  }
+
+  async function deleteSharedCart(id) {
+    try {
+      await api.delete(API_ROUTES.cart.shared.delete(id))
+      sharedCarts.value = sharedCarts.value.filter(c => c.id !== id)
+      return true
+    } catch (err) {
+      console.error('Erreur suppression shared cart:', err)
+      throw err
+    }
+  }
+
+  return {
+    // STATE
+    items, favorite, total, successMessage, errorMessage, isPersisted, couponValue, currentCartId, sharedCartToken, sharedCarts, deliveryInfo, manualFinalPrice,
+    // GETTERS
+    totalQuantity, totalPrice, finalPrice, totalFavorite,
+    formattedTotalPrice, formattedFinalPrice, formattedDeliveryCost,
+    // ACTIONS
+    addItem, updateQuantity, removeItem, clearCart,
+    setManualFinalPrice, resetFinalPrice,
+    applyCoupon, resetCoupon,
+    setDeliveryInfo, loadDeliveryInfo,
+    syncCartWithServer, loadCartFromServer,
+    storeSharedCart, fetchSharedCarts, deleteSharedCart,
+    addToFavorite: (item) => { if (!favorite.value.some(f => f.id === item.id)) favorite.value.push(item) },
+    removeFromFavorite: (id) => { favorite.value = favorite.value.filter(f => f.id !== id) },
+    toggleFavorite: (item) => { favorite.value.some(f => f.id === item.id) ? favorite.value = favorite.value.filter(f => f.id !== item.id) : favorite.value.push(item) }
   }
 })
