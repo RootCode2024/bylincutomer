@@ -133,11 +133,11 @@ import { useUIStore } from '@/stores/ui';
 import router from '@/router';
 
 // Composants d'étapes
-import CartSummaryStep from '@/components/Checkout/steps/CartSummaryStep.vue';
-import DeliveryStep from '@/components/Checkout/steps/DeliveryStep.vue';
-import CustomerInfoStep from '@/components/Checkout/steps/CustomerInfoStep.vue';
-import VerificationStep from '@/components/Checkout/steps/VerificationStep.vue';
-import ShareStep from '@/components/Checkout/steps/ShareStep.vue';
+import CartSummaryStep from '@/components/checkout/steps/CartSummaryStep.vue';
+import DeliveryStep from '@/components/checkout/steps/DeliveryStep.vue';
+import CustomerInfoStep from '@/components/checkout/steps/CustomerInfoStep.vue';
+import VerificationStep from '@/components/checkout/steps/VerificationStep.vue';
+import ShareStep from '@/components/checkout/steps/ShareStep.vue';
 
 const cartStore = useCartStore();
 const uiStore = useUIStore();
