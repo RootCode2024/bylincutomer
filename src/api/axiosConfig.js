@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // URL de base sans le /customer pour les routes globales
-const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api/customer', '') || 'http://localhost:8000'
+const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api/customer', '') || 'https://api.bylin-style.com'
 
 // Création de l'instance Axios
 const api = axios.create({

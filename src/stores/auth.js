@@ -83,7 +83,7 @@ export const useAuthStore = defineStore('auth', () => {
     
     // Tester une requête simple
     try {
-      const test = await fetch('http://localhost:8000/api/sanctum/csrf-cookie', {
+      const test = await fetch('https://api.bylin-style.com/api/sanctum/csrf-cookie', {
         method: 'GET',
         credentials: 'include'
       })
@@ -173,7 +173,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       console.log('👤 Fetching user...')
       // const response = await api.get(API_ROUTES.auth.me)
-      const response = await axios.get('http://localhost:8000/api/customer/auth/me', { withCredentials: true })
+      const response = await axios.get('https://api.bylin-style.com/api/customer/auth/me', { withCredentials: true })
 
       console.log(response)
       

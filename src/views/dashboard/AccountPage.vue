@@ -49,7 +49,7 @@
             <div class="relative group">
               <div class="relative">
                 <img class="h-32 w-32 rounded-2xl object-cover ring-4 ring-white shadow-lg mx-auto" 
-                    :src="authStore.user?.avatar_url ? `http://localhost:8000${authStore.user.avatar_url}` : '/default-avatar.png'" 
+                    :src="authStore.user?.avatar_url ? `https://api.bylin-style.com${authStore.user.avatar_url}` : '/default-avatar.png'" 
                     alt="Photo de profil">
                 <div class="absolute inset-0 rounded-2xl bg-gradient-to-t from-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <button @click="showAvatarModal = true" class="absolute bottom-2 right-2 bg-white p-2.5 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110">
