@@ -46,20 +46,47 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  
+  function getCsrfTokenFromCookies() {
+    const cookies = document.cookie.split('; ')
+    const xsrfToken = cookies.find(row => row.startsWith('XSRF-TOKEN='))?.split('=')[1]
+    return xsrfToken ? decodeURIComponent(xsrfToken) : null
+  }
+
   // Obtenir le CSRF token
+  // Obtenir le CSRF token du serveur - VERSION CORRIGÉE
   async function getCsrfToken() {
     try {
-      const csrfUrl = '/sanctum/csrf-cookie'
       console.log('🔄 Getting CSRF token...')
       
-      const response = await api.get(csrfUrl)
-      console.log('✅ CSRF token obtained', response.status)
+      // Utiliser fetch directement pour éviter les problèmes d'intercepteur
+      const response = await fetch('https://api.bylin-style.com/sanctum/csrf-cookie', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        }
+      })
       
-      // Vérifier que le token est bien dans les cookies
-      const hasToken = document.cookie.includes('XSRF-TOKEN')
-      console.log('📋 CSRF token in cookies:', hasToken)
+      console.log('✅ CSRF response status:', response.status, response.ok)
       
-      return hasToken
+      if (!response.ok) {
+        throw new Error(`CSRF request failed: ${response.status}`)
+      }
+      
+      // Vérifier le token dans les cookies
+      const token = getCsrfTokenFromCookies()
+      console.log('📋 CSRF token in cookies:', !!token)
+      
+      if (token) {
+        // Mettre à jour le header par défaut d'axios
+        api.defaults.headers.common['X-XSRF-TOKEN'] = token
+        console.log('🔑 CSRF token length:', token.length)
+      } else {
+        console.warn('⚠️ CSRF token not found in cookies after request')
+      }
+      
+      return token
     } catch (error) {
       console.error('❌ Failed to get CSRF token:', error)
       throw error

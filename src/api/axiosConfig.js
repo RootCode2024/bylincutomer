@@ -25,7 +25,7 @@ function getCsrfToken() {
 // Intercepteur de requête
 api.interceptors.request.use((config) => {
   const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2)
-  config.headers['X-Request-ID'] = requestId
+  // config.headers['X-Request-ID'] = requestId
   
   // Pour les méthodes non-GET, ajouter le header X-XSRF-TOKEN
   if (config.method !== 'get') {
