@@ -6,16 +6,16 @@
     <div class="w-full h-[100vh] flex bg-white rounded-2xl shadow-2xl overflow-hidden">
       <!-- Left Side - Fashion Image -->
       <div class="hidden md:flex md:w-1/2 relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-indigo-700/20 z-10"></div>
+        <div class="absolute inset-0 z-10"></div>
         <img 
-          src="https://images.unsplash.com/photo-1716004357049-8671b6cec216?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDV8fHxlbnwwfHx8fHw%3D&auto=format&fit=crop&q=60&w=600" 
+          src="@/assets/images/loginregister.jpg" 
           alt="Fashion" 
           class="w-full h-full object-cover object-top transform hover:scale-105 transition-transform duration-500"
         />
       </div>
 
       <!-- Right Side - Auth Form -->
-      <div class="w-full md:w-1/2 flex flex-col relative">
+      <div class="w-full md:w-1/2 flex flex-col relative bg-indigo-700">
         <!-- Back Button -->
         <transition name="slide-fade">
           <button 
@@ -46,9 +46,9 @@
                       </router-link>
                     </transition>
                     <h1 class="text-2xl font-bold text-gray-900 mb-2">
-                      Bienvenue chez <span class="italic text-indigo-700">bylin</span>!
+                      Bienvenue chez <span class="italic text-white">bylin</span>!
                     </h1>
-                    <p class="text-gray-600">Entrez votre adresse mail pour commencer.</p>
+                    <p class="text-gray-200">Entrez votre adresse mail pour commencer.</p>
                   </div>
 
                   <form @submit.prevent="handleEmailSubmit" class="space-y-4">
@@ -79,7 +79,7 @@
                     <button
                       type="submit"
                       :disabled="!email || isCheckingEmail"
-                      class="w-full disabled:cursor-not-allowed disabled:opacity-50 bg-gradient-to-r from-indigo-700 to-indigo-800 hover:from-indigo-800 hover:to-indigo-900 text-white font-medium py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                      class="w-full disabled:cursor-not-allowed disabled:opacity-50 bg-gradient-to-r from-indigo-700 to-indigo-800 hover:from-indigo-800 hover:to-indigo-900 text-white font-medium py-3 rounded-lg transition-all border border-white duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
                     >
                       <span v-if="isCheckingEmail">
                         <svg class="animate-spin h-5 w-5 mr-3 inline-block text-white" viewBox="0 0 24 24">
@@ -130,9 +130,9 @@
                     </div>
                     
                     <div class="mt-6 text-center">
-                      <p class="text-gray-600 text-sm">
+                      <p class="text-gray-200 text-sm">
                         Déjà un compte?
-                        <router-link to="/login" class="text-indigo-700 font-medium hover:underline">Se connecter</router-link>
+                        <router-link to="/login" class="text-white font-medium hover:underline">Se connecter</router-link>
                       </p>
                     </div>
                   </div>
@@ -390,9 +390,9 @@
             </transition>
 
             <!-- Terms -->
-            <p class="text-center text-xs text-gray-500 mt-8">
+            <p class="text-center text-xs text-gray-200 mt-8">
               En continuant, vous reconnaissez avoir lu, compris et accepté nos 
-              <a href="#" class="text-indigo-700 hover:text-indigo-800 hover:underline transition-colors">Conditions Générales d'Utilisation</a>
+              <a href="#" class="text-white hover:text-gray-200 hover:underline transition-colors">Conditions Générales d'Utilisation</a>
             </p>
           </div>
         </div>
