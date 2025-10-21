@@ -659,10 +659,7 @@ const handleCodeSubmit = async () => {
     // MAINTENANT nettoyer les données après succès complet
     clearUserData()
     
-    if(response?.status === 'success') {
-      // Rediriger vers la page de connexion ou dashboard
-      router.push('/login')
-    }
+    router.push('/login')
     
   } catch (e) {
     codeError.value = e.response?.message || 'Code invalide. Veuillez réessayer.'
