@@ -269,9 +269,12 @@ export const useAuthStore = defineStore('auth', () => {
   // --- OTP, email verification, password reset ---
   async function verifyOtp(data) {
     try { 
-      return await api.post(API_ROUTES.auth.verifyOtp, data) 
+      const response = await api.post(API_ROUTES.auth.verifyOtp, data) 
+
+      return response
     } catch(err) { 
-      throw err 
+      console.log(err)
+      throw err
     }
   }
 

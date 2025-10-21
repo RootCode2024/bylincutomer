@@ -643,11 +643,12 @@ const handleCodeSubmit = async () => {
     return
   }
 
+  console.log('Email verified:', email.value)
   try {
     isLoadingVerif.value = true
     const response = await authStore.verifyOtp({ 
       code: verificationCode, 
-      email: email.value 
+      email: email.value
     })
     console.log('Code verified:', response)
     
