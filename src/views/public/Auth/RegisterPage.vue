@@ -3,7 +3,7 @@
     name="scale-fade"
     appear
   >
-    <div class="w-full h-[100vh] flex bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div class="w-full h-[100vh] flex bg-white overflow-hidden">
       <!-- Left Side - Fashion Image -->
       <div class="hidden md:flex md:w-1/2 relative overflow-hidden">
         <div class="absolute inset-0 z-10"></div>
@@ -21,7 +21,7 @@
           <button 
             v-if="step !== 'email'"
             @click="handleBack" 
-            class="absolute top-8 left-8 text-indigo-700 hover:text-indigo-800 transition-colors duration-200 p-2 hover:bg-indigo-50 rounded-lg z-10"
+            class="absolute top-8 left-8 text-white hover:text-black transition-colors duration-200 p-2 hover:bg-indigo-50 rounded-lg z-10"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />

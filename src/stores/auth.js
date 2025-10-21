@@ -160,6 +160,30 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+      /**
+     * Register new user
+    */
+    async function register(userData) {
+      loading.value = true
+      error.value = null
+
+      try {
+        const response = await api.post(API_ROUTES.auth.register, userData)
+        console.log(response)
+        if (!response?.otp_sent || !response?.user) {
+          throw new Error('Invalid server response')
+        }
+
+        return response
+      } catch (error) {
+        error.value = handleApiError(error)
+        console.error('Registration error:', error)
+        throw error
+      } finally {
+        loading.value = false
+      }
+    }
+
   async function googleLogin() {
     loading.value = true
     error.value = null
@@ -338,7 +362,7 @@ export const useAuthStore = defineStore('auth', () => {
     // getters
     isAuthenticated, userName, userEmail, isEmailVerified,
     // actions
-    initialize, login, googleLogin, logout, fetchUser, updateProfile,
+    initialize, login, register, googleLogin, logout, fetchUser, updateProfile,
     verifyOtp, resendOtp, forgotPassword, resetPassword,
     verifyEmail, resendVerificationEmail, changePassword, debugCsrf,
     handleCartSync, cleanupAuthState
