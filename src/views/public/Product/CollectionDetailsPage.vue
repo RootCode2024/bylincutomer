@@ -403,7 +403,7 @@ const route = useRoute()
 const productStore = useProductStore()
 
 
-const collection = ref({})
+const collection = ref({ products: [] })
 const otherCollections = ref([])
 const loading = ref(true)
 
@@ -605,30 +605,32 @@ const calculateMaxPrice = () => {
 const fetchCollectionData = async () => {
     try {
         loading.value = true
-        console.log('DADJUUUUU // ')
-
-        const slugParam = (route.params.slug)
-        
+        const slugParam = route.params.slug
         const response = await productStore.fetchCollection(slugParam)
-        
-        if(response) {
-            collection.value = productStore.collection.collection
-            otherCollections.value = productStore.collection.other_collections || []
-            
-            console.log('DADJUUUUU / ', collection.value)
+
+        if (response) {
+            const { collection: coll, products, other_collections } = productStore.collection
+
+            collection.value = {
+                ...coll,
+                products: products || []
+            }
+
+            otherCollections.value = other_collections || []
+
             // Initialiser les prix min/max
             if (collection.value.products.length > 0) {
                 priceRange.value.min = calculateMinPrice()
                 priceRange.value.max = calculateMaxPrice()
             }
         }
-
     } catch (error) {
         console.error('Erreur lors du chargement de la collection:', error)
     } finally {
         loading.value = false
     }
 }
+
 
 onMounted(() => {
     console.log('ARTYU // ')

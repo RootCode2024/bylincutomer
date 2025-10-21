@@ -58,6 +58,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function getCsrfToken() {
     try {
       console.log('🔄 Getting CSRF token...')
+
+      debugCsrf()
       
       // Utiliser fetch directement pour éviter les problèmes d'intercepteur
       const response = await fetch('https://api.bylin-style.com/sanctum/csrf-cookie', {
@@ -73,6 +75,8 @@ export const useAuthStore = defineStore('auth', () => {
       if (!response.ok) {
         throw new Error(`CSRF request failed: ${response.status}`)
       }
+
+      debugCsrf()
       
       // Vérifier le token dans les cookies
       const token = getCsrfTokenFromCookies()
