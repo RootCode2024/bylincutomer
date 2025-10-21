@@ -664,8 +664,8 @@ const handleCodeSubmit = async () => {
     }
     
   } catch (e) {
-    codeError.value = e.response?.data?.message || 'Code invalide. Veuillez réessayer.'
-    console.error('Erreur vérification code:', e.response?.data)
+    codeError.value = e.response?.message || 'Code invalide. Veuillez réessayer.'
+    console.error('Erreur vérification code:', e.response)
   } finally {
     isLoadingVerif.value = false
   }
