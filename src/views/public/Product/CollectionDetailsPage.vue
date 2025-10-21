@@ -256,11 +256,10 @@
                      ]">
                     <ProductCard
                         v-for="product in paginatedProducts"
-                        :key="product.id"
+                        :key="`product-${product.id}`"
                         :product="product"
-                        :show-badges="showBadges"
-                        :show-prices="showPrices"
-                        class="hover:scale-105 transition-transform duration-300 shadow-lg hover:shadow-xl"
+                        @add-to-cart="addToCart"
+                        @add-to-wishlist="addToWishlist"
                     />
                 </div>
 
@@ -630,7 +629,6 @@ const fetchCollectionData = async () => {
         loading.value = false
     }
 }
-
 
 onMounted(() => {
     console.log('ARTYU // ')
