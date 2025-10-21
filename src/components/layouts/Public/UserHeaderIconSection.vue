@@ -85,13 +85,13 @@
   <div class="hidden md:flex items-center space-x-4" v-else>
     <RouterLink
       to="/login"
-      class="text-sm font-medium text-gray-600 hover:text-indigo-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50"
+      class="text-sm font-medium text-gray-600 hover:text-indigo-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50 bg-gray-200"
     >
       Connexion
     </RouterLink>
     <RouterLink
       to="/register"
-      class="text-sm font-medium text-white bg-indigo-800 hover:bg-indigo-700 transition-colors px-3 py-1.5 rounded-lg shadow-sm"
+      class="text-sm font-medium text-white bg-indigo-700 hover:bg-white hover:text-indigo-800 transition-colors px-3 py-1.5 rounded-lg shadow-sm"
     >
       Inscription
     </RouterLink>
@@ -121,7 +121,7 @@ const closeAccountMenu = () => {
 };
 
 const handleLogout = () => {
-  authStore.logout(true);
+  authStore.logout();
   closeAccountMenu();
 };
 

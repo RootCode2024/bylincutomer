@@ -117,7 +117,7 @@
               <button
                 type="submit"
                 :disabled="!email || !password || emailError || passwordError || isLoading"
-                class="w-full disabled:cursor-not-allowed disabled:opacity-50 bg-gradient-to-r from-white to-black hover:from-indigo-800 hover:to-indigo-900 text-white font-medium py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                class="w-full disabled:cursor-not-allowed disabled:opacity-50 bg-white hover:bg-indigo-700 text-black hover:text-white hover:border font-medium py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
               >
                 <span v-if="isLoading">
                   <svg class="animate-spin h-5 w-5 mr-3 inline-block text-white" viewBox="0 0 24 24">

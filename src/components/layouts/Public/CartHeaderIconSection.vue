@@ -9,7 +9,7 @@
       <ShoppingBag class="h-4 w-4 md:h-5 md:w-5" />
       <span
         v-if="cartItemCount > 0"
-        class="absolute -top-1 -right-1 bg-indigo-800 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
+        class="absolute -top-1 -right-1 bg-white text-indigo-800 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
       >
         {{ cartItemCount }}
       </span>

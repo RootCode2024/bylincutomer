@@ -1,28 +1,5 @@
 <template>
   <div :class="{ 'min-h-screen': $route.path === '/' }" class="font-poppins">
-    <transition name="fade">
-      <div
-        v-if="showBanner"
-        class="promotion-banner relative z-50 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-center py-2 px-4 shadow-md"
-      >
-        <div class="flex items-center justify-center gap-3">
-          <Gift class="w-5 h-5 animate-bounce" />
-          <span class="font-medium tracking-wide">
-            Livraison <span class="font-bold text-yellow-300">OFFERTE</span> dès
-            <span class="underline underline-offset-2">{{
-              currencyStore.formatCurrency(deliverableAmount)
-            }}</span>
-          </span>
-
-          <button
-            @click="dismissBanner"
-            class="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition"
-          >
-            <X class="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </transition>
 
     <!-- Top Header -->
     <header :class="headerClass" :style="navBackgroundClass">
@@ -276,7 +253,7 @@
           <!-- Wishlist -->
           <RouterLink
             to="/wishlists"
-            class="icon relative"
+            class="icon relative text-white"
             :class="{ 'text-red-500': wishlistStore.items.length }"
           >
             <Heart stroke-width="1" class="w-5 h-5" />
@@ -507,15 +484,11 @@ const touchEndX = ref(0);
 
 // Navigation State
 const mobileMenuOpen = ref(false);
-const showBanner = ref(true);
 const isScrolled = ref(false);
 const searchOpen = ref(false);
 const searchQuery = ref("");
 const mobileSearchQuery = ref("");
 const activeSubmenu = ref(null);
-const isBannerDismissed = ref(
-  localStorage.getItem("bannerDismissed") === "true"
-);
 const apiCategories = ref([]);
 const loadingCategories = ref(false);
 const searchInput = ref(null);
@@ -708,11 +681,6 @@ const isActiveLink = (path) => {
   return route.path === path || route.path.startsWith(path + "/");
 };
 
-const dismissBanner = () => {
-  showBanner.value = false;
-  isBannerDismissed.value = true;
-  localStorage.setItem("bannerDismissed", "true");
-};
 
 const toggleSearch = () => {
   searchOpen.value = !searchOpen.value;
@@ -898,7 +866,6 @@ const loadTrendingSearches = async () => {
 
 const handleScroll = throttle(() => {
   isScrolled.value = window.scrollY > 10;
-  showBanner.value = window.scrollY < 40 && !isBannerDismissed.value;
 }, 100);
 
 // Constants
@@ -920,7 +887,6 @@ watch(
 onMounted(() => {
   try {
     currencyStore.fetchRates();
-    showBanner.value = !isBannerDismissed.value;
     handleScroll();
     window.addEventListener("scroll", handleScroll);
     document.addEventListener("keydown", handleKeyDown);
@@ -945,11 +911,6 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-/* Promotion Banner */
-.promotion-banner {
-  background: linear-gradient(135deg, #000 0%, #333 100%);
 }
 
 /* Header */

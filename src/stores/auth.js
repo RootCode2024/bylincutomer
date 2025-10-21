@@ -195,7 +195,7 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       cleanupAuthState()
       loading.value = false
-      window.location.href = '/login'
+      window.location.href = '/'
     }
   }
 
