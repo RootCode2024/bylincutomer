@@ -529,7 +529,7 @@ const handleDatasSubmit = async () => {
       password_confirmation: password_confirmation.value,
     })
 
-    if (response?.data.otp_sent) {
+    if (response?.otp_sent) {
       nameError.value = ''
       passwordError.value = ''
       passwordConfirmationError.value = ''
@@ -547,8 +547,8 @@ const handleDatasSubmit = async () => {
       })
     }
   } catch (e) {
-    error.value = e.response?.data?.message || 'Veuillez vérifier vos informations.'
-    if (e.response?.data?.errors) {
+    error.value = e.response?.message || 'Veuillez vérifier vos informations.'
+    if (e.response?.errors) {
       const errors = e.response.data.errors
       error.value = Object.values(errors)[0][0]
     }
