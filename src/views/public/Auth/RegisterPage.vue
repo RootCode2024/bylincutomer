@@ -634,36 +634,35 @@ const handleResendCode = async () => {
 const isLoadingVerif = ref(false)
 
 const handleCodeSubmit = async () => {
-  console.log('Submitting code:', code.value, 'for email:', email.value)
   const verificationCode = code.value.join('')
-  console.log('Code submitted:', verificationCode)
-  
+
   if (verificationCode.length !== 5) {
     codeError.value = 'Veuillez entrer le code complet à 5 chiffres.'
     return
   }
 
-  console.log('Email verified:', email.value)
   try {
     isLoadingVerif.value = true
-    const response = await authStore.verifyOtp({ 
-      code: verificationCode, 
+
+    const response = await authStore.verifyOtp({
+      code: verificationCode,
       email: email.value
     })
-    console.log('Code verified:', response)
-    
-    // Redirection ou traitement après vérification réussie
-    codeError.value = ''
-    message.value = 'Code vérifié avec succès!'
-    
-    // MAINTENANT nettoyer les données après succès complet
-    clearUserData()
-    
-    router.push('/login')
-    
+
+    console.log('✅ Réponse backend:', response)
+
+    if (response?.status === 'success') {
+      message.value = response.message || 'Code vérifié avec succès!'
+      codeError.value = ''
+      clearUserData()
+      console.log('🧹 Données utilisateur nettoyées')
+      await router.push('/login')
+    } else {
+      codeError.value = response?.message || 'Code invalide. Veuillez réessayer.'
+    }
   } catch (e) {
-    codeError.value = e.response?.message || 'Code invalide. Veuillez réessayer.'
-    console.error('Erreur vérification code:', e.response)
+    console.error('❌ Erreur vérification code:', e)
+    codeError.value = e?.message || 'Erreur lors de la vérification du code.'
   } finally {
     isLoadingVerif.value = false
   }
