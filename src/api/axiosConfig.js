@@ -1,4 +1,3 @@
-// src/api/axiosConfig.js
 import axios from 'axios'
 
 // URL de base de l'API
