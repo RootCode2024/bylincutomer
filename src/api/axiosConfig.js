@@ -1,7 +1,8 @@
+// src/api/axiosConfig.js
 import axios from 'axios'
 
-// URL de base sans le /customer pour les routes globales
-const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api/customer', '') || 'https://api.bylin-style.com'
+// URL de base de l'API
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.bylin-style.com'
 
 // Création de l'instance Axios
 const api = axios.create({
@@ -14,105 +15,88 @@ const api = axios.create({
   },
 })
 
-// Fonction pour récupérer le cookie CSRF
-function getCsrfToken() {
-  return decodeURIComponent(document.cookie
-    .split('; ')
-    .find(row => row.startsWith('XSRF-TOKEN='))
-    ?.split('=')[1] || '')
+/**
+ * Rafraîchir le token CSRF
+ */
+export async function refreshCsrfToken() {
+  try {
+    await axios.get('/sanctum/csrf-cookie', {
+      baseURL: BASE_URL,
+      withCredentials: true,
+      headers: { Accept: 'application/json' },
+    })
+    // Mettre à jour le header X-XSRF-TOKEN d'axios
+    const token = document.cookie
+      .split('; ')
+      .find(c => c.startsWith('XSRF-TOKEN='))
+      ?.split('=')[1]
+    if (token) api.defaults.headers.common['X-XSRF-TOKEN'] = decodeURIComponent(token)
+    return token
+  } catch (err) {
+    console.error('❌ Failed to refresh CSRF token:', err)
+    throw err
+  }
 }
 
-// Intercepteur de requête
-api.interceptors.request.use((config) => {
-  const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2)
-  // config.headers['X-Request-ID'] = requestId
-  
-  // Pour les méthodes non-GET, ajouter le header X-XSRF-TOKEN
-  if (config.method !== 'get') {
-    const csrfToken = getCsrfToken()
-    if (csrfToken) {
-      config.headers['X-XSRF-TOKEN'] = csrfToken
-      console.log('🛡️ CSRF token added to headers')
-    } else {
-      console.warn('⚠️ No CSRF token found in cookies')
-    }
-  }
-  
-  console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${config.url}`, {
-    hasCsrfHeader: !!config.headers['X-XSRF-TOKEN'],
-    csrfTokenLength: config.headers['X-XSRF-TOKEN']?.length || 0
-  })
-  
-  return config
-}, (error) => {
-  console.error('❌ [API Request Error]', error)
-  return Promise.reject(error)
-})
+/**
+ * Récupérer CSRF token depuis le cookie
+ */
+function getCsrfTokenFromCookie() {
+  const token = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='))?.split('=')[1]
+  return token ? decodeURIComponent(token) : null
+}
 
-// Intercepteur de réponse
-api.interceptors.response.use(
-  (response) => {
-    console.log(`✅ [API Response] ${response.status} ${response.config.url}`)
-    return response.data
+// ----- Intercepteur de requête -----
+api.interceptors.request.use(
+  (config) => {
+    // Ajouter le CSRF token pour toutes les requêtes non GET
+    if (config.method !== 'get') {
+      const token = getCsrfTokenFromCookie()
+      if (token) {
+        config.headers['X-XSRF-TOKEN'] = token
+      } else {
+        console.warn('⚠️ No CSRF token found in cookies')
+      }
+    }
+    return config
   },
+  (error) => Promise.reject(error)
+)
+
+// ----- Intercepteur de réponse -----
+api.interceptors.response.use(
+  (response) => response.data, // Retourne directement response.data
   async (error) => {
     const { response, config } = error
-    
-    if (response) {
-      console.log(`❌ [API Error] ${response.status} ${config?.url}`, {
-        message: response.data?.message,
-        exception: response.data?.exception
-      })
-      
-      // Gestion spécifique des erreurs CSRF
-      if (response.status === 419) {
-        console.warn('🔄 CSRF Token mismatch, attempting to refresh...')
-        
-        try {
-          // Régénérer le token CSRF
-          const csrfUrl = '/sanctum/csrf-cookie'
-          await axios.get(csrfUrl, {
-            baseURL: BASE_URL,
-            withCredentials: true,
-            headers: {
-              'Accept': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
-            }
-          })
-          
-          console.log('✅ CSRF token refreshed, retrying request...')
-          
-          // Réessayer la requête originale avec le nouveau token
-          const retryConfig = {
-            ...config,
-            headers: {
-              ...config.headers,
-              'X-XSRF-TOKEN': getCsrfToken() // Utiliser le nouveau token
-            }
-          }
-          
-          return api(retryConfig)
-        } catch (csrfError) {
-          console.error('❌ Failed to refresh CSRF token:', csrfError)
-          return Promise.reject(new Error('Unable to refresh CSRF token. Please refresh the page.'))
-        }
-      }
-      
-      // Gestion des erreurs d'authentification
-      if (response.status === 401) {
-        console.warn('🔐 Authentication required')
-        try {
-          const { useAuthStore } = await import('@/stores/auth')
-          const authStore = useAuthStore()
-          authStore.cleanupAuthState()
-        } catch (e) {
-          console.log('Auth store not available for cleanup')
-        }
-      }
-    } else {
-      console.error('❌ [API Network Error]', error.message)
+    if (!response) {
+      console.error('❌ Network error:', error.message)
+      return Promise.reject(error)
     }
-    
+
+    // Erreur CSRF
+    if (response.status === 419) {
+      console.warn('🔄 CSRF Token mismatch, refreshing...')
+      try {
+        await refreshCsrfToken()
+        // Réessayer la requête originale
+        const retryConfig = { ...config, headers: { ...config.headers, 'X-XSRF-TOKEN': getCsrfTokenFromCookie() } }
+        return api(retryConfig)
+      } catch (csrfErr) {
+        return Promise.reject(new Error('Unable to refresh CSRF token. Please refresh the page.'))
+      }
+    }
+
+    // Erreur d'authentification
+    if (response.status === 401) {
+      try {
+        const { useAuthStore } = await import('@/stores/auth')
+        const authStore = useAuthStore()
+        authStore.cleanupAuthState()
+      } catch (e) {
+        console.warn('Auth store cleanup failed')
+      }
+    }
+
     return Promise.reject(error)
   }
 )

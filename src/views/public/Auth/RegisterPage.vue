@@ -188,6 +188,7 @@
                         v-model="password"
                         type="password"
                         placeholder="Mot de passe"
+                        autocomplet
                         class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-700 focus:border-indigo-700 outline-none transition-all duration-200"
                         :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': passwordError }"
                       />
