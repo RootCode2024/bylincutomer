@@ -50,7 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
     initialized.value = true
     try {
       console.log('🔄 Initializing auth store...')
-      await refreshCsrfToken()
+      // await refreshCsrfToken()
       // await fetchUser()
       console.log('✅ Auth initialization complete')
     } catch {
