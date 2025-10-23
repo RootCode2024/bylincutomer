@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-inter">
+  <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 font-inter">
     <!-- Modal d'info coupon pour non connectés -->
     <div v-if="showCouponInfoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
@@ -134,7 +134,7 @@
     </div>
 
     <!-- Contenu principal -->
-    <div class="max-w-full mx-32">
+    <div class="max-w-full mx-auto">
       <div>
         <h1 class="text-2xl font-medium text-gray-900 mb-2">Votre Panier</h1>
         <span class="text-gray-600">{{ cartStore.totalQuantity }} article{{ cartStore.totalQuantity > 1 ? 's' : '' }}</span> dans votre panier.

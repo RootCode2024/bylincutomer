@@ -5,6 +5,7 @@
       <img
         :src="product.main_image_url || 'https://placehold.co/80?text=bylin'"
         :alt="product.name"
+        loading="lazy"
         class="w-full h-full object-contain transition duration-300 group-hover:scale-105"
       />
 
