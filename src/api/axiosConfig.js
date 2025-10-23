@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 // URL de base de l'API
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.bylin-style.com'
@@ -46,18 +47,18 @@ function getCsrfTokenFromCookie() {
 }
 
 // ----- Intercepteur de requête -----
-api.interceptors.request.use(
-  (config) => {
-    // Ajouter le CSRF token pour toutes les requêtes non GET
-    if (config.method !== 'get') {
-      const token = getCsrfTokenFromCookie()
-      if (token) {
-        config.headers['X-XSRF-TOKEN'] = token
-      } else {
-        console.warn('⚠️ No CSRF token found in cookies')
-      }
+api.interceptors.request.use((config) => {
+  const authStore = useAuthStore()
+
+  if (authStore.isAuthenticated && config.method !== 'get') {
+    const token = getCsrfTokenFromCookie()
+    if (token) {
+      config.headers['X-XSRF-TOKEN'] = token
+    } else {
+      console.warn('⚠️ No CSRF token found in cookies')
     }
-    return config
+  }
+  return config
   },
   (error) => Promise.reject(error)
 )

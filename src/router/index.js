@@ -138,37 +138,36 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  // Routes qui ne nécessitent PAS d'initialisation auth
   const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password']
-  
-  // Si route publique, passer directement
+
+  // Route publique → pas besoin d'auth
   if (publicRoutes.includes(to.path)) {
     next()
     return
   }
 
-  // Initialiser seulement si pas déjà fait
-  if (!authStore.initialized) {
-    console.log('🔄 Router: Initializing auth store...')
-    await authStore.initialize()
+  // Routes protégées → init auth si pas déjà fait
+  const requiresAuth = to.matched.some(r => r.meta.requiresAuth)
+  if (requiresAuth && !authStore.initialized) {
+    console.log('🔄 Router: Initializing auth store for protected route...')
+    await authStore.initialize(true) // force CSRF & fetchUser
   }
 
-  const requiresAuth = to.matched.some(r => r.meta.requiresAuth)
-  const requiresGuest = to.matched.some(r => r.meta.requiresGuest)
-
+  // Redirection si non authentifié
   if (requiresAuth && !authStore.isAuthenticated) {
-    console.log('🔐 Route requires auth, redirecting to login')
     next({ name: 'login', query: { redirect: to.fullPath } })
     return
   }
 
+  // Redirection si invité authentifié
+  const requiresGuest = to.matched.some(r => r.meta.requiresGuest)
   if (requiresGuest && authStore.isAuthenticated) {
-    console.log('🔐 User authenticated, redirecting from guest route')
     next('/dashboard')
     return
   }
 
   next()
 })
+
 
 export default router
