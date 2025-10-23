@@ -51,7 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       console.log('🔄 Initializing auth store...')
       await refreshCsrfToken()
-      await fetchUser()
+      // await fetchUser()
       console.log('✅ Auth initialization complete')
     } catch {
       console.log('🔐 Auth initialization complete (user may not be authenticated)')
