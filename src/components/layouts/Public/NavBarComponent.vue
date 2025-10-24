@@ -146,12 +146,12 @@
                         class="recent-search-item"
                       >
                         <span class="recent-query">{{ search }}</span>
-                        <button
+                        <span
                           @click.stop="removeRecentSearch(index)"
-                          class="text-gray-400 hover:text-gray-600 transition-colors"
+                          class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                         >
                           <X class="w-3 h-3" />
-                        </button>
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -266,7 +266,7 @@
           </RouterLink>
 
           <!-- Currency Switcher -->
-          <CurrencySwitcher />
+          <CurrencySwitcher class="hidden lg:block" />
 
           <!-- Shopping Cart -->
           <CartHeaderIconSection />
