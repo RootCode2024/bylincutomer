@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import api from '@/api/axiosConfig'
+import api, { refreshCsrfToken } from '@/api/axiosConfig'
 import { API_ROUTES } from '@/utils/apiRoute'
 import { useAuthStore } from './auth'
 
@@ -127,6 +127,7 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true
     error.value = null
     try {
+      await refreshCsrfToken()
       const response = await api.post(API_ROUTES.customers.emailAvailable, { email })
       return response
     } catch (err) {

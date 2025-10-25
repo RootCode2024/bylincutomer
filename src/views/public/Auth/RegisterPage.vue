@@ -467,6 +467,7 @@ const handleEmailSubmit = async () => {
 
   try {
     isCheckingEmail.value = true
+    
     const response = await userStore.emailAvailable(email.value)
     console.log('Checked email:', response)
     

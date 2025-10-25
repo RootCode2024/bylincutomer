@@ -1,4 +1,3 @@
-// src/stores/auth.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api, { refreshCsrfToken } from '@/api/axiosConfig'
