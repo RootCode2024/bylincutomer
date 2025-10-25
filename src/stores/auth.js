@@ -87,6 +87,9 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
+      // 🧩 Rafraîchir le CSRF avant toute requête POST
+      await refreshCsrfToken()
+      
       const response = await api.post(API_ROUTES.auth.register, userData)
       if (!response?.otp_sent || !response?.user) throw new Error('Invalid server response')
       return response
