@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://bylin-style.com/sitemap.xml

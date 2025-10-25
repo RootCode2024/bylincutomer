@@ -9,7 +9,7 @@
         </div>
         <div class="hidden md:block absolute right-0 bottom-0 h-full w-2/3">
           <img 
-            src="@/assets/images/trending/fedora.png" 
+            src="@/assets/images/01.png" 
             alt="Fashion model"
             class="h-full w-full object-contain"
           />
