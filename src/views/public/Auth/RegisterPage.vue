@@ -408,7 +408,9 @@ import { ref, nextTick, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUserStore } from '@/stores/user'
 import { useStorage } from '@vueuse/core'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 
