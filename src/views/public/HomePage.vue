@@ -21,7 +21,7 @@
         <div class="container mx-auto px-6 max-w-7xl">
           <div class="text-center mb-16">
             <h2 class="text-4xl sm:text-5xl font-light mb-4">
-              Best <span class="italic">bylin</span> Collection
+              Best <span class="italic text-indigo-700">bylin</span> Collection
             </h2>
             <p class="text-xl text-gray-600 max-w-2xl mx-auto">
               Découvrez notre sélection exclusive de pièces signature
@@ -412,7 +412,7 @@
               Connectez-vous avec Nous
             </h2>
             <p class="text-xl text-gray-300 max-w-2xl mx-auto">
-              Suivez-nous sur Instagram @bylin
+              Suivez-nous sur Instagram @bylin_ex_bylcompany
             </p>
           </div>
           

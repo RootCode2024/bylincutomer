@@ -486,7 +486,7 @@ const searchQuery = ref('')
 const sortOption = ref('date-desc')
 const viewMode = ref('grid') // 'grid' ou 'list'
 const showShareModal = ref(false)
-const shareableLink = ref('https://bylin.site/wishlists/12345')
+const shareableLink = ref('http://localhost:5173/wishlists/12345')
 const copiedToClipboard = ref(false)
 
 // États pour les chargements

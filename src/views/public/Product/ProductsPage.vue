@@ -397,12 +397,22 @@
       </div>
     </div>
 
-    <ProductVariantModal
+    <!-- <ProductVariantModal
       :product="product"
       :is-open="showVariantModal"
       @close="showVariantModal = false"
       @added="onProductAdded"
-    />
+    /> -->
+
+    <!-- Toast de notification -->
+    <div v-if="showToast" class="fixed bottom-4 right-4 z-50">
+      <div class="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>{{ toastMessage }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -415,8 +425,11 @@ import { useProductStore } from '@/stores/product'
 import { useCategoryStore } from '@/stores/category'
 import ProductVariantModal from '@/components/Product/ProductVariantModal.vue'
 import { ChevronRight } from 'lucide-vue-next'
+
 const productStore = useProductStore()
 const categoryStore = useCategoryStore()
+const showToast = ref(false)
+const toastMessage = ref('')
 
 // Props du script fourni
 const products = ref([])
@@ -580,7 +593,6 @@ const loadProducts = async () => {
 
 const onProductAdded = () => {
   console.log('Produit ajouté !')
-  // Optionnel: afficher une notification toast
 }
 
 const selectCategory = (categoryId) => {
@@ -725,6 +737,9 @@ const addToCart = async () => {
 
     // Ajouter au store local
     cartStore.addItem(cartItem)
+
+    console.log('ajout au panier:okana ::::: ', cartItem)
+    showToastMessage(`${cartItem.name} ajoute au panier!`)
     
   } catch (error) {
     console.error('Erreur lors de l\'ajout au panier:', error)
@@ -732,6 +747,15 @@ const addToCart = async () => {
   } finally {
     isAddingToCart.value = false
   }
+}
+
+const showToastMessage = (message, type = 'success') => {
+  toastMessage.value = message
+  showToast.value = true
+  
+  setTimeout(() => {
+    showToast.value = false
+  }, 3000)
 }
 
 onMounted(() => {

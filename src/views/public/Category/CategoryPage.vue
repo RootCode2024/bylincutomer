@@ -4,7 +4,7 @@
     <div class="bg-gradient-to-r from-indigo-500 to-purple-400">
       <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between">
-          <div>
+          <div class="">
             <!-- Badge indiquant qu'il s'agit d'une catégorie spécifique -->
             <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20 text-white mb-3">
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
