@@ -30,7 +30,7 @@
               <h1 class="text-2xl font-bold text-gray-300 mb-2">
                 Content de vous revoir chez <span class="italic text-white">bylin</span>!
               </h1>
-              <p class="text-gray-300">Connectez-vous à votre compte.</p>
+              <p class="text-gray-900">Connectez-vous à votre compte.</p>
             </div>
 
             <form @submit.prevent="handleLogin" class="space-y-4">
@@ -170,7 +170,7 @@
             <div class="text-center mt-6">
               <p class="text-gray-200 text-sm">
                 Pas encore de compte? 
-                <router-link to="/register" class="text-white hover:text-white hover:underline font-medium transition-colors">
+                <router-link to="/register" class="text-white hover:text-black hover:underline font-medium transition-colors">
                   S'inscrire
                 </router-link>
               </p>

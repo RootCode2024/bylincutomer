@@ -203,7 +203,7 @@
                   </a>
                 </p>
                 <p class="text-sm text-gray-600 mb-2">
-                  <strong>Téléphone :</strong> +229 51 01 04 42
+                  <strong>Téléphone :</strong> +229 01 51 01 04 42
                 </p>
                 <p class="text-sm text-gray-600">
                   <strong>Adresse :</strong> Siège Social, Cotonou, Bénin

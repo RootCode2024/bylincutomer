@@ -5,7 +5,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="text-5xl font-bold mb-6">Notre Histoire</h1>
         <p class="text-xl opacity-90 max-w-3xl mx-auto">
-          Bylin - Redéfinir l'excellence à travers des produits soigneusement sélectionnés 
+          bylin - Redéfinir l'excellence à travers des produits soigneusement sélectionnés 
           et un service exceptionnel.
         </p>
       </div>
@@ -18,7 +18,7 @@
           <div>
             <h2 class="text-3xl font-bold text-gray-900 mb-6">Notre Mission</h2>
             <p class="text-lg text-gray-600 mb-6">
-              Chez Bylin, nous croyons que chaque produit raconte une histoire. 
+              Chez bylin, nous croyons que chaque produit raconte une histoire. 
               Notre mission est de vous offrir des articles qui allient qualité, 
               design et durabilité.
             </p>

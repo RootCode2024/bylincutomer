@@ -3,12 +3,12 @@
     name="scale-fade"
     appear
   >
-    <div class="w-full h-[100vh] flex bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div class="w-full h-[100vh] flex bg-indigo-800 rounded-2xl shadow-2xl overflow-hidden">
       <!-- Left Side - Fashion Image -->
       <div class="hidden md:flex md:w-1/2 relative overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-indigo-700/20 z-10"></div>
         <img 
-          src="https://images.unsplash.com/photo-1716004357049-8671b6cec216?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDV8fHxlbnwwfHx8fHw%3D&auto=format&fit=crop&q=60&w=600" 
+          src="@/assets/images/loginregister.jpg" 
           alt="Fashion" 
           class="w-full h-full object-cover object-top transform hover:scale-105 transition-transform duration-500"
         />
@@ -31,14 +31,14 @@
           <div class="max-w-md w-full">
             <div class="text-center mb-8">
               <transition name="bounce" appear>
-                <div class="inline-flex items-center justify-center mb-4">
+                <router-link to="/" class="inline-flex items-center justify-center mb-4">
                   <img src="/images/logo-white.png" alt="bylin logo" class="w-48 h-48 object-contain"/>
-                </div>
+                </router-link>
               </transition>
-              <h1 class="text-2xl font-bold text-gray-900 mb-2">
+              <h1 class="text-2xl font-bold text-gray-100 mb-2">
                 Mot de passe oublié?
               </h1>
-              <p class="text-gray-600">Entrez votre email pour réinitialiser votre mot de passe.</p>
+              <p class="text-gray-900">Entrez votre email pour réinitialiser votre mot de passe.</p>
             </div>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
@@ -87,7 +87,7 @@
               <button
                 type="submit"
                 :disabled="!email || isLoading"
-                class="w-full disabled:cursor-not-allowed disabled:opacity-50 bg-gradient-to-r from-indigo-700 to-indigo-800 hover:from-indigo-800 hover:to-indigo-900 text-white font-medium py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                class="w-full disabled:cursor-not-allowed disabled:opacity-50 bg-white text-black font-medium py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
               >
                 <span v-if="isLoading">
                   <svg class="animate-spin h-5 w-5 mr-3 inline-block text-white" viewBox="0 0 24 24">
@@ -101,8 +101,8 @@
             </form>
 
             <div class="text-center mt-6">
-              <p class="text-gray-600 text-sm">
-                <router-link to="/login" class="text-indigo-700 hover:text-indigo-800 hover:underline font-medium transition-colors">
+              <p class="text-gray-900 text-sm">
+                <router-link to="/login" class="text-gray-900 hover:text-white hover:underline font-medium transition-colors">
                   Retour à la connexion
                 </router-link>
               </p>

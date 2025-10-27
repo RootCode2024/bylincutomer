@@ -276,6 +276,18 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
+  async function fetchSharedCartByToken(token) {
+    try {
+      const response = await api.get(API_ROUTES.cart.shared.publicSingle(token))
+      console.log('GGGGGG : ', response)
+      sharedCarts.value = response.data || []
+      return response
+    } catch (err) {
+      console.error('Erreur récupération shared carts:', err)
+      throw err
+    }
+  }
+
   async function deleteSharedCart(id) {
     try {
       await api.delete(API_ROUTES.cart.shared.delete(id))
@@ -284,6 +296,30 @@ export const useCartStore = defineStore('cart', () => {
     } catch (err) {
       console.error('Erreur suppression shared cart:', err)
       throw err
+    }
+  }
+
+  async function sharedCartProccessPayment(token, data) {
+    try {
+      errorMessage.value = '';
+
+      const payload = {
+        amount: data.amount,
+        payment_method: data.payment_method,
+        percentage: data.percentage ?? 100,
+        mobile_money_provider: data.mobile_money_provider ?? 'mtn',
+        phone: data.phone,
+        user_name: data.user_name,
+        user_email: data.user_email,
+      };
+
+      // Création de la commande avec votre API sécurisée
+      const response = await api.post(API_ROUTES.cart.shared.processPayment(token), payload);
+
+      return response
+      
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -299,7 +335,7 @@ export const useCartStore = defineStore('cart', () => {
     applyCoupon, resetCoupon,
     setDeliveryInfo, loadDeliveryInfo,
     syncCartWithServer, loadCartFromServer,
-    storeSharedCart, fetchSharedCarts, deleteSharedCart,
+    storeSharedCart, fetchSharedCarts, deleteSharedCart, fetchSharedCartByToken, sharedCartProccessPayment,
     addToFavorite: (item) => { if (!favorite.value.some(f => f.id === item.id)) favorite.value.push(item) },
     removeFromFavorite: (id) => { favorite.value = favorite.value.filter(f => f.id !== id) },
     toggleFavorite: (item) => { favorite.value.some(f => f.id === item.id) ? favorite.value = favorite.value.filter(f => f.id !== item.id) : favorite.value.push(item) }

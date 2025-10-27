@@ -177,9 +177,9 @@
               <Mail class="w-4 h-4 mr-2" />
               support@bylin-style.com
             </a>
-            <a href="tel:+22912345678" class="hover:text-white transition-colors flex items-center">
+            <a href="tel:+2290152010442" class="hover:text-white transition-colors flex items-center">
               <Phone class="w-4 h-4 mr-2" />
-              +229 12 34 56 78
+              +229 01 52 01 04 42
             </a>
           </div>
         </div>

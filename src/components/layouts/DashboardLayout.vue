@@ -1,10 +1,10 @@
 <template>
 <div class="min-h-screen bg-white">
   <!-- Sidebar Navigation Client -->
-  <aside class="bg-white border-r border-gray-200 -translate-x-80 fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 rounded-xl transition-transform duration-300 xl:translate-x-0">
+  <aside class="bg-indigo-800 border-r border-gray-200 -translate-x-80 fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 rounded-xl transition-transform duration-300 xl:translate-x-0">
     <div class="relative border-b border-gray-200">
       <router-link class="flex items-center gap-4" to="/">
-       <img src="@/assets/images/logo-white.png" class="h-32 w-32 object-cover" />
+       <img src="@/assets/images/logo-white.png" class="h-32 w-32 object-contain" />
       </router-link>
       <button class="middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-8 max-w-[32px] h-8 max-h-[32px] rounded-lg text-xs text-gray-900 hover:bg-gray-100 active:bg-gray-200 absolute right-0 top-0 grid rounded-br-none rounded-tl-none xl:hidden" type="button">
         <span class="absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
@@ -30,23 +30,13 @@
       </ul>
       <ul class="mb-4 flex flex-col gap-1">
         <li class="mx-3.5 mt-4 mb-2">
-          <p class="block antialiased font-sans text-sm leading-normal text-gray-600 font-black uppercase opacity-75">Paramètres</p>
+          <p class="block antialiased font-sans text-sm leading-normal text-gray-100 font-black uppercase opacity-75">Paramètres</p>
         </li>
         <li>
           <router-link class="" to="/dashboard/activities-log">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 w-full flex items-center gap-4 px-4 capitalize" type="button">
+            <button :class="(router.currentRoute.value.name === 'dashboard.activities.log') ? 'bg-white text-indigo-800' : 'text-white hover:bg-indigo-700'" class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg w-full flex items-center gap-4 px-4 capitalize" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
               <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Historiques</p>
-            </button>
-          </router-link>
-        </li>
-        <li>
-          <router-link class="" to="">
-            <button class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 w-full flex items-center gap-4 px-4 capitalize" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-5 h-5 text-inherit">
-                <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z" clip-rule="evenodd" />
-              </svg>
-              <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Parametre</p>
             </button>
           </router-link>
         </li>
@@ -56,7 +46,7 @@
 
   <!-- Main Content Area -->
   <div class="p-4 xl:ml-80">
-    <nav class="block w-full max-w-full bg-white text-gray-900 shadow-sm rounded-xl transition-all px-0 py-1 border border-gray-200">
+    <nav class="block w-full max-w-full bg-white text-gray-900 shadow-sm transition-all px-0 py-1">
       <div class="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
         <div class="capitalize">
           <h6 class="block antialiased tracking-normal font-sans text-base font-semibold leading-relaxed text-gray-900">Bienvenue, {{ authStore?.user?.name }}</h6>
@@ -71,7 +61,7 @@
           </button>
           <div class="relative mx-4">
             <button
-              class="middle none font-sans font-bold center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 flex items-center gap-1 px-4 border border-gray-200"
+              class="middle none font-sans font-bold center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 flex items-center gap-1 px-4"
               type="button"
               @click="dropdownOpen = !dropdownOpen"
             >
@@ -218,9 +208,9 @@ const getNavItemClasses = (itemPath) => {
   const isActive = isActiveRoute(itemPath);
   
   if (isActive) {
-    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg bg-indigo-800 text-white shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/40 active:opacity-[0.85] w-full flex items-center gap-4 px-4 capitalize';
+    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg bg-white text-indigo-700 shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/40 active:opacity-[0.85] w-full flex items-center gap-4 px-4 capitalize';
   } else {
-    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 w-full flex items-center gap-4 px-4 capitalize';
+    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-100 hover:bg-indigo-700 active:bg-indigo-800/20 w-full flex items-center gap-4 px-4 capitalize';
   }
 };
 

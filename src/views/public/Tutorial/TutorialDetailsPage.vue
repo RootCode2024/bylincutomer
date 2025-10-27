@@ -328,12 +328,12 @@ const loadTutorial = async () => {
     loading.value = true
     error.value = null
     
-    const response = await productStore.getTutorial(route.params.slug)
+    const response = await productStore.fetchTutorial(route.params.slug)
     
     if (response.success) {
       tutorial.value = response.data.tutorial
-      relatedTutorials.value = response.data.related_tutorials
-      purchasedTutorials.value = response.data.purchased_tutorials
+      // relatedTutorials.value = response.data?.related_tutorials
+      // purchasedTutorials.value = response.data?.purchased_tutorials
     }
   } catch (err) {
     console.error('Erreur lors du chargement du tutoriel:', err)

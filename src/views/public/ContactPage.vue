@@ -248,7 +248,7 @@
                   v-model="form.phone"
                   type="tel"
                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="+229 12 34 56 78"
+                  placeholder="+229 01 52 01 04 42"
                 >
               </div>
             </div>
@@ -332,7 +332,7 @@
         <div class="text-center">
           <h2 class="text-2xl font-bold text-gray-900 mb-4">Suivez-nous</h2>
           <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Restez connecté avec Bylin et soyez le premier à découvrir nos nouvelles collections, 
+            Restez connecté avec bylin et soyez le premier à découvrir nos nouvelles collections, 
             promotions exclusives et actualités.
           </p>
           <div class="flex justify-center space-x-6">

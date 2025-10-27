@@ -7,11 +7,11 @@
           <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.093a3.5 3.5 0 00-2.672 3.406 1 1 0 102 0 1.5 1.5 0 111.5 1.5v1a1 1 0 102 0v-1a3.5 3.5 0 00-3.5-3.5V5z"/>
           </svg>
-          <span class="text-xl font-bold">Bylin</span>
+          <span class="text-xl font-bold">bylin</span>
         </router-link>
         <div class="flex items-center space-x-4">
           <span class="text-sm text-gray-600">Besoin d'aide ?</span>
-          <span class="text-sm text-indigo-600 font-medium">+229 61 27 15 21</span>
+          <span class="text-sm text-indigo-600 font-medium">+229 01 52 01 04 42</span>
         </div>
       </div>
     </div>
@@ -314,68 +314,6 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- Carte de crédit -->
-                <div v-else-if="paymentMethod === 'credit_card'" class="space-y-4 p-4 bg-white border border-gray-200 rounded-lg">
-                  <div class="grid grid-cols-1 gap-4">
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Numéro de carte *</label>
-                      <input 
-                        type="text" 
-                        v-model="payment.cardNumber" 
-                        placeholder="1234 5678 9012 3456"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                        required
-                      >
-                    </div>
-                    
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Nom sur la carte *</label>
-                      <input 
-                        type="text" 
-                        v-model="payment.cardName" 
-                        placeholder="John Doe"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                        required
-                      >
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Date d'expiration *</label>
-                        <input 
-                          type="text" 
-                          v-model="payment.expiryDate" 
-                          placeholder="MM/AA"
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                          required
-                        >
-                      </div>
-                      
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">CVV *</label>
-                        <input 
-                          type="text" 
-                          v-model="payment.cvv" 
-                          placeholder="123"
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                          required
-                        >
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- PayPal -->
-                <div v-else-if="paymentMethod === 'paypal'" class="p-6 bg-white border border-gray-200 rounded-lg text-center">
-                  <div class="mb-4">
-                    <div class="w-16 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg mx-auto flex items-center justify-center text-white font-bold text-xs">
-                      PayPal
-                    </div>
-                  </div>
-                  <h3 class="text-md font-medium text-gray-900 mb-2">Paiement sécurisé avec PayPal</h3>
-                  <p class="text-sm text-gray-600">Vous serez redirigé vers PayPal pour finaliser votre paiement</p>
-                </div>
               </div>
 
               <!-- Bouton de paiement -->
@@ -474,15 +412,13 @@ const userName = ref('')
 const userEmail = ref('')
 
 const paymentTabs = ref([
-  { id: 'mobile_money', label: '📱 Mobile Money' },
-  { id: 'credit_card', label: '💳 Carte de crédit' },
-  { id: 'paypal', label: '🅿️ PayPal' }
+  { id: 'mobile_money', label: '📱 Mobile Money' }
 ])
 
 const mobileMoneyMethods = ref([
   { id: 'mtn', name: 'MTN Mobile Money' },
   { id: 'moov', name: 'Moov Money' },
-  { id: 'orange', name: 'Orange Money' }
+  { id: 'celtiis', name: 'Celtiis cash' }
 ])
 
 // Récupérer le token depuis l'URL
@@ -541,21 +477,6 @@ const canProcessPayment = computed(() => {
       return selectedMobileMoney.value && 
              mobilePayment.value.phone &&
              mobilePayment.value.phone.replace(/\s/g, '').length >= 8
-
-    case 'credit_card':
-      const cardNumber = payment.value.cardNumber.replace(/\s/g, '')
-      const cardName = payment.value.cardName.trim()
-      const expiryDate = payment.value.expiryDate.trim()
-      const cvv = payment.value.cvv.trim()
-      
-      return cardNumber.length >= 15 &&
-             cardName.length > 0 &&
-             /^\d{2}\/\d{2}$/.test(expiryDate) &&
-             /^\d{3,4}$/.test(cvv)
-
-    case 'paypal':
-      return true // PayPal ne nécessite pas de validation côté client
-
     default:
       return false
   }
@@ -601,10 +522,6 @@ const getPaymentButtonText = () => {
   
   if (paymentMethod.value === 'mobile_money') {
     return `Payer ${amount}${percentageText} par Mobile Money`
-  } else if (paymentMethod.value === 'credit_card') {
-    return `Payer ${amount}${percentageText} par Carte`
-  } else if (paymentMethod.value === 'paypal') {
-    return `Payer ${amount}${percentageText} avec PayPal`
   }
   
   return `Payer ${amount}${percentageText}`
@@ -641,10 +558,10 @@ const processPayment = async () => {
 
     console.log('Données de paiement envoyées:', paymentData)
 
-    const response = await cartStore.processPayment(false, paymentData)
+    const response = await cartStore.sharedCartProccessPayment(token.value, paymentData)
     
-    if (response.data.success) {
-      const responseData = response.data.data
+    if (response.success) {
+      const responseData = response.data
       
       // Mettre à jour les données du panier
       if (responseData.shared_cart) {
@@ -688,7 +605,7 @@ const fetchSharedCart = async () => {
     loading.value = true
     error.value = ''
     
-    const response = await cartStore.getSharedCartByToken(token.value)
+    const response = await cartStore.fetchSharedCartByToken(token.value)
     console.log('Données du panier partagé reçues:', response)
 
     if (response.success) {

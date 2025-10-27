@@ -46,7 +46,7 @@ const handleSubscribe = async () => {
     email.value = ''
   } catch (error) {
     success.value = false
-    message.value = error.response?.data?.message || 'Erreur, réessayez.'
+    message.value = error || 'Erreur, réessayez.'
   } finally {
     loading.value = false
     setTimeout(() => { message.value = '' }, 3000)

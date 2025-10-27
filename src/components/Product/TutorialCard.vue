@@ -2,7 +2,7 @@
   <div class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 group">
     <div class="relative overflow-hidden">
       <img 
-        :src="tutorial.image || '/images/tutorials/default.jpg'" 
+        :src="tutorial.image || 'https://placehold.co/80?text=bylin+Tutorials'" 
         :alt="tutorial.title"
         class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
       >

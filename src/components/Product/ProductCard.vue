@@ -120,9 +120,7 @@ const openVariantModal = () => {
 }
 
 const onProductAdded = (cartItem) => {
-  console.log('Produit ajouté:', cartItem)
-  console.log('ajout au panier:okana ::::: ', cartItem)
-    showToastMessage(`${cartItem.name} ajoute au panier!`)
+  showToastMessage(`${cartItem.name} ajoute au panier!`)
 }
 
 const formattedPrice = computed(() => {

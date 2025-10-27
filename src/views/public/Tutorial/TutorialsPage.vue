@@ -296,8 +296,8 @@ const totalPages = computed(() => {
 const loadTutorials = async () => {
   try {
     loading.value = true
-    const tutorialsResponse = await productStore.getTutorials()
-    const categoriesResponse = await productStore.getTutorialCategories()
+    const tutorialsResponse = await productStore.fetchTutorials()
+    const categoriesResponse = await productStore.fetchTutorialsCategories()
     
     if (tutorialsResponse.success) {
       tutorials.value = tutorialsResponse.data
@@ -312,33 +312,34 @@ const loadTutorials = async () => {
         count: cat.tutorials_count
       }))
     }
+    console.log('chargement des tutoriels cat ::::::', categoriesResponse)
   } catch (error) {
     console.error('Erreur lors du chargement des tutoriels:', error)
     // Fallback data avec les nouvelles catégories
-    tutorials.value = [
-      {
-        id: 1,
-        title: 'Tenue parfaite pour un premier rendez-vous',
-        description: 'Découvrez comment créer une tenue qui vous met en confiance pour ce moment spécial',
-        price: 0,
-        is_premium: false,
-        preview_content: { duration: '12:45' },
-        level: 'débutant',
-        format: 'video',
-        categories: [{ slug: 'premier-rendez-vous' }],
-        instructor: { name: 'Sophie Style', expertise: 'Experte en relations' }
-      }
-    ]
-    categories.value = [
-      { id: 1, name: 'Dîner de Gala', slug: 'diner-gala', emoji: '🎩', count: 3 },
-      { id: 2, name: 'Premier Rendez-vous', slug: 'premier-rendez-vous', emoji: '💕', count: 2 },
-      { id: 3, name: 'Soirée Jeu', slug: 'soiree-jeu', emoji: '🎲', count: 1 },
-      { id: 4, name: 'Cérémonie de Mariage', slug: 'ceremonie-mariage', emoji: '💒', count: 2 },
-      { id: 5, name: 'Réunion d\'Affaires', slug: 'reunion-affaires', emoji: '💼', count: 1 },
-      { id: 6, name: 'Brunch Dominical', slug: 'brunch-dominical', emoji: '🥂', count: 1 },
-      { id: 7, name: 'Soirée Élégante', slug: 'soiree-elegante', emoji: '✨', count: 3 },
-      { id: 8, name: 'Événement Culturel', slug: 'evenement-culturel', emoji: '🎭', count: 1 }
-    ]
+    // tutorials.value = [
+    //   {
+    //     id: 1,
+    //     title: 'Tenue parfaite pour un premier rendez-vous',
+    //     description: 'Découvrez comment créer une tenue qui vous met en confiance pour ce moment spécial',
+    //     price: 0,
+    //     is_premium: false,
+    //     preview_content: { duration: '12:45' },
+    //     level: 'débutant',
+    //     format: 'video',
+    //     categories: [{ slug: 'premier-rendez-vous' }],
+    //     instructor: { name: 'Sophie Style', expertise: 'Experte en relations' }
+    //   }
+    // ]
+    // categories.value = [
+    //   { id: 1, name: 'Dîner de Gala', slug: 'diner-gala', emoji: '🎩', count: 3 },
+    //   { id: 2, name: 'Premier Rendez-vous', slug: 'premier-rendez-vous', emoji: '💕', count: 2 },
+    //   { id: 3, name: 'Soirée Jeu', slug: 'soiree-jeu', emoji: '🎲', count: 1 },
+    //   { id: 4, name: 'Cérémonie de Mariage', slug: 'ceremonie-mariage', emoji: '💒', count: 2 },
+    //   { id: 5, name: 'Réunion d\'Affaires', slug: 'reunion-affaires', emoji: '💼', count: 1 },
+    //   { id: 6, name: 'Brunch Dominical', slug: 'brunch-dominical', emoji: '🥂', count: 1 },
+    //   { id: 7, name: 'Soirée Élégante', slug: 'soiree-elegante', emoji: '✨', count: 3 },
+    //   { id: 8, name: 'Événement Culturel', slug: 'evenement-culturel', emoji: '🎭', count: 1 }
+    // ]
   } finally {
     loading.value = false
   }

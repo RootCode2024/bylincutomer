@@ -94,7 +94,7 @@
               type="tel" 
               id="phone" 
               v-model="address.phone" 
-              placeholder="Ex: +229 12 34 56 78" 
+              placeholder="Ex: +229 52 01 04 42" 
               required
             >
           </div>

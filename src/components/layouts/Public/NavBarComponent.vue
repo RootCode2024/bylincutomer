@@ -9,14 +9,15 @@
           <button
             @click="mobileMenuOpen = !mobileMenuOpen"
             class="p-2 text-white hover:text-gray-200 transition-colors"
+            aria-label="Menu mobile"
           >
             <Menu v-if="!mobileMenuOpen" class="w-6 h-6" />
             <X v-else class="w-6 h-6" />
           </button>
         </div>
 
-        <!-- Main Navigation -->
-        <nav class="main-nav" v-if="!route.path.startsWith('/collections')">
+        <!-- Main Navigation - Desktop -->
+        <nav class="main-nav hidden lg:flex" v-if="!route.path.startsWith('/collections')">
           <RouterLink
             v-for="item in mainLinks"
             :key="item.to"
@@ -35,12 +36,13 @@
         </nav>
 
         <!-- Logo -->
-        <div class="logo">
-          <RouterLink to="/">
+        <div class="logo flex-1 lg:flex-none text-center lg:text-left">
+          <RouterLink to="/" class="inline-block">
             <img
               src="@/assets/images/logo-white.png"
-              class="lg:w-24 lg:h-24 w-16 h-16 object-contain"
+              class="lg:w-24 lg:h-24 w-12 h-12 object-contain mx-auto lg:mx-0"
               alt="Logo"
+              loading="lazy"
             />
           </RouterLink>
         </div>
@@ -51,8 +53,9 @@
           <div class="relative">
             <button
               @click="toggleSearch"
-              class="icon"
+              class="icon p-2"
               :class="{ 'text-white': searchOpen }"
+              aria-label="Recherche"
             >
               <Search stroke-width="1" class="w-5 h-5 text-white" />
             </button>
@@ -62,7 +65,7 @@
               <div class="search-container" @click.stop>
                 <!-- Search Input -->
                 <div class="search-input-wrapper">
-                  <Search class="w-5 h-5 text-gray-400" />
+                  <Search class="w-5 h-5 text-gray-400 flex-shrink-0" />
                   <input
                     ref="searchInput"
                     v-model="searchQuery"
@@ -75,13 +78,14 @@
                   <button
                     v-if="searchQuery"
                     @click="clearSearch"
-                    class="text-gray-400 hover:text-gray-600 transition-colors"
+                    class="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                    aria-label="Effacer la recherche"
                   >
                     <X class="w-4 h-4" />
                   </button>
                   <Loader2 
                     v-if="searchStore.isLoading" 
-                    class="w-4 h-4 animate-spin text-blue-600" 
+                    class="w-4 h-4 animate-spin text-blue-600 flex-shrink-0" 
                   />
                 </div>
 
@@ -98,7 +102,7 @@
                         class="quick-category-btn"
                       >
                         <span class="emoji">{{ category.emoji }}</span>
-                        {{ category.name }}
+                        <span class="quick-category-text">{{ category.name }}</span>
                       </button>
                     </div>
                   </div>
@@ -148,7 +152,7 @@
                         <span class="recent-query">{{ search }}</span>
                         <span
                           @click.stop="removeRecentSearch(index)"
-                          class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                          class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer flex-shrink-0"
                         >
                           <X class="w-3 h-3" />
                         </span>
@@ -170,7 +174,7 @@
                         class="suggestion-item"
                       >
                         {{ suggestion }}
-                        <ArrowRight class="w-3 h-3" />
+                        <ArrowRight class="w-3 h-3 flex-shrink-0" />
                       </button>
                     </div>
                   </div>
@@ -194,7 +198,8 @@
                         <img 
                           :src="result.images?.[0]?.url || '/images/placeholder.jpg'" 
                           :alt="result.name"
-                          class="w-12 h-12 object-cover rounded-lg"
+                          class="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                          loading="lazy"
                         />
                         <div class="result-info">
                           <span class="result-name">{{ result.name }}</span>
@@ -210,7 +215,7 @@
                   <!-- Loading State -->
                   <div v-if="searchStore.isLoading && searchQuery" class="search-section">
                     <div class="flex items-center justify-center py-8">
-                      <Loader2 class="w-6 h-6 animate-spin text-blue-600 mr-2" />
+                      <Loader2 class="w-6 h-6 animate-spin text-blue-600 mr-2 flex-shrink-0" />
                       <span class="text-gray-600">Recherche en cours...</span>
                     </div>
                   </div>
@@ -235,7 +240,7 @@
                   >
                     <div class="bg-red-50 border border-red-200 rounded-lg p-4">
                       <div class="flex items-center">
-                        <XCircle class="w-5 h-5 text-red-500 mr-2" />
+                        <XCircle class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" />
                         <p class="text-red-800 text-sm">
                           {{ searchStore.error }}
                         </p>
@@ -253,15 +258,16 @@
           <!-- Wishlist -->
           <RouterLink
             to="/wishlists"
-            class="icon relative text-white"
+            class="icon relative p-2 text-white"
             :class="{ 'text-red-500': wishlistStore.items.length }"
+            aria-label="Liste de souhaits"
           >
             <Heart stroke-width="1" class="w-5 h-5" />
             <span
               v-if="wishlistStore.items.length"
-              class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
+              class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center min-w-[1rem]"
             >
-              {{ wishlistStore.items.length }}
+              {{ wishlistStore.items.length > 99 ? '99+' : wishlistStore.items.length }}
             </span>
           </RouterLink>
 
@@ -274,20 +280,22 @@
       </div>
 
       <!-- Secondary Navigation -->
-      <nav class="secondary-nav" v-if="!route.path.startsWith('/collections')">
-        <RouterLink
-          v-for="item in navItems"
-          :key="item.id"
-          :to="`/shop/category/${item.slug}`"
-          :class="[
-            'nav-item',
-            {
-              sale: item.name === 'Sale',
-            },
-          ]"
-        >
-          {{ item.name }}
-        </RouterLink>
+      <nav class="secondary-nav" v-if="!route.path.startsWith('/collections') && navItems?.length">
+        <div class="secondary-nav-container">
+          <RouterLink
+            v-for="item in navItems"
+            :key="item.id"
+            :to="`/shop/category/${item.slug}`"
+            :class="[
+              'nav-item',
+              {
+                sale: item.name === 'Sale',
+              },
+            ]"
+          >
+            {{ item.name }}
+          </RouterLink>
+        </div>
       </nav>
 
       <!-- Mobile Menu -->
@@ -297,10 +305,24 @@
         @click="closeAllMenus"
       >
         <div class="mobile-menu-content" @click.stop>
+          <!-- Mobile Header -->
+          <div class="mobile-menu-header">
+            <button
+              @click="closeAllMenus"
+              class="p-2 text-gray-600 hover:text-gray-900"
+              aria-label="Fermer le menu"
+            >
+              <X class="w-6 h-6" />
+            </button>
+          </div>
+          
+          <!-- User Account -->
+          <UserHeaderIconSection />
+
           <!-- Mobile Search -->
           <div class="mobile-search">
             <div class="search-input-wrapper">
-              <Search class="w-5 h-5 text-gray-400" />
+              <Search class="w-5 h-5 text-gray-400 flex-shrink-0" />
               <input
                 v-model="mobileSearchQuery"
                 type="text"
@@ -310,7 +332,8 @@
               />
               <button
                 @click="submitMobileSearch"
-                class="text-gray-400 hover:text-gray-600 transition-colors"
+                class="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                aria-label="Rechercher"
               >
                 <ArrowRight class="w-4 h-4" />
               </button>
@@ -330,7 +353,7 @@
             </RouterLink>
 
             <!-- Mobile Categories -->
-            <div class="mobile-categories">
+            <div class="mobile-categories" v-if="apiCategories.length">
               <h3 class="mobile-categories-title">Catégories</h3>
               <div class="mobile-categories-list">
                 <div
@@ -339,17 +362,17 @@
                   class="mobile-category"
                 >
                   <RouterLink
-                    :to="`/category/${category.slug}`"
+                    :to="`/shop/category/${category.slug}`"
                     class="mobile-category-main"
                     @click="closeAllMenus"
                   >
                     {{ category.name }}
                   </RouterLink>
-                  <div class="mobile-category-children">
+                  <div class="mobile-category-children" v-if="category.children?.length">
                     <RouterLink
                       v-for="child in category.children"
                       :key="child.id"
-                      :to="`/category/${child.slug}`"
+                      :to="`/shop/category/${child.slug}`"
                       class="mobile-category-child"
                       @click="closeAllMenus"
                     >
@@ -393,6 +416,7 @@
         <div
           class="slide-bg"
           :style="{ backgroundImage: `url(${slide.image})` }"
+          :aria-label="`Slide ${index + 1}: ${slide.title}`"
         ></div>
 
         <!-- Overlay -->
@@ -431,6 +455,7 @@
           :key="index"
           @click="goToSlide(index)"
           :class="['nav-bullet', { active: currentSlide === index }]"
+          :aria-label="`Aller au slide ${index + 1}`"
         ></button>
       </div>
     </div>
@@ -916,19 +941,33 @@ onBeforeUnmount(() => {
 /* Header */
 .top-header {
   background-color: #0066bf;
-  padding: 10px 40px;
+  padding: 12px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #e0e0e0;
   position: relative;
   z-index: 100;
+  gap: 16px;
+}
+
+@media (min-width: 1024px) {
+  .top-header {
+    padding: 10px 40px;
+    gap: 0;
+  }
 }
 
 .main-nav {
-  display: flex;
+  display: none;
   gap: 30px;
   align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .main-nav {
+    display: flex;
+  }
 }
 
 .nav-link {
@@ -939,6 +978,7 @@ onBeforeUnmount(() => {
   padding-bottom: 12px;
   position: relative;
   transition: color 0.3s;
+  white-space: nowrap;
 }
 
 .nav-link.active {
@@ -974,14 +1014,29 @@ onBeforeUnmount(() => {
 
 .header-icons {
   display: flex;
-  gap: 25px;
+  gap: 12px;
   align-items: center;
+}
+
+@media (min-width: 640px) {
+  .header-icons {
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-icons {
+    gap: 25px;
+  }
 }
 
 .icon {
   cursor: pointer;
   font-size: 20px;
   transition: color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .icon:hover {
@@ -999,16 +1054,22 @@ onBeforeUnmount(() => {
   z-index: 2000;
   display: flex;
   justify-content: center;
-  padding-top: 100px;
+  align-items: flex-start;
+  padding: 80px 16px 16px;
+}
+
+@media (min-width: 640px) {
+  .search-overlay {
+    padding: 100px 20px 20px;
+  }
 }
 
 .search-container {
   background: white;
   border-radius: 12px;
-  width: 90%;
+  width: 100%;
   max-width: 600px;
-  height: fit-content;
-  max-height: 80vh;
+  max-height: calc(100vh - 100px);
   overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
@@ -1017,9 +1078,15 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 20px;
+  padding: 16px;
   border-bottom: 1px solid #e5e5e5;
   position: relative;
+}
+
+@media (min-width: 640px) {
+  .search-input-wrapper {
+    padding: 20px;
+  }
 }
 
 .search-input {
@@ -1028,14 +1095,21 @@ onBeforeUnmount(() => {
   outline: none;
   font-size: 16px;
   background: transparent;
+  min-width: 0;
 }
 
 .search-content {
-  padding: 20px;
+  padding: 16px;
+}
+
+@media (min-width: 640px) {
+  .search-content {
+    padding: 20px;
+  }
 }
 
 .search-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .search-section-title {
@@ -1045,13 +1119,19 @@ onBeforeUnmount(() => {
   font-size: 14px;
   font-weight: 600;
   color: #666;
-  margin-bottom: 12px
+  margin-bottom: 12px;
 }
 
 .quick-categories {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+}
+
+@media (min-width: 480px) {
+  .quick-categories {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .quick-category-btn {
@@ -1064,6 +1144,7 @@ onBeforeUnmount(() => {
   background: white;
   cursor: pointer;
   transition: all 0.3s;
+  min-width: 0;
 }
 
 .quick-category-btn:hover {
@@ -1071,8 +1152,15 @@ onBeforeUnmount(() => {
   background: #f8f8f8;
 }
 
+.quick-category-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .emoji {
   font-size: 16px;
+  flex-shrink: 0;
 }
 
 .trending-searches,
@@ -1090,11 +1178,12 @@ onBeforeUnmount(() => {
 .search-result-item {
   display: flex;
   align-items: center;
-  justify-content: between;
+  justify-content: space-between;
   padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.3s;
+  min-width: 0;
 }
 
 .trending-search-item:hover,
@@ -1106,11 +1195,16 @@ onBeforeUnmount(() => {
 
 .trending-query {
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trending-count {
   font-size: 12px;
   color: #999;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 
 .recent-search-item {
@@ -1123,6 +1217,8 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .suggestion-item {
@@ -1137,20 +1233,21 @@ onBeforeUnmount(() => {
   gap: 12px;
   text-decoration: none;
   color: inherit;
-}
-
-.result-emoji {
-  font-size: 20px;
+  min-width: 0;
 }
 
 .result-info {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .result-name {
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .result-category {
@@ -1160,6 +1257,8 @@ onBeforeUnmount(() => {
 
 .result-price {
   font-weight: 600;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 
 .search-no-results {
@@ -1183,20 +1282,31 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 80%;
-  max-width: 400px;
+  width: 85%;
+  max-width: 320px;
   height: 100%;
   background: white;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-menu-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .mobile-search {
-  padding: 20px;
+  padding: 16px;
   border-bottom: 1px solid #e5e5e5;
 }
 
 .mobile-nav {
-  padding: 20px;
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
 }
 
 .mobile-nav-link {
@@ -1206,6 +1316,7 @@ onBeforeUnmount(() => {
   color: #333;
   border-bottom: 1px solid #f0f0f0;
   position: relative;
+  font-size: 16px;
 }
 
 .mobile-nav-link.active {
@@ -1229,6 +1340,7 @@ onBeforeUnmount(() => {
 .mobile-categories-title {
   font-weight: 600;
   margin-bottom: 12px;
+  font-size: 18px;
 }
 
 .mobile-categories-list {
@@ -1243,6 +1355,7 @@ onBeforeUnmount(() => {
   color: #000;
   text-decoration: none;
   margin-bottom: 8px;
+  font-size: 16px;
 }
 
 .mobile-category-children {
@@ -1256,25 +1369,48 @@ onBeforeUnmount(() => {
   color: #666;
   text-decoration: none;
   font-size: 14px;
-  padding: 4px 0;
+  padding: 6px 0;
 }
 
 .mobile-menu-footer {
-  padding: 20px;
+  padding: 16px;
   border-top: 1px solid #e5e5e5;
+  margin-top: auto;
 }
 
 /* Secondary Nav */
 .secondary-nav {
   background-color: #fff;
-  padding: 20px 40px;
-  display: flex;
-  justify-content: center;
-  gap: 35px;
+  padding: 16px 20px;
   border-bottom: 1px solid #e0e0e0;
   position: relative;
   z-index: 40;
-  flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.secondary-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.secondary-nav-container {
+  display: flex;
+  gap: 20px;
+  min-width: max-content;
+  justify-content: flex-start;
+}
+
+@media (min-width: 768px) {
+  .secondary-nav {
+    padding: 20px 40px;
+  }
+  
+  .secondary-nav-container {
+    justify-content: center;
+    gap: 35px;
+  }
 }
 
 .nav-item {
@@ -1282,6 +1418,8 @@ onBeforeUnmount(() => {
   text-decoration: none;
   font-size: 13px;
   transition: color 0.3s;
+  white-space: nowrap;
+  padding: 4px 0;
 }
 
 .nav-item:hover {
@@ -1299,18 +1437,25 @@ onBeforeUnmount(() => {
 }
 
 /* Slider Container */
-div .slider-container {
-  background-color: #0066bf;
-}
-
 .slider-container {
   position: relative;
   width: 100%;
-  height: 80vh;
+  height: 60vh;
   overflow: hidden;
   background: #000;
   background-color: #0066bf;
-  opacity: 0.5;
+}
+
+@media (min-width: 768px) {
+  .slider-container {
+    height: 70vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .slider-container {
+    height: 80vh;
+  }
 }
 
 .rev-slide {
@@ -1333,6 +1478,8 @@ div .slider-container {
   position: absolute;
   width: 100%;
   height: 100%;
+  background-size: cover;
+  background-position: center;
   transform: scale(1);
   transition: transform 8s ease-out;
 }
@@ -1363,11 +1510,18 @@ div .slider-container {
 
 .particle {
   position: absolute;
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   background: rgba(255, 255, 255, 0.5);
   border-radius: 50%;
   animation: float 15s infinite;
+}
+
+@media (min-width: 768px) {
+  .particle {
+    width: 4px;
+    height: 4px;
+  }
 }
 
 @keyframes float {
@@ -1393,46 +1547,108 @@ div .slider-container {
   position: relative;
   z-index: 10;
   max-width: 1200px;
-  padding: 0 60px;
+  padding: 0 20px;
   color: #fff;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .slide-content {
+    padding: 0 40px;
+    text-align: left;
+  }
+}
+
+@media (min-width: 1024px) {
+  .slide-content {
+    padding: 0 60px;
+  }
 }
 
 .slide-title {
-  font-size: 80px;
+  font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
   line-height: 1.1;
   opacity: 0;
   transform: translateY(50px);
   animation: slideUp 1s ease-out forwards;
 }
 
+@media (min-width: 640px) {
+  .slide-title {
+    font-size: 3.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .slide-title {
+    font-size: 4rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .slide-title {
+    font-size: 5rem;
+  }
+}
+
 .slide-subtitle {
-  font-size: 28px;
+  font-size: 1.25rem;
   font-weight: 300;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
   opacity: 0;
   transform: translateY(50px);
   animation: slideUp 1s ease-out 0.3s forwards;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+}
+
+@media (min-width: 768px) {
+  .slide-subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .slide-subtitle {
+    font-size: 1.75rem;
+  }
 }
 
 .slide-description {
-  font-size: 18px;
+  font-size: 1rem;
   font-weight: 300;
-  margin-bottom: 40px;
+  margin-bottom: 2rem;
   opacity: 0;
   transform: translateY(50px);
   animation: slideUp 1s ease-out 0.6s forwards;
   max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 768px) {
+  .slide-description {
+    font-size: 1.125rem;
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 
 .slide-cta {
-  display: inline-flex;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   opacity: 0;
   transform: translateY(50px);
   animation: slideUp 1s ease-out 0.9s forwards;
+}
+
+@media (min-width: 640px) {
+  .slide-cta {
+    flex-direction: row;
+    gap: 1.25rem;
+  }
 }
 
 @keyframes slideUp {
@@ -1443,18 +1659,25 @@ div .slider-container {
 }
 
 /* Buttons */
-.btn-primary {
-  background: #fff;
-  color: #000;
-  padding: 18px 45px;
+.btn-primary,
+.btn-secondary {
+  padding: 1rem 2rem;
   border: none;
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   cursor: pointer;
   transition: all 0.4s;
   position: relative;
   overflow: hidden;
+  text-transform: uppercase;
+  min-width: 200px;
+  text-align: center;
+}
+
+.btn-primary {
+  background: #fff;
+  color: #000;
 }
 
 .btn-primary::before {
@@ -1480,13 +1703,7 @@ div .slider-container {
 .btn-secondary {
   background: transparent;
   color: #fff;
-  padding: 18px 45px;
   border: 2px solid #fff;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: all 0.4s;
 }
 
 .btn-secondary:hover {
@@ -1497,21 +1714,36 @@ div .slider-container {
 /* Navigation */
 .slider-nav {
   position: absolute;
-  bottom: 60px;
-  right: 60px;
+  bottom: 20px;
+  right: 20px;
   display: flex;
-  gap: 15px;
+  gap: 10px;
   z-index: 20;
 }
 
+@media (min-width: 768px) {
+  .slider-nav {
+    bottom: 40px;
+    right: 40px;
+    gap: 15px;
+  }
+}
+
 .nav-bullet {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   transition: all 0.4s;
   border: none;
+}
+
+@media (min-width: 768px) {
+  .nav-bullet {
+    width: 12px;
+    height: 12px;
+  }
 }
 
 .nav-bullet:hover {
@@ -1521,8 +1753,14 @@ div .slider-container {
 
 .nav-bullet.active {
   background: #fff;
-  width: 40px;
+  width: 30px;
   border-radius: 10px;
+}
+
+@media (min-width: 768px) {
+  .nav-bullet.active {
+    width: 40px;
+  }
 }
 
 /* Progress Bar */
@@ -1538,92 +1776,25 @@ div .slider-container {
 
 /* Mobile Menu Button */
 .mobile-menu-btn {
-  display: none;
+  display: block;
 }
 
-/* Responsive */
-@media (max-width: 968px) {
+@media (min-width: 1024px) {
   .mobile-menu-btn {
-    display: block;
-  }
-
-  .main-nav {
     display: none;
   }
-
-  .slide-title {
-    font-size: 50px;
-  }
-
-  .slide-subtitle {
-    font-size: 20px;
-  }
-
-  .slide-content {
-    padding: 0 40px;
-  }
-
-  .slider-nav {
-    bottom: 40px;
-    right: 40px;
-  }
-
-  .top-header {
-    padding: 15px 20px;
-  }
-
-  .secondary-nav {
-    padding: 15px 20px;
-    gap: 15px;
-    justify-content: flex-start;
-    overflow-x: auto;
-  }
 }
 
-@media (max-width: 640px) {
-  .top-header {
-    padding: 15px 20px;
-  }
+/* Utility classes */
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
 
-  .secondary-nav {
-    padding: 15px 20px;
-    gap: 15px;
-  }
+.min-w-0 {
+  min-width: 0;
+}
 
-  .slide-content {
-    padding: 0 20px;
-  }
-
-  .slide-title {
-    font-size: 36px;
-  }
-
-  .slide-subtitle {
-    font-size: 18px;
-  }
-
-  .slide-description {
-    font-size: 16px;
-  }
-
-  .slide-cta {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .btn-primary,
-  .btn-secondary {
-    padding: 15px 35px;
-    width: 100%;
-  }
-
-  .slider-nav {
-    bottom: 20px;
-    right: 20px;
-  }
-
-  .header-icons {
-    gap: 15px;
-  }
+.min-w-\[1rem\] {
+  min-width: 1rem;
 }
 </style>

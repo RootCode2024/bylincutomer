@@ -267,8 +267,8 @@
               <h4 class="font-semibold text-gray-900 mb-4">📞 Support Client Global</h4>
               <div class="space-y-2 text-sm">
                 <p><strong>Email :</strong> support@bylin-style.com</p>
-                <p><strong>Téléphone :</strong> +229 51 01 04 42</p>
-                <p><strong>WhatsApp :</strong> +229 51 01 04 42</p>
+                <p><strong>Téléphone :</strong> +229 01 51 01 04 42</p>
+                <p><strong>WhatsApp :</strong> +229 01 51 01 04 42</p>
                 <p><strong>Horaires :</strong> 24h/24, 7j/7</p>
               </div>
             </div>

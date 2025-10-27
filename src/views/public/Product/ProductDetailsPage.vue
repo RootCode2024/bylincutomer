@@ -668,7 +668,7 @@
                       <time :datetime="review.created_at">{{ formatDate(review.created_at) }}</time>
                     </div>
                     <div v-if="review.admin_response" class="prose prose-sm text-blue-500 max-w-none ml-10">
-                      <h2>Bylin Team</h2>
+                      <h2>bylin Team</h2>
                       <p v-for="admin_response in review.admin_response">{{ admin_response }}</p>
                       <div class="flex items-center space-x-4 text-sm text-gray-500">
                         <!-- <time :datetime="admin_response.created_at">{{ formatDate(admin_response.created_at) }}</time> -->
