@@ -66,7 +66,7 @@
               @click="dropdownOpen = !dropdownOpen"
             >
               <template v-if="authStore.user?.avatar_url">
-              <img :src="`http://localhost:8000${authStore.user.avatar_url}`" class="inline-block relative object-cover object-center w-8 h-8 rounded-full" alt="profile">
+              <img :src="`https://api.bylin-style.com${authStore.user.avatar_url}`" class="inline-block relative object-cover object-center w-8 h-8 rounded-full" alt="profile">
               </template>
               <template v-else>
               <div

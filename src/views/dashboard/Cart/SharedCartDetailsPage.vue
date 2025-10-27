@@ -373,7 +373,7 @@ const showDeleteModal = ref(false);
 const cartToDelete = ref(null);
 
 const shareLink = computed(() => {
-  return cart.value ? `http://localhost:5173/shared-cart/${cart.value.token}` : '';
+  return cart.value ? `https://bylin-style.com/shared-cart/${cart.value.token}` : '';
 });
 
 const remainingTime = computed(() => {
