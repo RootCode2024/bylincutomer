@@ -1,6 +1,11 @@
 <template>
   <!-- Section utilisateur connecté -->
-  <div class="relative hidden md:block" v-if="authStore.isAuthenticated" ref="dropdownContainer">
+  <div 
+    class="relative"
+    v-if="authStore.isAuthenticated"
+    ref="dropdownContainer"
+  >
+    <!-- Bouton principal -->
     <div class="flex items-center space-x-2">
       <button 
         @click.stop="toggleAccountMenu"
@@ -8,9 +13,12 @@
         aria-label="Mon compte"
         :aria-expanded="accountMenuOpen"
       >
-        <span class="text-sm font-medium mr-4 text-white truncate max-w-[120px]">
+        <!-- Nom utilisateur : visible uniquement sur écrans moyens et + -->
+        <span class="hidden sm:block text-sm font-medium mr-4 text-white truncate max-w-[120px]">
           Bonjour, {{ authStore.userName }}
         </span>
+
+        <!-- Icône utilisateur -->
         <div class="relative">
           <User stroke-width="1" class="transition-transform duration-200 group-hover:scale-110" />
           <span class="absolute -bottom-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
@@ -18,7 +26,7 @@
       </button>
     </div>
 
-    <!-- Menu dropdown nouvelle génération -->
+    <!-- Dropdown menu -->
     <transition
       enter-active-class="transition duration-100 ease-out"
       enter-from-class="transform scale-95 opacity-0"
@@ -82,73 +90,79 @@
   </div>
 
   <!-- Section utilisateur non connecté -->
-  <div class="hidden md:flex items-center space-x-4" v-else>
-    <RouterLink
-      to="/login"
-      class="text-sm font-medium text-gray-600 hover:text-indigo-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50 bg-gray-200"
-    >
-      Connexion
-    </RouterLink>
-    <RouterLink
-      to="/register"
-      class="text-sm font-medium text-white bg-indigo-700 hover:bg-white hover:text-indigo-800 transition-colors px-3 py-1.5 rounded-lg shadow-sm"
-    >
-      Inscription
-    </RouterLink>
+  <div class="flex items-center space-x-3">
+    <!-- Desktop -->
+    <div class="hidden md:flex items-center space-x-3" v-if="!authStore.isAuthenticated">
+      <RouterLink
+        to="/login"
+        class="text-sm font-medium text-gray-600 hover:text-indigo-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50 bg-gray-200"
+      >
+        Connexion
+      </RouterLink>
+      <RouterLink
+        to="/register"
+        class="text-sm font-medium text-white bg-indigo-700 hover:bg-white hover:text-indigo-800 transition-colors px-3 py-1.5 rounded-lg shadow-sm"
+      >
+        Inscription
+      </RouterLink>
+    </div>
+
+    <!-- Mobile (compact) -->
+    <div class="flex md:hidden items-center space-x-2" v-if="!authStore.isAuthenticated">
+      <RouterLink
+        to="/login"
+        class="p-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
+        aria-label="Connexion"
+      >
+        <User stroke-width="1" />
+      </RouterLink>
+      <RouterLink
+        to="/register"
+        class="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+        aria-label="Inscription"
+      >
+        <Heart stroke-width="1" />
+      </RouterLink>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-import {
-  ShoppingBag,
-  Heart,
-  User,
-  LogOut
-} from 'lucide-vue-next';
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { ShoppingBag, Heart, User, LogOut } from 'lucide-vue-next'
 
-const authStore = useAuthStore();
-const accountMenuOpen = ref(false);
-const dropdownContainer = ref(null);
+const authStore = useAuthStore()
+const accountMenuOpen = ref(false)
+const dropdownContainer = ref(null)
 
 const toggleAccountMenu = () => {
-  accountMenuOpen.value = !accountMenuOpen.value;
-};
-
+  accountMenuOpen.value = !accountMenuOpen.value
+}
 const closeAccountMenu = () => {
-  accountMenuOpen.value = false;
-};
-
+  accountMenuOpen.value = false
+}
 const handleLogout = () => {
-  authStore.logout();
-  closeAccountMenu();
-};
+  authStore.logout()
+  closeAccountMenu()
+}
 
-// Gestion du click outside
+// Click outside
 const handleClickOutside = (event) => {
   if (dropdownContainer.value && !dropdownContainer.value.contains(event.target)) {
-    closeAccountMenu();
+    closeAccountMenu()
   }
-};
+}
 
-// Gestion des événements
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
 <style scoped>
-/* Animation personnalisée pour le dropdown */
 .v-enter-active,
 .v-leave-active {
   transition: all 0.2s ease;
 }
-
 .v-enter-from,
 .v-leave-to {
   opacity: 0;
