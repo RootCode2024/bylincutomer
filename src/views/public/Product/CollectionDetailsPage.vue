@@ -365,7 +365,7 @@
                         </div>
                         
                         <h3 class="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
-                           <router-link :to="/collections/+otherCollection.slug">{{ otherCollection.name }}</router-link> 
+                            <router-link :to="`/collections/${otherCollection.slug}`">{{ otherCollection.name }}</router-link> 
                         </h3>
                         <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ otherCollection.description }}</p>
                         
