@@ -344,7 +344,6 @@
                         v-for="otherCollection in otherCollections"
                         :key="otherCollection.id"
                         class="group cursor-pointer bg-gray-50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300"
-                        @click="$router.push(`/collections/${otherCollection.slug}`)"
                     >
                         <div class="relative overflow-hidden rounded-xl mb-4">
                             <img
@@ -366,7 +365,7 @@
                         </div>
                         
                         <h3 class="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
-                            {{ otherCollection.name }}
+                           <router-link :to="/collections/+otherCollection.slug">{{ otherCollection.name }}</router-link> 
                         </h3>
                         <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ otherCollection.description }}</p>
                         

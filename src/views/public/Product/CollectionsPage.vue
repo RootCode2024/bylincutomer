@@ -296,7 +296,7 @@
 
     <!-- CTA Final -->
     <section
-      class="relative py-20 bg-gradient-to-b from-indigo-800 via-black to-indigo-50 text-white overflow-hidden my-2">
+      class="relative py-20 bg-indigo-700 text-white overflow-hidden my-2">
       <div class="absolute inset-0 opacity-10">
         <div class="absolute top-0 left-1/3 w-96 h-96 bg-white rounded-full blur-3xl animate-float"></div>
         <div class="absolute bottom-0 right-1/3 w-96 h-96 bg-indigo-400 rounded-full blur-3xl animate-float-delayed">
