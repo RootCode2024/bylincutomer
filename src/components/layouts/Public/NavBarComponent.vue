@@ -538,77 +538,78 @@ const navItems = ref(null);
 const slides = [
   {
     id: 1,
-    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    gradient: "linear-gradient(135deg, #0072ff 0%, #00c6ff 100%)",
     image:
-      "https://images.unsplash.com/photo-1559842905-635a89deef34?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    title: "Collection Hiver",
-    subtitle: "Élégance & Chaleur",
+      "https://images.unsplash.com/photo-1559842905-635a89deef34?q=80&w=1170&auto=format&fit=crop",
+    title: "L’Héritage de Kondo",
+    subtitle: "Force & Élégance",
     description:
-      "Découvrez notre nouvelle collection hiver : des pièces chaleureuses et stylées qui allient confort et sophistication. Parfait pour les journées froides sans compromettre votre style.",
-    primaryBtn: "ACHETER MAINTENANT",
-    secondaryBtn: "VOIR LA COLLECTION",
+      "Inspirée de la légende du requin Kondo, symbole du roi Béhanzin, notre collection rend hommage à la puissance, la fluidité et la grâce béninoise. Porter Bylin, c’est incarner une histoire vivante.",
+    primaryBtn: "DÉCOUVRIR LA COLLECTION",
+    secondaryBtn: "EN SAVOIR PLUS",
   },
   {
     id: 2,
     gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
     image:
-      "https://images.unsplash.com/photo-1546213290-e1b492ab3eee?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    title: "Nouveautés Printemps",
-    subtitle: "Renaissance Stylée",
+      "https://images.unsplash.com/photo-1546213290-e1b492ab3eee?q=80&w=1074&auto=format&fit=crop",
+    title: "Soleil & Style",
+    subtitle: "Lumière du Golfe de Guinée",
     description:
-      "Soyez prêt pour le printemps avec nos dernières créations. Des coupes modernes et des matières légères qui s'adaptent à toutes vos occasions, du bureau aux sorties entre amis.",
-    primaryBtn: "DÉCOUVRIR",
-    secondaryBtn: "EN SAVOIR PLUS",
+      "Des créations pensées pour le climat tropical : légères, audacieuses et vibrantes. Confort et élégance s’unissent sous le soleil béninois.",
+    primaryBtn: "VOIR LA COLLECTION",
+    secondaryBtn: "EXPLORER LES LOOKS",
   },
   {
     id: 3,
     gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
     image:
-      "https://images.unsplash.com/photo-1727632028162-9fa28ddf5d7a?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1727632028162-9fa28ddf5d7a?q=80&w=1074&auto=format&fit=crop",
     title: "Mode Responsable",
-    subtitle: "Pour un Avenir Meilleur",
+    subtitle: "Ancrée, Durable, Locale",
     description:
-      "Nous croyons en une mode qui respecte notre planète. Nos collections sont conçues avec des matériaux durables et une éthique de production transparente. Beau, bien et responsable.",
-    primaryBtn: "EXPLORER",
+      "Chez Bylin, la mode est une promesse : respecter la terre, valoriser les savoir-faire locaux et créer sans gaspiller. Une élégance consciente, née au Bénin.",
+    primaryBtn: "DÉCOUVRIR NOTRE VISION",
     secondaryBtn: "NOTRE ENGAGEMENT",
   },
   {
     id: 4,
     gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
     image:
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    title: "Collection Événement",
-    subtitle: "Soirées Mémorables",
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1170&auto=format&fit=crop",
+    title: "Moments d’Exception",
+    subtitle: "Brillez à Chaque Occasion",
     description:
-      "Des tenues qui subliment chaque moment spécial. Que ce soit pour un mariage, une soirée ou un événement professionnel, trouvez la pièce parfaite qui vous mettra en valeur.",
-    primaryBtn: "INSPIRATION",
-    secondaryBtn: "LOOKBOOK",
+      "Mariages, célébrations, galas ou soirées… Bylin habille vos moments uniques avec des pièces raffinées qui captent la lumière et les regards.",
+    primaryBtn: "TROUVER SON STYLE",
+    secondaryBtn: "VOIR LE LOOKBOOK",
   },
   {
     id: 5,
     gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
     image:
-      "https://images.unsplash.com/photo-1485231183945-fffde7cb34e0?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    title: "Soldes Exclusives",
-    subtitle: "Jusqu'à -50%",
+      "https://images.unsplash.com/photo-1485231183945-fffde7cb34e0?q=80&w=1170&auto=format&fit=crop",
+    title: "Offres du Moment",
+    subtitle: "Style Accessible",
     description:
-      "Profitez de nos offres exceptionnelles sur une sélection de pièces phares. Des réductions incroyables sur les vêtements et accessoires de nos collections précédentes.",
-    primaryBtn: "PROFITER",
-    secondaryBtn: "TOUTES LES OFFRES",
+      "Profitez d’offres exclusives sur nos pièces iconiques. L’élégance Bylin devient encore plus accessible — parce que la beauté n’attend pas.",
+    primaryBtn: "PROFITER MAINTENANT",
+    secondaryBtn: "VOIR TOUTES LES OFFRES",
   },
   {
     id: 6,
     gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
     image:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    title: "Style Urbain",
-    subtitle: "Streetwear Élégant",
+      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1170&auto=format&fit=crop",
+    title: "Esprit Urbain",
+    subtitle: "Chic & Authentique",
     description:
-      "Inspirée par l'énergie des villes, cette collection mélange le confort du streetwear avec l'élégance du prêt-à-porter. Parfait pour le quotidien avec une touche d'audace.",
-    primaryBtn: "SHOPPER",
+      "Née entre Cotonou et Abomey, la collection urbaine fusionne les lignes modernes avec les couleurs de nos racines. Une attitude, un art de vivre signé Bylin.",
+    primaryBtn: "SHOPPER LE STYLE",
     secondaryBtn: "INSPIRATION URBAINE",
   },
 ];
+
 
 const particles = Array.from({ length: 30 }, (_, i) => ({
   id: i,

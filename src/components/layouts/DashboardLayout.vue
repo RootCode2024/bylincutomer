@@ -1,150 +1,144 @@
 <template>
-<div class="min-h-screen bg-white">
-  <!-- Sidebar Navigation Client -->
-  <aside class="bg-indigo-800 border-r border-gray-200 -translate-x-80 fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 rounded-xl transition-transform duration-300 xl:translate-x-0">
-    <div class="relative border-b border-gray-200">
-      <router-link class="flex items-center gap-4" to="/">
-       <img src="@/assets/images/logo-white.png" class="h-32 w-32 object-contain" />
-      </router-link>
-      <button class="middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-8 max-w-[32px] h-8 max-h-[32px] rounded-lg text-xs text-gray-900 hover:bg-gray-100 active:bg-gray-200 absolute right-0 top-0 grid rounded-br-none rounded-tl-none xl:hidden" type="button">
-        <span class="absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
-          <Menu class="h-5 w-5" />
-        </span>
-      </button>
-    </div>
-    <div class="m-4">
-      <ul class="mb-4 flex flex-col gap-1 space-y-4">
-        <li v-for="item in navigationItems" :key="item.path">
-          <router-link :to="item.path">
-            <button 
-              :class="getNavItemClasses(item.path)"
-              type="button"
-            >
-              <span v-html="item.icon"></span>
-              <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">
-                {{ item.name }}
-              </p>
-            </button>
-          </router-link>
-        </li>
-      </ul>
-      <ul class="mb-4 flex flex-col gap-1">
-        <li class="mx-3.5 mt-4 mb-2">
-          <p class="block antialiased font-sans text-sm leading-normal text-gray-100 font-black uppercase opacity-75">Paramètres</p>
-        </li>
-        <li>
-          <router-link class="" to="/dashboard/activities-log">
-            <button :class="(router.currentRoute.value.name === 'dashboard.activities.log') ? 'bg-white text-indigo-800' : 'text-white hover:bg-indigo-700'" class="middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg w-full flex items-center gap-4 px-4 capitalize" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
-              <p class="block antialiased font-sans text-base leading-relaxed text-inherit font-medium capitalize">Historiques</p>
-            </button>
-          </router-link>
-        </li>
-      </ul>
-    </div>
-  </aside>
+  <div class="min-h-screen bg-gray-100 flex flex-col xl:flex-row">
+    <!-- Overlay mobile -->
+    <div 
+      v-if="sidebarOpen" 
+      class="fixed inset-0 bg-black/40 z-40 xl:hidden transition-opacity duration-300"
+      @click="sidebarOpen = false"
+    ></div>
 
-  <!-- Main Content Area -->
-  <div class="p-4 xl:ml-80">
-    <nav class="block w-full max-w-full bg-white text-gray-900 shadow-sm transition-all px-0 py-1">
-      <div class="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
-        <div class="capitalize">
-          <h6 class="block antialiased tracking-normal font-sans text-base font-semibold leading-relaxed text-gray-900">Bienvenue, {{ authStore?.user?.name }}</h6>
-        </div>
-        <div class="flex items-center">
-          <button class="relative middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-10 max-w-[40px] h-10 max-h-[40px] rounded-lg text-xs text-gray-500 hover:bg-indigo-800/10 active:bg-indigo-800/20" type="button">
-            <span class="absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5 text-gray-500">
-                <path fill-rule="evenodd" d="M5.25 9a6.75 6.75 0 0113.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 01-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 11-7.48 0 24.585 24.585 0 01-4.831-1.244.75.75 0 01-.298-1.205A8.217 8.217 0 005.25 9.75V9zm4.502 8.9a2.25 2.25 0 104.496 0 25.057 25.057 0 01-4.496 0z" clip-rule="evenodd"></path>
-              </svg>
-            </span>
-          </button>
-          <div class="relative mx-4">
-            <button
-              class="middle none font-sans font-bold center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-900 hover:bg-indigo-800/10 active:bg-indigo-800/20 flex items-center gap-1 px-4"
-              type="button"
-              @click="dropdownOpen = !dropdownOpen"
-            >
-              <template v-if="authStore.user?.avatar_url">
-              <img :src="`https://api.bylin-style.com${authStore.user.avatar_url}`" class="inline-block relative object-cover object-center w-8 h-8 rounded-full" alt="profile">
-              </template>
-              <template v-else>
-              <div
-                class="inline-block relative w-8 h-8 rounded-full bg-indigo-800 text-white flex items-center justify-center font-bold text-base"
-                :title="authStore.user?.name"
+    <!-- Sidebar -->
+    <aside
+      class="bg-indigo-800 border-r border-gray-200 fixed xl:static inset-y-0 left-0 z-50 transform transition-transform duration-300 w-72 h-full xl:h-[calc(100vh-32px)] my-4 xl:ml-4 rounded-xl"
+      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-80 xl:translate-x-0'"
+    >
+      <!-- Header -->
+      <div class="relative border-b border-gray-200 flex items-center justify-between p-4">
+        <router-link to="/" class="flex items-center gap-4">
+          <img src="@/assets/images/logo-white.png" class="h-12 w-12 md:h-20 md:w-20 object-contain" />
+        </router-link>
+        <!-- Bouton fermer mobile -->
+        <button
+          @click="sidebarOpen = false"
+          class="xl:hidden text-white hover:text-gray-200"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Navigation -->
+      <div class="m-4 overflow-y-auto h-[calc(100vh-160px)]">
+        <ul class="flex flex-col gap-3 mb-6">
+          <li v-for="item in navigationItems" :key="item.path">
+            <router-link :to="item.path">
+              <button
+                :class="getNavItemClasses(item.path)"
+                type="button"
               >
-                {{ (authStore.user?.name?.[0] || '').toUpperCase() }}{{ (authStore.user?.name?.[1] || '').toUpperCase() }}
-              </div>
-              </template>
-              <span class="hidden xl:block">{{ authStore.user?.name }}</span>
+                <span v-html="item.icon"></span>
+                <p class="font-sans text-base leading-relaxed font-medium capitalize">
+                  {{ item.name }}
+                </p>
+              </button>
+            </router-link>
+          </li>
+        </ul>
+
+        <div class="border-t border-indigo-700 pt-3">
+          <p class="text-gray-300 uppercase text-xs mb-2">Paramètres</p>
+          <router-link to="/dashboard/activities-log">
+            <button
+              :class="(route.name === 'dashboard.activities.log') ? 'bg-white text-indigo-800' : 'text-white hover:bg-indigo-700'"
+              class="flex items-center gap-4 w-full px-4 py-3 rounded-lg transition"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+              Historiques
             </button>
-            <div v-show="dropdownOpen" class="absolute right-0 mt-2 origin-top-right bg-white rounded-md shadow-lg w-36 z-50 border border-gray-200">
-              <div class="py-1">
-                <router-link to="/dashboard/profile" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-800/10 text-left">
-                  <CircleUser class="mr-3 h-5 w-5 text-gray-500" />
-                  Mon profil
-                </router-link>
-                <router-link to="/dashboard/setting" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-800/10 text-left">
-                  <Settings class="mr-3 h-5 w-5 text-gray-500" />
-                  Paramètres
-                </router-link>
-                <button
-                  @click="handleLogout"
-                  class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-800/10 text-left"
-                >
-                  <LogOut class="mr-3 h-5 w-5 text-gray-500" />
-                  Déconnexion
-                </button>
-              </div>
-            </div>
-          </div>
+          </router-link>
         </div>
       </div>
-    </nav>
+    </aside>
 
-    <div class="mt-12">
-      <router-view></router-view>
-    </div>
+    <!-- Contenu principal -->
+    <div class="flex-1 p-4 transition-all flex flex-col">
+      <!-- Navbar -->
+      <nav class="w-full bg-white shadow-sm rounded-lg px-4 py-2 flex flex-col md:flex-row justify-between items-center gap-4">
+        <!-- Bouton menu mobile -->
+        <button
+          @click="sidebarOpen = !sidebarOpen"
+          class="xl:hidden text-indigo-800 hover:text-indigo-600"
+        >
+          <Menu class="h-6 w-6" />
+        </button>
 
-    <div class="text-gray-600">
-      <footer class="py-2">
-        <div class="flex w-full flex-wrap items-center justify-center gap-6 px-2 md:justify-between">
-            <p class="block antialiased font-sans text-sm leading-normal font-normal text-inherit">
-            © {{ new Date().getFullYear() }} bylin Style. Tous droits réservés.
-            </p>
-          <ul class="flex items-center gap-4">
-            <li>
-              <a href="#" class="block antialiased font-sans text-sm leading-normal py-0.5 px-1 font-normal text-inherit transition-colors hover:text-indigo-800">Conditions générales</a>
-            </li>
-            <li>
-              <a href="#" class="block antialiased font-sans text-sm leading-normal py-0.5 px-1 font-normal text-inherit transition-colors hover:text-indigo-800">Politique de confidentialité</a>
-            </li>
-            <li>
-              <a href="#" class="block antialiased font-sans text-sm leading-normal py-0.5 px-1 font-normal text-inherit transition-colors hover:text-indigo-800">Contact</a>
-            </li>
-          </ul>
+        <!-- Titre -->
+        <h6 class="text-base font-semibold text-gray-900 capitalize text-center md:text-left">
+          Bienvenue, {{ authStore?.user?.name }}
+        </h6>
+
+        <!-- Dropdown utilisateur -->
+        <div class="relative">
+          <button
+            class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-indigo-800/10 transition"
+            @click="dropdownOpen = !dropdownOpen"
+          >
+            <template v-if="authStore.user?.avatar_url">
+              <img :src="`http://localhost:8000${authStore.user.avatar_url}`" class="w-8 h-8 rounded-full object-cover" />
+            </template>
+            <template v-else>
+              <div class="w-8 h-8 bg-indigo-800 text-white flex items-center justify-center rounded-full">
+                {{ authStore.user?.name?.[0]?.toUpperCase() }}
+              </div>
+            </template>
+            <span class="hidden sm:block">{{ authStore.user?.name }}</span>
+          </button>
+
+          <!-- Menu dropdown avec transition -->
+          <transition name="fade-slide">
+            <div
+              v-show="dropdownOpen"
+              class="absolute right-0 mt-2 bg-white shadow-md rounded-md border border-gray-200 w-40 z-50"
+            >
+              <router-link to="/dashboard/profile" class="flex items-center px-4 py-2 text-sm hover:bg-indigo-50">
+                <CircleUser class="mr-2 h-4 w-4" /> Profil
+              </router-link>
+              <router-link to="/dashboard/setting" class="flex items-center px-4 py-2 text-sm hover:bg-indigo-50">
+                <Settings class="mr-2 h-4 w-4" /> Paramètres
+              </router-link>
+              <button @click="handleLogout" class="flex items-center w-full px-4 py-2 text-sm hover:bg-indigo-50">
+                <LogOut class="mr-2 h-4 w-4" /> Déconnexion
+              </button>
+            </div>
+          </transition>
         </div>
+      </nav>
+
+      <!-- Contenu -->
+      <div class="mt-8 flex-1">
+        <router-view></router-view>
+      </div>
+
+      <!-- Footer -->
+      <footer class="py-4 border-t border-gray-200 mt-6 text-center text-sm text-gray-600">
+        <p>© {{ new Date().getFullYear() }} Bylin Style. Tous droits réservés.</p>
       </footer>
     </div>
   </div>
-</div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { RouterView, useRoute, useRouter, RouterLink } from 'vue-router';
-import { Bell, ChevronDown, ChevronUp, CircleUser, Search, Settings, Menu, LogOut } from 'lucide-vue-next';
-import { useUIStore } from '@/stores/ui';
-import { useAuthStore } from '@/stores/auth';
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { Menu, CircleUser, Settings, LogOut } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth'
 
-const authStore = useAuthStore();
-const router = useRouter();
-const route = useRoute();
-const uiStore = useUIStore();
+const authStore = useAuthStore()
+const router = useRouter()
+const route = useRoute()
 
-const dropdownOpen = ref(false);
+const dropdownOpen = ref(false)
+const sidebarOpen = ref(false)
 
-// Définition des routes de navigation avec leurs chemins correspondants
 const navigationItems = [
   {
     path: '/dashboard',
@@ -186,85 +180,37 @@ const navigationItems = [
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     `
   }
-];
+]
 
-// Fonction pour vérifier si un item de navigation est actif
-const isActiveRoute = (itemPath) => {
-  // Si c'est la route exacte
-  if (route.path === itemPath) {
-    return true;
-  }
-  
-  // Pour les sous-routes (ex: /dashboard/orders/123)
-  if (itemPath !== '/dashboard' && route.path.startsWith(itemPath)) {
-    return true;
-  }
-  
-  return false;
-};
-
-// Fonction pour obtenir les classes CSS en fonction de l'état actif
-const getNavItemClasses = (itemPath) => {
-  const isActive = isActiveRoute(itemPath);
-  
-  if (isActive) {
-    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg bg-white text-indigo-700 shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/40 active:opacity-[0.85] w-full flex items-center gap-4 px-4 capitalize';
-  } else {
-    return 'middle none font-sans font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-100 hover:bg-indigo-700 active:bg-indigo-800/20 w-full flex items-center gap-4 px-4 capitalize';
-  }
-};
+const getNavItemClasses = (path) => {
+  const active = route.path === path || route.path.startsWith(path)
+  return active
+    ? 'flex items-center gap-4 w-full px-4 py-3 bg-white text-indigo-700 font-semibold rounded-lg shadow'
+    : 'flex items-center gap-4 w-full px-4 py-3 text-gray-100 hover:bg-indigo-700 rounded-lg transition'
+}
 
 const handleLogout = async () => {
-  try {
-    await authStore.logout();
-  } catch (error) {
-    console.error('Logout failed:', error);
-  }
-};
+  await authStore.logout()
+  router.push('/')
+}
 
-// Watcher pour fermer le dropdown quand la route change
-import { watch } from 'vue';
 watch(() => route.path, () => {
-  dropdownOpen.value = false;
-});
-
+  dropdownOpen.value = false
+  sidebarOpen.value = false
+})
 </script>
 
 <style scoped>
-/* Styles pour le footer fixe */
-.min-h-screen {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+/* Transition dropdown */
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: all 0.2s ease-in-out;
 }
-
-/* Conteneur principal avec sidebar et contenu */
-.min-h-screen > div {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.fade-slide-enter-from, .fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
-
-/* Zone de contenu principale */
-.p-4 {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Conteneur du router-view */
-.mt-12 {
-  flex: 1;
-}
-
-/* Styles pour le footer */
-.text-gray-600 {
-  margin-top: auto; /* Pousse le footer vers le bas */
-}
-
-footer {
-  background-color: white;
-  border-top: 1px solid #e5e7eb;
-  width: 100%;
+.fade-slide-enter-to, .fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>

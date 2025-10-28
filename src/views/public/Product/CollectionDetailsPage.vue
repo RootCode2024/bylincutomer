@@ -6,7 +6,7 @@
             <div 
                 class="absolute inset-0 bg-cover bg-center"
                 :style="{
-                    backgroundImage: `url('https://api.bylin-style.com${collection.banner_image}')`
+                    backgroundImage: `url('http://localhost:8000${collection.banner_image}')`
                 }"
             >
                 <div class="absolute inset-0 bg-black bg-opacity-50"></div>
@@ -555,10 +555,10 @@ const formatPrice = (price) => {
 
 const getFullImageUrl = (collection) => {
     if (collection.banner_image) {
-        return `https://api.bylin-style.com${collection.banner_image}`
+        return `http://localhost:8000${collection.banner_image}`
     }
     if (collection.cover_image) {
-        return `https://api.bylin-style.com${collection.cover_image}`
+        return `http://localhost:8000${collection.cover_image}`
     }
     return 'https://placehold.co/80?text=Collection+bylin'
 }

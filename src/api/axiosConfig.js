@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
 // URL de base de l'API
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.bylin-style.com'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 // Création de l'instance Axios
 const api = axios.create({

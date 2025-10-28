@@ -49,6 +49,7 @@ import DashboardWishListPage from '@/views/dashboard/WishListPage.vue'
 import ReviewsPage from '@/views/dashboard/Review/ReviewPage.vue'
 import ActivitiesLogPage from '@/views/dashboard/ActivitiesLogPage.vue'
 import SupportOrderDetails from '@/views/dashboard/SupportOrderPage.vue'
+import GoogleCallbackPage from '@/views/public/Auth/GoogleCallbackPage.vue'
 
 const routes = [
   // 🌐 Public
@@ -60,6 +61,7 @@ const routes = [
       { path: 'about', name: 'about', component: AboutPage },
       { path: 'contact', name: 'contact', component: ContactPage },
       { path: 'faq', name: 'faq', component: FaqPage },
+      { path: 'auth/google/callback', name: 'auth.google.callback', component: GoogleCallbackPage },
       { path: 'shop', name: 'shop', component: ShopPage },
       { path: 'collections', name: 'collections', component: CollectionPage },
       { path: 'collections/:slug', name: 'collection', component: CollectionDetailsPage },

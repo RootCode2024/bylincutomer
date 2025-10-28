@@ -38,8 +38,8 @@
               <h1 class="text-2xl font-bold text-white mb-2">
                 Réinitialiser votre mot de passe
               </h1>
-              <p class="text-gray-600" v-if="userEmail">
-                Pour l'adresse: <span class="font-medium text-indigo-700">{{ userEmail }}</span>
+              <p class="text-gray-900" v-if="userEmail">
+                Pour l'adresse: <span class="font-medium text-white">{{ userEmail }}</span>
               </p>
               <p class="text-gray-900" v-else>
                 Entrez votre nouveau mot de passe.

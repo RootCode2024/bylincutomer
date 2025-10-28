@@ -17,7 +17,7 @@
     <div v-else>
 
       <!-- Best bylin Collection -->
-      <section class="py-20 bg-white text-black">
+      <section class="py-5 bg-white text-black">
         <div class="container mx-auto px-6 max-w-7xl">
           <div class="text-center mb-16">
             <h2 class="text-4xl sm:text-5xl font-light mb-4">
@@ -101,7 +101,7 @@
               v-for="(category, index) in homeData.root_categories"
               :key="category.id"
               class="group text-center cursor-pointer"
-              @click="$router.push(`/category/${category.slug}`)"
+              @click="$router.push(`/shop/category/${category.slug}`)"
             >
               <div class="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-gray-100 group-hover:scale-110 transition-transform duration-300">
                 <img 
