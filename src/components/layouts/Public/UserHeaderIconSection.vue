@@ -64,16 +64,6 @@
           <ShoppingBag stroke-width="1" class="mr-2" />
           Mes commandes
         </RouterLink>
-        
-        <RouterLink 
-          to="/wishlists" 
-          class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-indigo-800 transition-colors"
-          role="menuitem"
-          @click="closeAccountMenu"
-        >
-          <Heart stroke-width="1" class="mr-2" />
-          Favoris
-        </RouterLink>
 
         <div class="border-t border-gray-100 my-1"></div>
         
@@ -111,17 +101,17 @@
     <div class="flex md:hidden items-center space-x-2" v-if="!authStore.isAuthenticated">
       <RouterLink
         to="/login"
-        class="p-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
+        class="p-2 text-gray-700"
         aria-label="Connexion"
       >
-        <User stroke-width="1" />
+        <LogIn stroke-width="1" />
       </RouterLink>
       <RouterLink
         to="/register"
-        class="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+        class="p-2 text-gray-700"
         aria-label="Inscription"
       >
-        <Heart stroke-width="1" />
+        <UserPlus stroke-width="1" />
       </RouterLink>
     </div>
   </div>
@@ -130,7 +120,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { ShoppingBag, Heart, User, LogOut } from 'lucide-vue-next'
+import { ShoppingBag, UserPlus, User, LogOut, LogIn } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
 const accountMenuOpen = ref(false)

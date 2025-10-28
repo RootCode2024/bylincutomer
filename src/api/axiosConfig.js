@@ -89,7 +89,6 @@ api.interceptors.response.use(
     // Erreur d'authentification
     if (response.status === 401) {
       try {
-        const { useAuthStore } = await import('@/stores/auth')
         const authStore = useAuthStore()
         authStore.cleanupAuthState()
       } catch (e) {
