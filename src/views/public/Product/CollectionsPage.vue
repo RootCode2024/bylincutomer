@@ -407,7 +407,7 @@ const fetchCollections = async (page = 1) => {
 
 const getFullImageUrl = (collection) => {
   if (!collection?.cover_image) return 'https://placehold.co/800?text=Collection+bylin'
-  return 'http://localhost:8000' + collection?.cover_image
+  return 'https://api.bylin-style.com' + collection?.cover_image
 }
 
 const formatDate = (dateString) => {

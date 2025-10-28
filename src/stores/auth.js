@@ -104,7 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
-      window.location.href = 'http://localhost:8000' + API_ROUTES.auth.googleRedirect
+      window.location.href = 'https://api.bylin-style.com' + API_ROUTES.auth.googleRedirect
     } catch {
       error.value = 'Une erreur est survenue. Veuillez réessayer.'
       loading.value = false

@@ -83,7 +83,7 @@
             @click="dropdownOpen = !dropdownOpen"
           >
             <template v-if="authStore.user?.avatar_url">
-              <img :src="`http://localhost:8000${authStore.user.avatar_url}`" class="w-8 h-8 rounded-full object-cover" />
+              <img :src="`https://api.bylin-style.com${authStore.user.avatar_url}`" class="w-8 h-8 rounded-full object-cover" />
             </template>
             <template v-else>
               <div class="w-8 h-8 bg-indigo-800 text-white flex items-center justify-center rounded-full">
