@@ -39,7 +39,7 @@
               <img 
                 :src="collection.banner_image || collection.cover_image || 'https://placehold.co/80?text=bylin+collection'" 
                 :alt="collection.name"
-                class="absolute inset-0 w-full h-full object-cover object-center transform group-hover:scale-110 transition-transform duration-700 ease-out"
+                class="absolute inset-0 w-full h-full object-contain object-center transform group-hover:scale-110 transition-transform duration-700 ease-out"
               />
 
               <!-- Overlay dégradé -->
@@ -68,7 +68,7 @@
               <img 
                 :src="collection.cover_image || 'https://placehold.co/80?text=bylin'" 
                 :alt="collection.name"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
               />
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end">
                 <div class="p-8 w-full">
@@ -107,7 +107,7 @@
                 <img 
                   :src="category.icon_url || 'https://placehold.co/80?text=bylin'" 
                   :alt="category.name"
-                  class="w-full h-full object-cover"
+                  class="w-full h-full object-contain"
                 />
               </div>
               <h3 class="font-medium text-white group-hover:text-gray-300 transition-colors duration-300">
@@ -141,7 +141,7 @@
                 <img 
                   :src="product.main_image_url || 'https://placehold.co/80?text=bylin'" 
                   :alt="product.name"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                 />
                 <div v-if="product.discounted_percent > 0" class="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold">
                   -{{ product.discounted_percent }}%
@@ -188,7 +188,7 @@
                   <img 
                     :src="product.main_image_url || 'https://placehold.co/80?text=bylin'" 
                     :alt="product.name"
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
                 <div class="absolute top-4 left-4 bg-white text-black px-3 py-1 rounded-full text-sm font-bold">
@@ -265,7 +265,7 @@
                 <img 
                   :src="homeData.biggest_discount.main_image_url || 'https://placehold.co/80?text=bylin'"
                   :alt="homeData.biggest_discount.name"
-                  class="w-full h-96 object-cover"
+                  class="w-full h-96 object-contain"
                 />
               </div>
               <div class="absolute -top-4 -right-4 bg-red-500 text-white px-6 py-3 rounded-xl font-bold text-lg">
