@@ -27,11 +27,13 @@
 <script setup>
 import { ref } from 'vue'
 import api from '@/api/axiosConfig'
+import { useAuthStore } from '@/stores/auth'
 
 const email = ref('')
 const loading = ref(false)
 const message = ref('')
 const success = ref(false)
+const authStore = useAuthStore()
 
 const handleSubscribe = async () => {
   if (!email.value.trim()) return
@@ -40,9 +42,9 @@ const handleSubscribe = async () => {
   message.value = ''
 
   try {
-    await api.post('/api/customer/newsletter/subscribe', { email: email.value.trim() })
+    const response = await authStore.newsletterSubscribe(email.value)
     success.value = true
-    message.value = 'Inscription réussie !'
+    message.value = response.message ?? 'Inscription réussie !'
     email.value = ''
   } catch (error) {
     success.value = false

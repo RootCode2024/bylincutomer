@@ -5,6 +5,7 @@ export const API_ROUTES = {
   auth: {
     login: '/api/customer/auth/login',
     register: '/api/customer/auth/register',
+    newsletter: '/api/customer/newsletter/subscribe',
     logout: '/api/customer/auth/logout',
     me: '/api/customer/auth/me',
     googleRedirect: '/api/customer/auth/google/redirect',

@@ -100,6 +100,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function newsletterSubscribe(email) {
+    loading.value = true
+    error.value = null
+    try {
+      
+      const response = await api.post(API_ROUTES.auth.newsletter, email)
+      return response
+    } catch (err) {
+      error.value = handleApiError(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function googleLogin() {
     loading.value = true
     error.value = null
@@ -192,7 +207,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     // state
-    user, roles, permissions, loading, error, initialized,
+    user, roles, permissions, loading, error, initialized, newsletterSubscribe,
     // getters
     isAuthenticated, userName, userEmail, isEmailVerified,
     // actions
