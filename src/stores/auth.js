@@ -104,9 +104,10 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
-      
-      const response = await api.post(API_ROUTES.auth.newsletter, email)
-      return response
+      const response = await api.post(API_ROUTES.auth.newsletter, {
+        email: email
+      })
+      return response // toujours retourner data ici
     } catch (err) {
       error.value = handleApiError(err)
       throw err
