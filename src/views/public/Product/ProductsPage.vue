@@ -1,20 +1,24 @@
 <template>
   <div class="min-h-screen bg-gray-50 font-poppins">
     <!-- Hero Section -->
-    <section class="relative h-[400px] md:h-[500px] bg-gradient-to-r from-indigo-800 to-indigo-700 overflow-hidden">
+    <section class="relative h-[400px] md:h-[500px] bg-gradient-to-r from-indigo-800 to-indigo-700 overflow-hidden" aria-labelledby="boutique-heading">
       <div class="absolute inset-0 flex items-center justify-between px-8 md:px-16">
         <div class="text-white z-10">
-          <h1 class="text-5xl md:text-7xl font-light mb-2">L'élégance</h1>
-          <h1 class="text-5xl md:text-7xl font-light">dans la simplicité</h1>
+          <h1 id="boutique-heading" class="text-5xl md:text-7xl font-light mb-2">Boutique bylin</h1>
+          <p class="text-2xl md:text-3xl font-light opacity-90">L'élégance dans la simplicité au Bénin</p>
         </div>
         <div class="hidden md:block absolute right-0 bottom-0 h-full w-2/3">
           <img 
             src="@/assets/images/01.png" 
-            alt="Fashion model"
+            alt="Collection de vêtements bylin - Mode premium au Bénin"
             class="h-full w-full object-contain"
+            loading="lazy"
           />
         </div>
-        <button class="absolute bottom-8 right-8 w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/40 transition-colors">
+        <button 
+          class="absolute bottom-8 right-8 w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/40 transition-colors"
+          aria-label="Découvrir la boutique bylin"
+        >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
@@ -27,30 +31,38 @@
       <!-- Header with breadcrumb and results -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <!-- Breadcrumb -->
+          <!-- Breadcrumb avec microdonnées -->
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <nav class="flex" aria-label="Breadcrumb">
-              <ol class="flex items-center space-x-2 text-sm text-gray-500">
-                <li>
-                  <router-link to="/" class="hover:text-indigo-600 transition-colors duration-200">
-                    Accueil
+            <nav class="flex" aria-label="Fil d'Ariane">
+              <ol class="flex items-center space-x-2 text-sm text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
+                <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                  <router-link to="/" class="hover:text-indigo-600 transition-colors duration-200" itemprop="item">
+                    <span itemprop="name">Accueil</span>
                   </router-link>
+                  <meta itemprop="position" content="1" />
                 </li>
                 <li class="flex items-center">
                   <ChevronRight class="h-4 w-4 mx-2" />
-                  <router-link to="/shop" class="hover:text-indigo-600 transition-colors duration-200">
-                    Boutique
-                  </router-link>
+                </li>
+                <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                  <span class="text-gray-900 font-medium" itemprop="name">Boutique</span>
+                  <meta itemprop="position" content="2" />
                 </li>
               </ol>
             </nav>
           </div>
-          <h2 class="text-2xl font-semibold">{{ totalProducts }} résultat{{ totalProducts > 1 ? 's' : '' }} pour {{ selectedCategory ? getCategoryName(selectedCategory) : 'articles' }}</h2>
+          <h2 class="text-2xl font-semibold">
+            {{ totalProducts }} résultat{{ totalProducts > 1 ? 's' : '' }} 
+            <span v-if="selectedCategory">pour {{ getCategoryName(selectedCategory) }}</span>
+            <span v-else>pour nos vêtements bylin au Bénin</span>
+          </h2>
         </div>
         <div class="flex items-center gap-4 mt-4 md:mt-0">
           <button 
             @click="showFilters = !showFilters"
             class="md:hidden px-4 py-2 bg-[#0066bf] text-white rounded-lg"
+            :aria-expanded="showFilters"
+            aria-controls="filters-sidebar"
           >
             Filtres {{ activeFiltersCount > 0 ? `(${activeFiltersCount})` : '' }}
           </button>
@@ -60,16 +72,19 @@
       <div class="flex flex-col lg:flex-row gap-8">
         <!-- Sidebar Filters -->
         <aside 
+          id="filters-sidebar"
           :class="[
             'lg:w-64 bg-white rounded-lg p-6 shadow-sm',
             showFilters ? 'block' : 'hidden lg:block'
           ]"
+          aria-label="Filtres de produits"
         >
           <div class="flex items-center justify-between mb-6">
-            <h3 class="font-semibold text-lg">Filtrer</h3>
+            <h3 class="font-semibold text-lg">Filtrer les produits</h3>
             <button 
               @click="resetFilters"
               class="text-[#0066bf] text-sm hover:underline"
+              aria-label="Réinitialiser tous les filtres"
             >
               Réinitialiser
             </button>
@@ -80,6 +95,8 @@
             <button 
               @click="categoryOpen = !categoryOpen"
               class="w-full flex items-center justify-between py-3 border-b"
+              :aria-expanded="categoryOpen"
+              aria-controls="categories-list"
             >
               <span class="font-medium">Catégories</span>
               <svg 
@@ -91,7 +108,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div v-show="categoryOpen" class="mt-3 space-y-2 max-h-48 overflow-y-auto">
+            <div id="categories-list" v-show="categoryOpen" class="mt-3 space-y-2 max-h-48 overflow-y-auto">
               <div 
                 v-for="category in categories" 
                 :key="category.id"
@@ -100,6 +117,8 @@
                   'flex items-center gap-3 p-2 rounded cursor-pointer transition-colors',
                   selectedCategory === category.id ? 'bg-[#0066bf] text-white' : 'hover:bg-gray-100'
                 ]"
+                role="checkbox"
+                :aria-checked="selectedCategory === category.id"
               >
                 <span class="text-sm">{{ category.name }}</span>
               </div>
@@ -111,6 +130,8 @@
             <button 
               @click="brandOpen = !brandOpen"
               class="w-full flex items-center justify-between py-3 border-b"
+              :aria-expanded="brandOpen"
+              aria-controls="brands-list"
             >
               <span class="font-medium">Marques</span>
               <svg 
@@ -122,17 +143,20 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div v-show="brandOpen" class="mt-3 space-y-2 max-h-48 overflow-y-auto">
+            <div id="brands-list" v-show="brandOpen" class="mt-3 space-y-2 max-h-48 overflow-y-auto">
               <div 
                 v-for="brand in brands" 
                 :key="brand.id"
                 @click="selectedBrand = brand.id; applyBrandFilter()"
                 class="flex items-center gap-2 cursor-pointer"
+                role="checkbox"
+                :aria-checked="selectedBrand === brand.id"
               >
                 <input 
                   type="checkbox" 
                   :checked="selectedBrand === brand.id"
                   class="w-4 h-4 accent-[#0066bf]"
+                  :aria-label="`Filtrer par marque ${brand.name}`"
                 />
                 <span class="text-sm">{{ brand.name }}</span>
               </div>
@@ -144,8 +168,10 @@
             <button 
               @click="priceOpen = !priceOpen"
               class="w-full flex items-center justify-between py-3 border-b"
+              :aria-expanded="priceOpen"
+              aria-controls="price-filter"
             >
-              <span class="font-medium">Prix</span>
+              <span class="font-medium">Prix (XOF)</span>
               <svg 
                 :class="['w-5 h-5 transition-transform', priceOpen ? 'rotate-180' : '']"
                 fill="none" 
@@ -155,26 +181,28 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div v-show="priceOpen" class="mt-3 space-y-3">
+            <div id="price-filter" v-show="priceOpen" class="mt-3 space-y-3">
               <div class="flex gap-2">
                 <input 
                   v-model="priceRange.min"
                   type="number" 
                   placeholder="Min"
                   class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0066bf]"
+                  aria-label="Prix minimum en XOF"
                 />
                 <input 
                   v-model="priceRange.max"
                   type="number" 
                   placeholder="Max"
                   class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0066bf]"
+                  aria-label="Prix maximum en XOF"
                 />
               </div>
               <button 
                 @click="applyPriceFilter"
                 class="w-full py-2 bg-[#0066bf] text-white rounded-lg text-sm hover:bg-[#005cac] transition-colors"
               >
-                Appliquer
+                Appliquer le filtre prix
               </button>
             </div>
           </div>
@@ -184,6 +212,8 @@
             <button 
               @click="sizeOpen = !sizeOpen"
               class="w-full flex items-center justify-between py-3 border-b"
+              :aria-expanded="sizeOpen"
+              aria-controls="sizes-list"
             >
               <span class="font-medium">Taille</span>
               <svg 
@@ -195,7 +225,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div v-show="sizeOpen" class="mt-3 grid grid-cols-3 gap-2">
+            <div id="sizes-list" v-show="sizeOpen" class="mt-3 grid grid-cols-3 gap-2">
               <button
                 v-for="size in sizes"
                 :key="size.id"
@@ -206,6 +236,8 @@
                     ? 'bg-[#0066bf] text-white border-[#0066bf]' 
                     : 'bg-white text-gray-700 border-gray-300 hover:border-[#0066bf]'
                 ]"
+                :aria-pressed="isSizeSelected(size)"
+                :aria-label="`Filtrer par taille ${size.name}`"
               >
                 {{ size.name }}
               </button>
@@ -217,6 +249,8 @@
             <button 
               @click="colorOpen = !colorOpen"
               class="w-full flex items-center justify-between py-3 border-b"
+              :aria-expanded="colorOpen"
+              aria-controls="colors-list"
             >
               <span class="font-medium">Couleur</span>
               <svg 
@@ -228,7 +262,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div v-show="colorOpen" class="mt-3 flex flex-wrap gap-2">
+            <div id="colors-list" v-show="colorOpen" class="mt-3 flex flex-wrap gap-2">
               <button
                 v-for="color in colors"
                 :key="color.id"
@@ -240,14 +274,15 @@
                     : 'border-gray-300'
                 ]"
                 :style="{ backgroundColor: color.hex_code }"
-                :title="color.name"
+                :aria-label="`Filtrer par couleur ${color.name}`"
+                :aria-pressed="isColorSelected(color)"
               />
             </div>
           </div>
         </aside>
 
         <!-- Products Grid -->
-        <main class="flex-1">
+        <main class="flex-1" aria-label="Liste des produits">
           <!-- Toolbar -->
           <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-lg shadow-sm">
             <div class="flex items-center gap-2">
@@ -257,6 +292,8 @@
                   'p-2 rounded',
                   viewGrid ? 'bg-[#0066bf] text-white' : 'text-gray-600 hover:bg-gray-100'
                 ]"
+                aria-label="Vue en grille"
+                :aria-pressed="viewGrid"
               >
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/>
@@ -268,6 +305,8 @@
                   'p-2 rounded',
                   !viewGrid ? 'bg-[#0066bf] text-white' : 'text-gray-600 hover:bg-gray-100'
                 ]"
+                aria-label="Vue en liste"
+                :aria-pressed="!viewGrid"
               >
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/>
@@ -279,6 +318,8 @@
               <button 
                 @click="sortDropdownOpen = !sortDropdownOpen"
                 class="flex items-center gap-2 px-4 py-2 border rounded-lg hover:border-[#0066bf] transition-colors"
+                :aria-expanded="sortDropdownOpen"
+                aria-haspopup="true"
               >
                 <span class="text-sm">Trier par: {{ selectedSort.label }}</span>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,6 +329,7 @@
               <div 
                 v-show="sortDropdownOpen"
                 class="absolute right-0 mt-2 w-56 bg-white border rounded-lg shadow-lg z-10"
+                role="menu"
               >
                 <button
                   v-for="option in filters.sort_options"
@@ -297,6 +339,8 @@
                     'w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors',
                     selectedSort.value === option.value ? 'bg-blue-50 text-[#0066bf]' : ''
                   ]"
+                  role="menuitem"
+                  :aria-current="selectedSort.value === option.value"
                 >
                   {{ option.label }}
                 </button>
@@ -305,38 +349,40 @@
           </div>
 
           <!-- Loading State -->
-          <div v-if="loading" class="flex justify-center items-center h-64">
+          <div v-if="loading" class="flex justify-center items-center h-64" aria-live="polite" aria-label="Chargement des produits">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0066bf]"></div>
           </div>
 
           <!-- Products Grid/List -->
-          <div v-else="products && products.length > 0">
+          <div v-else-if="products && products.length > 0">
             <!-- Grid View -->
-            <div v-if="viewGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+            <div v-if="viewGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6" role="list" aria-label="Produits en vue grille">
               <ProductCard 
                 v-for="product in paginatedProducts" 
                 :key="`page-${currentPage}-product-${product.id}`"
                 :product="product"
                 @add-to-cart="addToCart"
                 @add-to-wishlist="addToWishlist"
+                role="listitem"
               />
             </div>
             
             <!-- List View -->
-            <div v-else class="space-y-6">
+            <div v-else class="space-y-6" role="list" aria-label="Produits en vue liste">
               <ProductListItem 
                 v-for="product in paginatedProducts" 
                 :key="product.id"
                 :product="product"
                 @add-to-cart="addToCart"
                 @add-to-wishlist="addToWishlist"
+                role="listitem"
               />
             </div>
           </div>
           
           <!-- No Results -->
-          <div v-if="!loading && filteredProducts.length === 0" class="text-center py-16">
-            <p class="text-gray-500 text-lg">Aucun produit trouvé</p>
+          <div v-if="!loading && filteredProducts.length === 0" class="text-center py-16" aria-live="polite">
+            <p class="text-gray-500 text-lg">Aucun produit trouvé avec ces critères de recherche</p>
             <button 
               @click="resetFilters"
               class="mt-4 px-6 py-2 bg-[#0066bf] text-white rounded-lg hover:bg-[#005cac] transition-colors"
@@ -346,7 +392,7 @@
           </div>
 
           <!-- Pagination -->
-          <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-8">
+          <nav v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-8" aria-label="Pagination des produits">
             <button 
               @click="prevPage"
               :disabled="currentPage === 1"
@@ -356,6 +402,8 @@
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                   : 'bg-white border hover:bg-[#0066bf] hover:text-white'
               ]"
+              aria-label="Page précédente"
+              :aria-disabled="currentPage === 1"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -374,6 +422,8 @@
                     ? 'cursor-default' 
                     : 'bg-white border hover:bg-[#0066bf] hover:text-white'
               ]"
+              :aria-label="page === '...' ? 'Plus de pages' : `Page ${page}`"
+              :aria-current="page === currentPage ? 'page' : null"
             >
               {{ page }}
             </button>
@@ -387,31 +437,46 @@
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                   : 'bg-white border hover:bg-[#0066bf] hover:text-white'
               ]"
+              aria-label="Page suivante"
+              :aria-disabled="currentPage === totalPages"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
-          </div>
+          </nav>
         </main>
       </div>
     </div>
 
-    <!-- <ProductVariantModal
-      :product="product"
-      :is-open="showVariantModal"
-      @close="showVariantModal = false"
-      @added="onProductAdded"
-    /> -->
-
     <!-- Toast de notification -->
-    <div v-if="showToast" class="fixed bottom-4 right-4 z-50">
+    <div v-if="showToast" class="fixed bottom-4 right-4 z-50" role="alert" aria-live="polite">
       <div class="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
         <span>{{ toastMessage }}</span>
       </div>
+    </div>
+
+    <!-- Section SEO textuelle cachée -->
+    <div class="sr-only" aria-hidden="true">
+      <h2>Boutique bylin - Vêtements Premium au Bénin</h2>
+      <p>
+        Découvrez la boutique en ligne bylin, votre destination mode premium au Bénin. 
+        Parcourez notre large sélection de vêtements pour homme et femme, 
+        alliant qualité exceptionnelle et style contemporain. 
+        Filtrez par catégorie, taille, couleur et prix pour trouver 
+        les pièces parfaites à Cotonou et dans tout le Bénin.
+      </p>
+      <h3>Nos catégories de produits :</h3>
+      <ul>
+        <li>Vêtements pour homme</li>
+        <li>Vêtements pour femme</li>
+        <li>Accessoires mode</li>
+        <li>Collections saisonnières</li>
+        <li>Pièces exclusives bylin</li>
+      </ul>
     </div>
   </div>
 </template>
@@ -441,7 +506,6 @@ const brands = ref([{ id: null, name: 'Toutes les marques' }])
 const loading = ref(true)
 
 const showVariantModal = ref(false)
-
 
 const filters = ref({
   sort_options: [
@@ -601,7 +665,7 @@ const selectCategory = (categoryId) => {
 }
 
 const getCategoryName = (id) => {
-  return categories.value.find(c => c.id === id)?.name || 'clothes'
+  return categories.value.find(c => c.id === id)?.name || 'vêtements bylin'
 }
 
 const toggleColor = (color) => {

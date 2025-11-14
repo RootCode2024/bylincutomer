@@ -1,8 +1,8 @@
-<!-- src/layouts/PublicLayout.vue -->
 <template>
   <div class="public-layout">
+    <SeoHead />
+
     <header class="bg-white">
-      <!-- header commun public -->
       <NavBarComponent />
     </header>
 
@@ -12,16 +12,14 @@
 
     <footer>
       <FooterComponent />
-
     </footer>
   </div>
 </template>
 
 <script setup>
-import FooterComponent from './Public/FooterComponent.vue';
-import NavBarComponent from './Public/NavBarComponent.vue';
-
-// Pas forcément besoin de script ici pour un layout simple
+import FooterComponent from './Public/FooterComponent.vue'
+import NavBarComponent from './Public/NavBarComponent.vue'
+import SeoHead from '@/components/seo/SeoHead.vue'
 </script>
 
 <style scoped>

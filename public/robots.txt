@@ -1,4 +1,15 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /admin/
 
+# Sitemaps
+# Sitemap: https://bylin-style.com/sitemap-index.xml
 Sitemap: https://bylin-style.com/sitemap.xml
+# Sitemap: https://bylin-style.com/sitemap-products.xml
+# Sitemap: https://bylin-style.com/sitemap-categories.xml
+
+# Crawl delay pour éviter de surcharger le serveur
+Crawl-delay: 1

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+>
+  <!-- Exemple de produit -->
+  <url>
+    <loc>https://bylin-style.com/product/chemise-premium-cotonou</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://bylin-style.com/images/chemise-premium.jpg</image:loc>
+      <image:title>Chemise Premium bylin - Mode Bénin</image:title>
+      <image:caption>Chemise premium de la marque bylin disponible à Cotonou</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Ajoutez tous vos produits ici -->
+</urlset>
